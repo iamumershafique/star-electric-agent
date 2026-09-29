@@ -18,6 +18,7 @@ import {
 import { getActiveGeminiApiKey, generateWithFallback } from '../lib/gemini';
 import { GoogleGenAI } from '@google/genai';
 import { runOllamaDatabaseAudit, type OllamaAuditResult } from '../lib/ollama';
+import { ScanImportPanel } from './ScanImportPanel';
 import { getOllamaSettings } from '../lib/storage';
 
 const normalizeDuplicateReference = (value: string | undefined): string => {
@@ -621,6 +622,8 @@ Keep response practical, bulleted, and structured with clear sections.
           </div>
         </div>
       )}
+
+      <ScanImportPanel />
 
       <section className="bg-white border-2 border-emerald-200 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

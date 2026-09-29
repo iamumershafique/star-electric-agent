@@ -191,6 +191,10 @@ export interface GeminiBuiltyExtractionResult {
 export interface BuiltyPreviewInfo {
   url: string;
   title: string;
+  /** Which stored scan to fall back to when url is missing or fails to load. */
+  scanType?: 'pr' | 'dc' | 'builty';
+  scanRef?: string;
+  prNumber?: string;
   dcNumber?: string;
   biltyNumber?: string;
   addaName?: string;

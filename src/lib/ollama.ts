@@ -17,7 +17,7 @@ import type {
 import { normalizeBrand } from './utils';
 import { getOllamaSettings, type OllamaSettings } from './storage';
 import { DocumentClassificationError, type DCFileInput, type PRFileInput } from './gemini';
-import { getImageFromMemory } from './imageStorage';
+import { getImageFromMemory, resolveScanReference } from './imageStorage';
 
 type JsonObject = Record<string, unknown>;
 type ProgressHandler = (progress: {
@@ -548,8 +548,7 @@ function normalizeReference(value: string): string {
 }
 
 async function resolveAuditImage(record: AuditRecord): Promise<void> {
-  let image = record.documentImage;
-  if (image?.startsWith('indexeddb:')) image = undefined;
+  let image = await resolveScanReference(record.documentImage);
   if (!image) {
     const kind = record.kind.toLowerCase() as 'pr' | 'dc';
     image = await getImageFromMemory(kind, record.recordNumber) || await getImageFromMemory(kind, record.id);
