@@ -80,7 +80,12 @@ async function withOllamaFirst<T>(
         fileName: fileName(files[index], index),
         status: `Local model failed (${reason.slice(0, 120)}). Retrying with Gemini...`
       });
-      results.push(...await viaGemini([files[index]]));
+      try {
+        results.push(...await viaGemini([files[index]]));
+      } catch (geminiError) {
+        const geminiReason = geminiError instanceof Error ? geminiError.message : String(geminiError);
+        throw new Error(`${fileName(files[index], index)}: local Ollama failed (${reason}) and the Gemini fallback also failed (${geminiReason}).`);
+      }
     }
   }
   return results;
