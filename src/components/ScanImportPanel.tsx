@@ -7,18 +7,25 @@ import { compressScanForCloud } from '../lib/scanCompression';
 import { recordDocId, saveScanToCloud, setScanReferencesInCloud } from '../lib/firestoreService';
 import { getAllStoredImages, saveImageToMemory } from '../lib/imageStorage';
 
-type Target = { kind: 'pr' | 'dc'; id: string; label: string };
+type Target = { kind: 'pr' | 'dc' | 'builty'; id: string; label: string };
 type Row = { file: File; path: string; targets: Target[]; manual: string; status: 'pending' | 'done' | 'error' | 'skipped'; error?: string };
 
-const labelFor = (kind: 'pr' | 'dc', number: string) =>
-  /^\s*(dc|pr)\b/i.test(number) ? number.trim() : `${kind.toUpperCase()} ${number.trim()}`;
+const labelFor = (kind: 'pr' | 'dc' | 'builty', number: string) => {
+  const base = /^\s*(dc|pr)\b/i.test(number) ? number.trim() : `${kind === 'pr' ? 'PR' : 'DC'} ${number.trim()}`;
+  return kind === 'builty' ? `Builty for ${base}` : base;
+};
 
 const digits = (value: string | undefined) => (value || '').replace(/\D/g, '').replace(/^0+(?=\d)/, '');
 
-function detect(path: string): { kind: 'pr' | 'dc'; number: string } | null {
+function detect(path: string): { kind: 'pr' | 'dc' | 'builty'; number: string } | null {
   const name = path.split('/').pop() || path;
+  const isBuilty = /bu?ilty|bilti/i.test(path);
   const dc = name.match(/\bD\.?\s*C\.?[\s._#-]*(\d{1,6})\b/i);
-  if (dc) return { kind: 'dc', number: digits(dc[1]) };
+  if (dc) return { kind: isBuilty ? 'builty' : 'dc', number: digits(dc[1]) };
+  if (isBuilty) {
+    const bareBuilty = name.match(/^0*(\d{1,6})\.[a-z]+$/i);
+    return bareBuilty ? { kind: 'builty', number: digits(bareBuilty[1]) } : null;
+  }
   const pr = name.match(/\bP\.?\s*R\.?[\s._#-]*(?:PK)?(\d{1,10})\b/i);
   if (pr) return { kind: 'pr', number: digits(pr[1]) };
   const bare = name.match(/^0*(\d{1,6})\.[a-z]+$/i);
@@ -61,7 +68,7 @@ export const ScanImportPanel: React.FC = () => {
       const path = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
       const found = detect(path);
       let targets: Target[] = [];
-      if (found?.kind === 'dc') targets = (index.dcByNumber.get(found.number) || []).map(dc => ({ kind: 'dc', id: dc.id, label: labelFor('dc', dc.dcNumber) }));
+      if (found?.kind === 'dc' || found?.kind === 'builty') { const kind = found.kind; targets = (index.dcByNumber.get(found.number) || []).map(dc => ({ kind, id: dc.id, label: labelFor(kind, dc.dcNumber) })); }
       if (found?.kind === 'pr') targets = (index.prByNumber.get(found.number) || []).map(pr => ({ kind: 'pr', id: pr.id, label: labelFor('pr', pr.prNumber) }));
       return { file, path, targets, manual: '', status: 'pending' };
     }));
@@ -76,7 +83,7 @@ export const ScanImportPanel: React.FC = () => {
       const exact = index.byLabel.get(typed);
       if (exact) return [exact];
       const found = detect(typed);
-      if (found?.kind === 'dc') return (index.dcByNumber.get(found.number) || []).map(dc => ({ kind: 'dc' as const, id: dc.id, label: labelFor('dc', dc.dcNumber) }));
+      if (found?.kind === 'dc' || found?.kind === 'builty') { const kind = found.kind; return (index.dcByNumber.get(found.number) || []).map(dc => ({ kind, id: dc.id, label: labelFor(kind, dc.dcNumber) })); }
       if (found?.kind === 'pr') return (index.prByNumber.get(found.number) || []).map(pr => ({ kind: 'pr' as const, id: pr.id, label: labelFor('pr', pr.prNumber) }));
       return [];
     }
@@ -85,19 +92,24 @@ export const ScanImportPanel: React.FC = () => {
 
   const matchedCount = rows.filter(row => targetsFor(row).length > 0).length;
 
-  const recordFor = (target: Target) => target.kind === 'dc'
+  const recordFor = (target: Target) => target.kind !== 'pr'
     ? dcs.find(dc => dc.id === target.id)
     : prs.find(pr => pr.id === target.id);
 
   const uploadOne = async (dataUrl: string, target: Target, fileName: string) => {
     const record = recordFor(target);
     if (!record) throw new Error(`${target.label} no longer exists.`);
-    const number = target.kind === 'dc' ? (record as DCRecord).dcNumber : (record as PRRecord).prNumber;
+    const number = target.kind !== 'pr' ? (record as DCRecord).dcNumber : (record as PRRecord).prNumber;
     const key = normalizeImageKey(target.kind, number || record.id);
     const compressed = await compressScanForCloud(dataUrl);
     await saveScanToCloud(key, { type: target.kind, referenceNumber: number || record.id, dataUrl: compressed, fileName, updatedAt: Date.now() });
     await saveImageToMemory(target.kind, number || record.id, compressed, { referenceNumber: number, fileName, skipCloud: true });
-    return { kind: target.kind, docId: recordDocId(record), field: 'documentImage' as const, reference: `indexeddb:${key}` };
+    return {
+      kind: target.kind === 'pr' ? 'pr' as const : 'dc' as const,
+      docId: recordDocId(record),
+      field: target.kind === 'builty' ? 'builtyImage' as const : 'documentImage' as const,
+      reference: `indexeddb:${key}`
+    };
   };
 
   const handleUpload = async () => {
@@ -130,20 +142,19 @@ export const ScanImportPanel: React.FC = () => {
   const handleUploadBrowserScans = async () => {
     setIsUploading(true);
     setMessage(null);
-    const stored = (await getAllStoredImages()).filter(item => item.dataUrl?.startsWith('data:') && item.type !== 'builty');
+    const stored = (await getAllStoredImages()).filter(item => item.dataUrl?.startsWith('data:'));
     setProgress({ done: 0, total: stored.length });
     const refs: Parameters<typeof setScanReferencesInCloud>[0] = [];
     let uploaded = 0;
     for (let n = 0; n < stored.length; n++) {
       const item = stored[n];
       const number = digits(item.referenceNumber);
-      const target = item.type === 'dc'
+      const target = item.type !== 'pr'
         ? (index.dcByNumber.get(number) || [])[0]
         : (index.prByNumber.get(number) || [])[0];
       if (target) {
         try {
-          const kind = item.type as 'pr' | 'dc';
-          refs.push(await uploadOne(item.dataUrl, { kind, id: target.id, label: item.referenceNumber }, item.fileName || item.id));
+          refs.push(await uploadOne(item.dataUrl, { kind: item.type, id: target.id, label: item.referenceNumber }, item.fileName || item.id));
           uploaded++;
         } catch (error) {
           console.warn('[ScanImport] Browser scan upload failed', item.id, error);
@@ -164,7 +175,7 @@ export const ScanImportPanel: React.FC = () => {
           Import DC &amp; PR Scans to the Cloud
         </h3>
         <p className="mt-1 text-xs text-slate-600">
-          Download your Google Drive scan folders to this PC, then select them here. Files named like "DC 664.jpg" or "PR-139.jpg" are matched automatically; assign the rest by hand. Scans are compressed and stored in Firestore so they open on every logged-in device.
+          Download your Google Drive scan folders to this PC, then select them here. Select the whole downloaded folder: files named like "DC 664.jpg" or "PR-139.jpg" are matched automatically, and files inside "Builty Scan" are attached as that DC's builty. Assign the rest by hand. Scans are compressed and stored in Firestore so they open on every logged-in device.
         </p>
       </div>
 
