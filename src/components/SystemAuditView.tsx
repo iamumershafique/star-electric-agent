@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { performSystemAudit, AuditIssue } from '../lib/systemAudit';
+import { performSystemAudit } from '../lib/systemAudit';
 import { 
   AlertTriangle, 
   CheckCircle2, 
   ShieldAlert, 
-  Search, 
   ArrowRight, 
   RefreshCw,
   FileWarning,
@@ -13,7 +12,7 @@ import {
 } from 'lucide-react';
 
 export const SystemAuditView: React.FC = () => {
-  const { prs, dcs, setActiveTab } = useApp();
+  const { prs, dcs } = useApp();
   
   const auditResults = useMemo(() => performSystemAudit(prs, dcs), [prs, dcs]);
   const criticalCount = auditResults.filter(i => i.severity === 'CRITICAL').length;

@@ -1,4 +1,4 @@
-import { PRRecord, DCRecord } from '../types';
+import type { PRRecord, DCRecord } from '../types';
 
 export interface ExportOptions {
   siteFilter?: string;
@@ -48,7 +48,7 @@ export function convertDCsToCSV(dcs: DCRecord[], options?: ExportOptions): strin
       dc.prNumber,
       `"${dc.siteName}"`,
       dc.date,
-      dc.transportType,
+      dc.transportType ?? '',
       `"${dc.remarks || ''}"`
     ]);
   });

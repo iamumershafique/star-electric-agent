@@ -68,7 +68,7 @@ interface ScannedDCDraft {
     const longer = s1.length > s2.length ? s1 : s2;
     const shorter = s1.length > s2.length ? s2 : s1;
     if (longer.length === 0) return 1.0;
-    return (longer.length - editDistance(longer, shorter)) / parseFloat(longer.length);
+    return (longer.length - editDistance(longer, shorter)) / longer.length;
   };
 
   const editDistance = (s1: string, s2: string) => {
@@ -78,7 +78,7 @@ interface ScannedDCDraft {
       for (let j = 0; j <= s2.length; j++) {
         if (i === 0) costs[j] = j;
         else if (j > 0) {
-          let newValue = costs[j - 1];
+          let newValue: number = costs[j - 1];
           if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
             newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
           }
@@ -495,7 +495,7 @@ export const DCUploadModal: React.FC = () => {
     }
 
     // Validation: Check if any shipped quantity exceeds the remaining requested quantity
-    const overshippedItems = currentDraft.items.filter(it => it.shippedQty > it.maxRemaining && it.selectedPrId !== '');
+    const overshippedItems = currentDraft.items.filter(it => it.shippedQty > it.maxRemaining && currentDraft.selectedPrId !== '');
     if (overshippedItems.length > 0) {
       const itemNames = overshippedItems.map(it => it.name).join(', ');
       if (!window.confirm(`Warning: The following items exceed the remaining requested quantity: ${itemNames}. Do you want to proceed anyway?`)) {

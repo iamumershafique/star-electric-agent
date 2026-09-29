@@ -928,9 +928,6 @@ export async function processDCWithGemini(
 
 // 3. Process Goods Delivered Builty / Bilty Receipts (Supports Single or Batch Uploads)
 export async function processBuiltyWithGemini(
-
-// 3. Process Goods Delivered Builty / Bilty Receipts (Supports Single or Batch Uploads)
-export async function processBuiltyWithGemini(
   base64Images: DCFileInput | DCFileInput[],
   apiKey?: string
 ): Promise<GeminiBuiltyExtractionResult[]> {

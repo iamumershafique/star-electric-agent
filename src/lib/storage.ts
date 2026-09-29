@@ -1,7 +1,13 @@
 import type { PRRecord, DCRecord, DriveVerifiedDCUpdate, DriveVerifiedPRFulfillmentUpdate, FulfillmentLog, LineItem, BrandCategory, GeminiBuiltyExtractionResult } from '../types';
 import { computeItemStatus, computePRStatus, cleanApiKey, normalizePRNumber, hasPRNumber, normalizeSiteName } from './utils';
-import { JADEED_HISTORY_DCS, JADEED_FARM_SITES } from '../data/jadeedHistoryData';
-import { JADEED_DRIVE_BULTIES, JADEED_DRIVE_DC_LEDGER, JADEED_DRIVE_DC_SCANS, JADEED_DRIVE_SCAN_PR_VERIFICATIONS } from '../data/jadeedDriveImport';
+// Jadeed seed data removed from the bundle (kept in scratch/jadeed-data, to be imported into Firestore).
+// Seeding below only ran in dev (seedImportsEnabled); these empty stubs keep it compiling.
+const JADEED_HISTORY_DCS: any[] = [];
+const JADEED_FARM_SITES: any[] = [];
+const JADEED_DRIVE_BULTIES: any[] = [];
+const JADEED_DRIVE_DC_LEDGER: any[] = [];
+const JADEED_DRIVE_DC_SCANS: any[] = [];
+const JADEED_DRIVE_SCAN_PR_VERIFICATIONS: any[] = [];
 import { 
   saveImageToMemory, 
   removeImageFromMemory,
@@ -275,7 +281,7 @@ export function getPRs(): PRRecord[] {
       );
       if (!verification) return pr;
 
-      const confirmedItemNames = new Set(verification.matchedPRItemNames.map(name =>
+      const confirmedItemNames = new Set(verification.matchedPRItemNames.map((name: string) =>
         name.toLowerCase().replace(/[^a-z0-9]/g, '')
       ));
       const retainedLogs = (pr.fulfillmentLogs || []).filter(log => {

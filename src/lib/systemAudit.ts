@@ -1,4 +1,4 @@
-import { PRRecord, DCRecord } from '../types';
+import type { PRRecord, DCRecord } from '../types';
 
 export interface AuditIssue {
   id: string;

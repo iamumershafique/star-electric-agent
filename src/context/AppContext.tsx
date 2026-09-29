@@ -66,6 +66,8 @@ interface AppContextType {
   sites: SiteLocation[];
   activeTab: NavigationTab | 'system-audit';
   setActiveTab: (tab: NavigationTab | 'system-audit') => void;
+  isExportOpen: boolean;
+  setIsExportOpen: (open: boolean) => void;
 
   // Search & Filters
   searchQuery: string;

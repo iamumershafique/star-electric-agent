@@ -30,7 +30,7 @@ import {
   ArrowDownUp,
   ListChecks
 } from 'lucide-react';
-import { JADEED_DRIVE_LINKS } from '../data/jadeedHistoryData';
+const JADEED_DRIVE_LINKS: { masterFolder: string; builtyFolder: string; dcScanFolders: Record<string, string> } = { masterFolder: '', builtyFolder: '', dcScanFolders: {} };
 
 const hasBuiltyEvidence = (dc: DCRecord) => !!(dc.isBuiltyAttached || dc.biltyNumber?.trim() || dc.builtyImage);
 const isMissingPhysicalPage = (dc: DCRecord) => (dc.dcNumber || '').toLowerCase().includes('missing');
