@@ -13,6 +13,7 @@ import {
   processDCWithOllama,
   processDocumentWithOllama
 } from './ollama';
+import { normalizeDCResult } from './dcLayout';
 import type {
   GeminiBuiltyExtractionResult,
   GeminiDCExtractionResult,
@@ -108,7 +109,8 @@ export function processDCWithAI(
   const list = Array.isArray(files) ? files : [files];
   return withOllamaFirst(list, geminiApiKey, onProgress,
     (file, index) => processDCWithOllama(file, perFileProgress(onProgress, index, list.length), knownPRMemory),
-    batch => processDCWithGemini(batch, geminiApiKey, onProgress, knownPRMemory));
+    batch => processDCWithGemini(batch, geminiApiKey, onProgress, knownPRMemory))
+    .then(results => results.map(normalizeDCResult));
 }
 
 export function processBuiltyWithAI(

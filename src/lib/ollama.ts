@@ -18,6 +18,7 @@ import { normalizeBrand } from './utils';
 import { getOllamaSettings, type OllamaSettings } from './storage';
 import { DocumentClassificationError, type DCFileInput, type PRFileInput } from './gemini';
 import { getImageFromMemory, resolveScanReference } from './imageStorage';
+import { STAR_DC_LAYOUT_GUIDE } from './dcLayout';
 
 type JsonObject = Record<string, unknown>;
 type ProgressHandler = (progress: {
@@ -348,6 +349,7 @@ function parsePRResults(parsed: JsonObject, fileName: string): GeminiExtractionR
 function buildDCPrompt(fileName: string, knownPRMemory?: string): string {
   return `You are extracting data from a Delivery Challan for Star Electric Enterprises.
 Classify by the printed heading: DELIVERY_CHALLAN only when the page itself says Delivery Challan, Delivery Note, or Challan. If it is a Purchase Requisition, return PURCHASE_REQUISITION; unrelated documents are OTHER; unreadable type is UNCLEAR.
+${STAR_DC_LAYOUT_GUIDE}
 ${knownPRMemory ? `Existing PR register for validating a PR reference only (never use it to infer one):\n${knownPRMemory}\n` : ''}
 Read the printed DC number, invoice number, date, destination/site, driver, vehicle, remarks, and every shipped item with quantity and unit. Set invoiceNumber equal to dcNumber only when the document shows they are the same. Set prNumber only when the challan visibly shows an explicit PR reference; otherwise use an empty string. Never infer or create a PR from site, item, date, or filename.
 Return JSON with documentType and deliveryChallans array. Each entry contains dcNumber, invoiceNumber, prNumber, date (YYYY-MM-DD or empty), siteName, driverName, vehicleNumber, remarks, shippedItems (itemName, brand, quantityShipped, unit), confidence (0 to 1), and rawAnalysis.

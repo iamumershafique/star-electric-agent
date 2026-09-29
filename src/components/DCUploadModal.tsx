@@ -296,7 +296,9 @@ export const DCUploadModal: React.FC = () => {
       // Duplicate check for extracted DCs
       const duplicateDCs = results.filter(res => {
         const dcNum = res.dcNumber?.trim().toUpperCase();
-        return dcNum && dcs.some(existing => existing.dcNumber.toUpperCase() === dcNum);
+        const digitsOnly = (value: string) => value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+        return dcNum && dcs.some(existing => existing.dcNumber.toUpperCase() === dcNum ||
+          (digitsOnly(existing.dcNumber) !== '' && digitsOnly(existing.dcNumber) === digitsOnly(dcNum)));
       });
 
       if (duplicateDCs.length > 0) {

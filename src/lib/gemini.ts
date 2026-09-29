@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { STAR_DC_LAYOUT_GUIDE } from './dcLayout';
 import type { GeminiExtractionResult, GeminiDCExtractionResult, GeminiBuiltyExtractionResult } from '../types';
 import { normalizeBrand, cleanApiKey } from './utils';
 
@@ -703,6 +704,8 @@ DOCUMENT TYPE MUST BE CLASSIFIED FROM THE PRINTED DOCUMENT:
 - Do not classify a document as a challan based only on its filename, handwritten PR reference, items, or signature.
 
 ${knownPRMemory ? `KNOWN PR REGISTER FOR REFERENCE VALIDATION ONLY:\n${knownPRMemory}\nUse this list only to VALIDATE an explicitly visible, handwritten PR number. Never assign or guess a PR number based on site, date, item similarity, or context.` : ''}
+
+${STAR_DC_LAYOUT_GUIDE}
 
 MANDATORY OCR EXTRACTION RULES:
 1. DC NUMBER (STRICT):
