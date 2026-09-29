@@ -45,8 +45,20 @@ Before making the app available:
 
 Do not publish the app until all five steps are complete. The normal deploy command is blocked unless the data-release approval flag is explicitly set. Firestore data is restricted to authenticated users by [firestore.rules](./firestore.rules).
 
-## Claude PR/DC database audit
+## Local AI with Ollama (OCR and PR/DC audit)
 
-An administrator can configure an Anthropic Claude API key or an AgentRouter token in Portal Settings and run **Claude Full PR/DC Audit** from **AI Assistant → Overview & AI Audit**. AgentRouter takes precedence when configured and uses its OpenAI-compatible chat completions endpoint with the exact vision-capable model ID entered in Settings. AgentRouter supports image scans in this audit; PDF scans are reported but not sent through this endpoint. Record details and scans are sent to AgentRouter and may be forwarded to the selected provider; charges use the AgentRouter account. Direct Anthropic uses Claude Haiku 4.5. The lower-cost model can miss details, so verify findings against original documents. API usage may incur charges. Keys are kept in that browser's local storage; do not use shared devices.
+PR, DC and builty scans are read by a vision model running in Ollama on the user's own PC. Gemini is used only as a fallback when Ollama is disabled, unreachable, times out, or cannot read a scan. OpenAI, Anthropic Claude and AgentRouter support has been removed; any keys previously saved for them are deleted from the browser on the next load.
 
-The audit is read-only. It reports document types, printed references, and discrepancies. A DC-to-PR suggestion is offered only when the scan is classified as a delivery challan, Claude reads a PR number explicitly printed on it, that number exactly matches one unambiguous PR in the portal, and model confidence is at least 80%. Review the original scan and explicitly approve each suggestion before it changes the portal. Missing/unavailable scans and uncertain classifications are reported rather than guessed. Do not treat model findings as verified accounting records.
+One-time setup on each PC that will scan documents (Windows):
+
+1. Install Ollama from ollama.com.
+2. Pull the vision model: `ollama pull qwen2.5vl:3b` (CPU-only PCs). With an NVIDIA GPU of 8 GB or more, `qwen2.5vl:7b` is more accurate.
+3. Allow the portal to call Ollama, then quit Ollama from the tray and start it again:
+   `setx OLLAMA_ORIGINS "https://star-agent-jpf.web.app,http://localhost:5173"`
+4. In the portal, open **Settings → Local Ollama**, tick **Use Ollama**, and click **Save & Test Connection**. If Chrome asks to allow access to devices on the local network, allow it.
+
+Ollama only serves the browser on the same PC. Staff on other PCs fall back to Gemini unless they run Ollama too.
+
+On a CPU-only PC expect roughly 40–90 seconds per scan. PDFs are rendered to images in the browser (first 3 pages) before they are sent to the model.
+
+**Local PR/DC document audit** (AI Assistant → Overview & AI Audit) compares saved records with their attached scans, one scan per request. Choose a scope (unlinked DCs, a date range, or everything); records without a scan are reported without calling the model, and a run can be stopped at any time with the results so far kept. The audit is read-only. A DC-to-PR link is proposed only when the scan is classified as a delivery challan, a PR number is explicitly printed on it, that number exactly matches one PR in the portal, and model confidence is at least 80%. Review the original scan and approve each proposal before it changes the portal. Small local models miss details, so verify findings against the original documents.

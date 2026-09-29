@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   Sparkles, 
@@ -17,8 +17,8 @@ import {
 } from 'lucide-react';
 import { getActiveGeminiApiKey, generateWithFallback } from '../lib/gemini';
 import { GoogleGenAI } from '@google/genai';
-import { runClaudeDatabaseAudit, type ClaudeAuditResult } from '../lib/claude';
-import { getAgentRouterApiKey, getAgentRouterModel, getClaudeApiKey } from '../lib/storage';
+import { runOllamaDatabaseAudit, type OllamaAuditResult } from '../lib/ollama';
+import { getOllamaSettings } from '../lib/storage';
 
 const normalizeDuplicateReference = (value: string | undefined): string => {
   const normalized = String(value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
@@ -60,50 +60,71 @@ export const GeminiDiagnosticsView: React.FC = () => {
   // Gemini AI live audit state
   const [isAiAuditing, setIsAiAuditing] = useState(false);
   const [aiAuditReport, setAiAuditReport] = useState<string | null>(null);
-  const [isClaudeAuditing, setIsClaudeAuditing] = useState(false);
-  const [claudeAuditProgress, setClaudeAuditProgress] = useState({ current: 0, total: 0 });
-  const [claudeAuditResult, setClaudeAuditResult] = useState<ClaudeAuditResult | null>(null);
-  const [claudeAuditError, setClaudeAuditError] = useState<string | null>(null);
-  const [claudeConsent, setClaudeConsent] = useState(false);
-  const [appliedClaudeSuggestionIds, setAppliedClaudeSuggestionIds] = useState<string[]>([]);
+  const [isLocalAuditing, setIsLocalAuditing] = useState(false);
+  const [localAuditProgress, setLocalAuditProgress] = useState({ current: 0, total: 0, label: '' });
+  const [localAuditResult, setLocalAuditResult] = useState<OllamaAuditResult | null>(null);
+  const [localAuditError, setLocalAuditError] = useState<string | null>(null);
+  const [appliedLocalSuggestionIds, setAppliedLocalSuggestionIds] = useState<string[]>([]);
+  const [auditScope, setAuditScope] = useState<'unlinked-dcs' | 'date-range' | 'all'>('unlinked-dcs');
+  const [auditFrom, setAuditFrom] = useState('');
+  const [auditTo, setAuditTo] = useState('');
+  const auditAbortRef = useRef<AbortController | null>(null);
 
   const showFeedback = (msg: string) => {
     setActionFeedback(msg);
     setTimeout(() => setActionFeedback(null), 4000);
   };
 
-  const agentRouterKeyConfigured = Boolean(getAgentRouterApiKey());
-  const agentRouterConfigured = agentRouterKeyConfigured && Boolean(getAgentRouterModel());
-  const claudeKeyConfigured = agentRouterKeyConfigured ? agentRouterConfigured : Boolean(getClaudeApiKey());
-  const claudeProviderName = agentRouterKeyConfigured ? 'AgentRouter' : 'Direct Anthropic';
-  const claudeDocumentCount = prs.length + dcs.length;
+  const ollamaSettings = getOllamaSettings();
+  const ollamaReady = ollamaSettings.enabled;
+  const inDateRange = (date: string | undefined) =>
+    (!auditFrom || (date || '') >= auditFrom) && (!auditTo || (date || '') <= auditTo);
+  const auditTargets = useMemo(() => {
+    if (auditScope === 'unlinked-dcs') return { prs: [], dcs: dcs.filter(dc => !dc.prId) };
+    if (auditScope === 'date-range') {
+      return { prs: prs.filter(pr => inDateRange(pr.date)), dcs: dcs.filter(dc => inDateRange(dc.date)) };
+    }
+    return { prs, dcs };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auditScope, auditFrom, auditTo, prs, dcs]);
+  const auditRecordCount = auditTargets.prs.length + auditTargets.dcs.length;
+  const auditScanCount = [...auditTargets.prs, ...auditTargets.dcs].filter(record => Boolean(record.documentImage)).length;
+  const estimatedMinutes = Math.max(1, auditScanCount);
 
-  const handleRunClaudeAudit = async () => {
-    if (!claudeConsent) return;
-    setIsClaudeAuditing(true);
-    setClaudeAuditError(null);
-    setClaudeAuditResult(null);
-    setAppliedClaudeSuggestionIds([]);
-    setClaudeAuditProgress({ current: 0, total: claudeDocumentCount });
+  const handleRunLocalAudit = async () => {
+    const controller = new AbortController();
+    auditAbortRef.current = controller;
+    setIsLocalAuditing(true);
+    setLocalAuditError(null);
+    setLocalAuditResult(null);
+    setAppliedLocalSuggestionIds([]);
+    setLocalAuditProgress({ current: 0, total: auditRecordCount, label: '' });
     try {
-      const result = await runClaudeDatabaseAudit(prs, dcs, (current, total) => {
-        setClaudeAuditProgress({ current, total });
-      });
-      setClaudeAuditResult(result);
+      const result = await runOllamaDatabaseAudit(
+        auditTargets.prs,
+        auditTargets.dcs,
+        (current, total, label) => setLocalAuditProgress({ current, total, label }),
+        controller.signal,
+        prs
+      );
+      setLocalAuditResult(result);
     } catch (error) {
-      setClaudeAuditError(error instanceof Error ? error.message : String(error));
+      setLocalAuditError(error instanceof Error ? error.message : String(error));
     } finally {
-      setIsClaudeAuditing(false);
+      auditAbortRef.current = null;
+      setIsLocalAuditing(false);
     }
   };
 
-  const handleApplyClaudeSuggestion = (dcId: string, prId: string) => {
+  const handleStopLocalAudit = () => auditAbortRef.current?.abort();
+
+  const handleApplyLocalSuggestion = (dcId: string, prId: string) => {
     const result = linkDCToPR(dcId, prId);
     if (result.success) {
-      setAppliedClaudeSuggestionIds(ids => [...ids, dcId]);
-      showFeedback('Claude link applied after your approval.');
+      setAppliedLocalSuggestionIds(ids => [...ids, dcId]);
+      showFeedback('Link applied after your approval.');
     } else {
-      showFeedback(`Could not apply Claude suggestion: ${result.error || 'Unknown error'}`);
+      showFeedback(`Could not apply suggestion: ${result.error || 'Unknown error'}`);
     }
   };
 
@@ -601,94 +622,125 @@ Keep response practical, bulleted, and structured with clear sections.
         </div>
       )}
 
-      <section className="bg-white border-2 border-orange-200 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+      <section className="bg-white border-2 border-emerald-200 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-orange-600" />
-              Claude Haiku PR &amp; DC Document Audit
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              Local Ollama PR &amp; DC Document Audit
             </h3>
             <p className="mt-1 text-xs text-slate-600">
-              Scans saved PR/DC records and attached source documents. Only explicit printed PR-number matches become review proposals.
+              Compares saved records with their attached scans using {ollamaSettings.visionModel} on this PC. Only exact printed PR-number matches become link proposals.
             </p>
           </div>
           <span className={`self-start sm:self-auto px-2.5 py-1 rounded-full border text-[11px] font-bold ${
-            claudeKeyConfigured
+            ollamaReady
               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
               : 'bg-slate-100 text-slate-600 border-slate-200'
           }`}>
-            {claudeKeyConfigured
-              ? `${claudeProviderName} audit API ready`
-              : agentRouterKeyConfigured ? 'Complete AgentRouter model settings' : 'Add API token in Settings'}
+            {ollamaReady ? 'Ollama enabled' : 'Enable Ollama in Settings'}
           </span>
         </div>
 
-        <div className="rounded-xl bg-orange-50 border border-orange-200 p-3 text-[11px] text-orange-950 leading-relaxed">
-          A full run uses the configured Claude model to process <strong>{claudeDocumentCount} records</strong> (about {Math.ceil(claudeDocumentCount / 5)} API requests). Attached scans saved with each record or in this browser’s document storage are included when available. With AgentRouter, records and scans go to AgentRouter and may be forwarded to its selected model provider; charges use your AgentRouter balance. Verify findings against original documents. Nothing is changed automatically.
-        </div>
-
-        <label className="flex items-start gap-2 text-xs text-slate-700 leading-relaxed">
-          <input
-            type="checkbox"
-            checked={claudeConsent}
-            onChange={event => setClaudeConsent(event.target.checked)}
-            className="mt-0.5 accent-orange-600"
-          />
-          <span>I authorize sending these portal PR/DC details and available scans through the configured provider (AgentRouter if connected) to its selected Claude model for this audit.</span>
-        </label>
-
-        <button
-          onClick={handleRunClaudeAudit}
-          disabled={!claudeConsent || !claudeKeyConfigured || isClaudeAuditing || claudeDocumentCount === 0}
-          className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isClaudeAuditing ? (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+          <label className="space-y-1 font-bold text-slate-700">
+            <span>Records to audit</span>
+            <select
+              value={auditScope}
+              onChange={event => setAuditScope(event.target.value as typeof auditScope)}
+              disabled={isLocalAuditing}
+              className="w-full px-2 py-2 rounded-lg border border-slate-300 bg-white"
+            >
+              <option value="unlinked-dcs">DCs not linked to a PR</option>
+              <option value="date-range">PRs and DCs in a date range</option>
+              <option value="all">Everything</option>
+            </select>
+          </label>
+          {auditScope === 'date-range' && (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Auditing {claudeAuditProgress.current} / {claudeAuditProgress.total || claudeDocumentCount}
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4" />
-              Run Claude Full PR/DC Audit
+              <label className="space-y-1 font-bold text-slate-700">
+                <span>From</span>
+                <input type="date" value={auditFrom} onChange={event => setAuditFrom(event.target.value)}
+                  disabled={isLocalAuditing} className="w-full px-2 py-2 rounded-lg border border-slate-300" />
+              </label>
+              <label className="space-y-1 font-bold text-slate-700">
+                <span>To</span>
+                <input type="date" value={auditTo} onChange={event => setAuditTo(event.target.value)}
+                  disabled={isLocalAuditing} className="w-full px-2 py-2 rounded-lg border border-slate-300" />
+              </label>
             </>
           )}
-        </button>
+        </div>
 
-        {isClaudeAuditing && (
-          <div className="h-2 rounded-full bg-orange-100 overflow-hidden" role="progressbar"
-            aria-valuemin={0} aria-valuemax={claudeAuditProgress.total || claudeDocumentCount}
-            aria-valuenow={claudeAuditProgress.current}>
-            <div
-              className="h-full bg-orange-500 transition-all"
-              style={{ width: `${claudeAuditProgress.total ? (claudeAuditProgress.current / claudeAuditProgress.total) * 100 : 0}%` }}
-            />
+        <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-[11px] text-emerald-950 leading-relaxed">
+          <strong>{auditRecordCount} records</strong> selected, <strong>{auditScanCount}</strong> with an attached scan. Each scan takes about a minute on a CPU-only PC, so this run needs roughly <strong>{estimatedMinutes} min</strong>. Records without a scan are reported without calling the model. Keep this tab open; you can stop at any time and keep the results so far. Nothing is changed automatically.
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button
+            onClick={handleRunLocalAudit}
+            disabled={!ollamaReady || isLocalAuditing || auditRecordCount === 0}
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLocalAuditing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Auditing {localAuditProgress.current} / {localAuditProgress.total || auditRecordCount}
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" />
+                Run Local Audit
+              </>
+            )}
+          </button>
+          {isLocalAuditing && (
+            <button
+              onClick={handleStopLocalAudit}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs"
+            >
+              Stop
+            </button>
+          )}
+        </div>
+
+        {isLocalAuditing && (
+          <div className="space-y-1">
+            <div className="h-2 rounded-full bg-emerald-100 overflow-hidden" role="progressbar"
+              aria-valuemin={0} aria-valuemax={localAuditProgress.total || auditRecordCount}
+              aria-valuenow={localAuditProgress.current}>
+              <div
+                className="h-full bg-emerald-500 transition-all"
+                style={{ width: `${localAuditProgress.total ? (localAuditProgress.current / localAuditProgress.total) * 100 : 0}%` }}
+              />
+            </div>
+            {localAuditProgress.label && <p className="text-[10px] text-slate-500">Reading {localAuditProgress.label}…</p>}
           </div>
         )}
 
-        {claudeAuditError && (
+        {localAuditError && (
           <div role="alert" className="rounded-xl border border-rose-300 bg-rose-50 p-3 text-xs text-rose-800">
-            <strong>Claude audit stopped.</strong> {claudeAuditError} No record changes were made by the audit.
+            <strong>Local audit stopped.</strong> {localAuditError} No record changes were made by the audit.
           </div>
         )}
 
-        {claudeAuditResult && (
+        {localAuditResult && (
           <div className="space-y-4 border-t border-orange-100 pt-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div className="rounded-lg bg-slate-50 p-3">
-                <div className="text-xl font-black text-slate-900">{claudeAuditResult.completed}</div>
-                <div className="text-[10px] font-bold text-slate-500">Records audited</div>
+                <div className="text-xl font-black text-slate-900">{localAuditResult.completed}</div>
+                <div className="text-[10px] font-bold text-slate-500">Records audited{localAuditResult.stopped ? ' (stopped)' : ''}</div>
               </div>
               <div className="rounded-lg bg-slate-50 p-3">
-                <div className="text-xl font-black text-slate-900">{claudeAuditResult.findings.filter(finding => finding.imageAvailable).length}</div>
+                <div className="text-xl font-black text-slate-900">{localAuditResult.findings.filter(finding => finding.imageAvailable).length}</div>
                 <div className="text-[10px] font-bold text-slate-500">Scans read</div>
               </div>
               <div className="rounded-lg bg-slate-50 p-3">
-                <div className="text-xl font-black text-orange-700">{claudeAuditResult.findings.filter(finding => finding.findings.length > 0).length}</div>
+                <div className="text-xl font-black text-orange-700">{localAuditResult.findings.filter(finding => finding.findings.length > 0).length}</div>
                 <div className="text-[10px] font-bold text-slate-500">Records flagged</div>
               </div>
               <div className="rounded-lg bg-slate-50 p-3">
-                <div className="text-xl font-black text-emerald-700">{claudeAuditResult.suggestions.length}</div>
+                <div className="text-xl font-black text-emerald-700">{localAuditResult.suggestions.length}</div>
                 <div className="text-[10px] font-bold text-slate-500">Link proposals</div>
               </div>
             </div>
@@ -697,11 +749,11 @@ Keep response practical, bulleted, and structured with clear sections.
               Proposals require an exact PR-number match read from a DC marked as a delivery challan, with at least 80% model confidence. Check the original documents before applying.
             </p>
 
-            {claudeAuditResult.suggestions.length > 0 && (
+            {localAuditResult.suggestions.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-xs font-extrabold text-slate-800">Review PR↔DC link proposals</h4>
-                {claudeAuditResult.suggestions.map(suggestion => {
-                  const alreadyApplied = appliedClaudeSuggestionIds.includes(suggestion.dcId);
+                {localAuditResult.suggestions.map(suggestion => {
+                  const alreadyApplied = appliedLocalSuggestionIds.includes(suggestion.dcId);
                   return (
                     <div key={`${suggestion.dcId}-${suggestion.prId}`} className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3">
                       <div className="flex-1 min-w-0">
@@ -714,7 +766,7 @@ Keep response practical, bulleted, and structured with clear sections.
                         <div className="text-[10px] text-slate-500 mt-0.5">{suggestion.evidence}</div>
                       </div>
                       <button
-                        onClick={() => handleApplyClaudeSuggestion(suggestion.dcId, suggestion.prId)}
+                        onClick={() => handleApplyLocalSuggestion(suggestion.dcId, suggestion.prId)}
                         disabled={alreadyApplied}
                         className="shrink-0 px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-bold disabled:opacity-50"
                       >
@@ -726,17 +778,17 @@ Keep response practical, bulleted, and structured with clear sections.
               </div>
             )}
 
-            {claudeAuditResult.suggestions.length === 0 && (
+            {localAuditResult.suggestions.length === 0 && (
               <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
                 No high-confidence, exact printed PR-number links were proposed. This does not mean all records are linked or error-free; review the findings below.
               </p>
             )}
 
-            {claudeAuditResult.findings.some(finding => finding.findings.length > 0) && (
+            {localAuditResult.findings.some(finding => finding.findings.length > 0) && (
               <div className="space-y-2">
                 <h4 className="text-xs font-extrabold text-slate-800">Audit findings</h4>
                 <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 rounded-xl border border-slate-200">
-                  {claudeAuditResult.findings.filter(finding => finding.findings.length > 0).map(finding => (
+                  {localAuditResult.findings.filter(finding => finding.findings.length > 0).map(finding => (
                     <div key={`${finding.recordType}-${finding.recordId}`} className="p-3 text-[11px]">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-bold text-slate-800">
                         <span>{finding.recordType} {finding.recordNumber || '(number missing)'}</span>

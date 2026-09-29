@@ -18,10 +18,21 @@ import {
 const STORAGE_KEY_PRS = 'STAR_ELECTRIC_PRS_V2';
 const STORAGE_KEY_DCS = 'STAR_ELECTRIC_DCS_V2';
 const STORAGE_KEY_API_KEY = 'STAR_ELECTRIC_GEMINI_KEY';
-const STORAGE_KEY_OPENAI_API_KEY = 'STAR_ELECTRIC_OPENAI_KEY';
-const STORAGE_KEY_CLAUDE_API_KEY = 'STAR_ELECTRIC_CLAUDE_KEY';
-const STORAGE_KEY_AGENTROUTER_API_KEY = 'STAR_ELECTRIC_AGENTROUTER_KEY';
-const STORAGE_KEY_AGENTROUTER_MODEL = 'STAR_ELECTRIC_AGENTROUTER_MODEL';
+const STORAGE_KEY_OLLAMA_SETTINGS = 'STAR_ELECTRIC_OLLAMA_SETTINGS';
+// Keys from the removed OpenAI / Claude / AgentRouter integrations; purged from every browser on load.
+const LEGACY_PROVIDER_KEYS = [
+  'STAR_ELECTRIC_OPENAI_KEY',
+  'STAR_ELECTRIC_CLAUDE_KEY',
+  'STAR_ELECTRIC_AGENTROUTER_KEY',
+  'STAR_ELECTRIC_AGENTROUTER_MODEL'
+];
+if (typeof window !== 'undefined') {
+  try {
+    LEGACY_PROVIDER_KEYS.forEach(key => localStorage.removeItem(key));
+  } catch {
+    // Storage unavailable (private mode); nothing to purge.
+  }
+}
 const STORAGE_KEY_DRIVE_IMPORT_VERSION = 'STAR_ELECTRIC_DRIVE_IMPORT_VERSION';
 const STORAGE_KEY_PR_EVIDENCE_VERSION = 'STAR_ELECTRIC_PR_EVIDENCE_VERSION';
 export const DRIVE_IMPORT_VERSION = 'jadeed-ledger-686-scans-v3-confirmed-pr-links-only';
@@ -1942,64 +1953,46 @@ export function saveGeminiApiKey(key: string): void {
   (window as any).__GEMINI_API_KEY__ = clean;
 }
 
-export function getOpenAIApiKey(): string {
-  if (typeof window === 'undefined') return '';
-  return cleanApiKey(localStorage.getItem(STORAGE_KEY_OPENAI_API_KEY));
+export interface OllamaSettings {
+  enabled: boolean;
+  baseUrl: string;
+  visionModel: string;
+  timeoutSeconds: number;
 }
 
-export function saveOpenAIApiKey(key: string): void {
-  if (typeof window === 'undefined') return;
-  const clean = cleanApiKey(key);
-  if (clean) {
-    localStorage.setItem(STORAGE_KEY_OPENAI_API_KEY, clean);
-  } else {
-    localStorage.removeItem(STORAGE_KEY_OPENAI_API_KEY);
+export const DEFAULT_OLLAMA_SETTINGS: OllamaSettings = {
+  enabled: false,
+  baseUrl: 'http://127.0.0.1:11434',
+  visionModel: 'qwen2.5vl:3b',
+  timeoutSeconds: 300
+};
+
+export function getOllamaSettings(): OllamaSettings {
+  if (typeof window === 'undefined') return { ...DEFAULT_OLLAMA_SETTINGS };
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_OLLAMA_SETTINGS);
+    if (!raw) return { ...DEFAULT_OLLAMA_SETTINGS };
+    const parsed = JSON.parse(raw) as Partial<OllamaSettings>;
+    return {
+      enabled: Boolean(parsed.enabled),
+      baseUrl: (parsed.baseUrl || DEFAULT_OLLAMA_SETTINGS.baseUrl).trim().replace(/\/+$/, ''),
+      visionModel: (parsed.visionModel || DEFAULT_OLLAMA_SETTINGS.visionModel).trim(),
+      timeoutSeconds: Number.isFinite(parsed.timeoutSeconds) && Number(parsed.timeoutSeconds) >= 30
+        ? Number(parsed.timeoutSeconds)
+        : DEFAULT_OLLAMA_SETTINGS.timeoutSeconds
+    };
+  } catch {
+    return { ...DEFAULT_OLLAMA_SETTINGS };
   }
 }
 
-export function getClaudeApiKey(): string {
-  if (typeof window === 'undefined') return '';
-  return cleanApiKey(localStorage.getItem(STORAGE_KEY_CLAUDE_API_KEY));
-}
-
-export function saveClaudeApiKey(key: string): void {
+export function saveOllamaSettings(settings: OllamaSettings): void {
   if (typeof window === 'undefined') return;
-  const clean = cleanApiKey(key);
-  if (clean) {
-    localStorage.setItem(STORAGE_KEY_CLAUDE_API_KEY, clean);
-  } else {
-    localStorage.removeItem(STORAGE_KEY_CLAUDE_API_KEY);
-  }
-}
-
-export function getAgentRouterApiKey(): string {
-  if (typeof window === 'undefined') return '';
-  return cleanApiKey(localStorage.getItem(STORAGE_KEY_AGENTROUTER_API_KEY));
-}
-
-export function saveAgentRouterApiKey(key: string): void {
-  if (typeof window === 'undefined') return;
-  const clean = cleanApiKey(key);
-  if (clean) {
-    localStorage.setItem(STORAGE_KEY_AGENTROUTER_API_KEY, clean);
-  } else {
-    localStorage.removeItem(STORAGE_KEY_AGENTROUTER_API_KEY);
-  }
-}
-
-export function getAgentRouterModel(): string {
-  if (typeof window === 'undefined') return '';
-  return (localStorage.getItem(STORAGE_KEY_AGENTROUTER_MODEL) || '').trim();
-}
-
-export function saveAgentRouterModel(model: string): void {
-  if (typeof window === 'undefined') return;
-  const clean = model.trim();
-  if (clean) {
-    localStorage.setItem(STORAGE_KEY_AGENTROUTER_MODEL, clean);
-  } else {
-    localStorage.removeItem(STORAGE_KEY_AGENTROUTER_MODEL);
-  }
+  localStorage.setItem(STORAGE_KEY_OLLAMA_SETTINGS, JSON.stringify({
+    ...settings,
+    baseUrl: settings.baseUrl.trim().replace(/\/+$/, ''),
+    visionModel: settings.visionModel.trim()
+  }));
 }
 
 // Security protected Master Reset (Wipes database to 100% empty slate)
