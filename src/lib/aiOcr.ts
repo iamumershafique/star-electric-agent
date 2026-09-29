@@ -27,6 +27,19 @@ export type OCRProgressHandler = (progress: {
   status: string;
 }) => void;
 
+/** Short engine name for buttons and status text. */
+export function getOCREngineLabel(provider: OCRProviderName): string {
+  if (provider.startsWith('Ollama')) return 'Local Ollama';
+  if (provider === 'Gemini') return 'Gemini AI';
+  return 'AI';
+}
+
+/** Rough CPU-only time for a local batch, shown before large Ollama scans. */
+export function getLocalScanWarning(provider: OCRProviderName, fileCount: number): string {
+  if (!provider.startsWith('Ollama') || fileCount <= 10) return '';
+  return `${fileCount} files at roughly 1 minute each is about ${fileCount} minutes on this PC. Keep this window open, or scan in batches of 10–20.`;
+}
+
 export function getActiveOCRProvider(geminiApiKey?: string): OCRProviderName {
   const hasGemini = Boolean(getActiveGeminiApiKey(geminiApiKey));
   if (isOllamaEnabled()) return hasGemini ? 'Ollama + Gemini fallback' : 'Ollama';

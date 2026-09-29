@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { DocumentClassificationError, fileToBase64 } from '../lib/gemini';
-import { getActiveOCRProvider, processDocumentWithAI } from '../lib/aiOcr';
+import { getActiveOCRProvider, getLocalScanWarning, getOCREngineLabel, processDocumentWithAI } from '../lib/aiOcr';
 import { 
   X, 
   UploadCloud, 
@@ -49,6 +49,8 @@ export const PRUploadModal: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeOCRProvider = getActiveOCRProvider(geminiApiKey);
+  const ocrEngine = getOCREngineLabel(activeOCRProvider);
+  const localScanWarning = getLocalScanWarning(activeOCRProvider, files.length);
 
   if (!isPRUploadOpen) return null;
 
@@ -261,8 +263,8 @@ export const PRUploadModal: React.FC = () => {
                 <div className="flex flex-col items-center gap-3 py-4">
                   <Loader2 className="w-10 h-10 text-amber-600 animate-spin" />
                   <div>
-                    <p className="text-sm font-bold text-amber-900">Google Gemini AI Scanning Document(s)...</p>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Extracting PR details across all uploaded pages</p>
+                    <p className="text-sm font-bold text-amber-900">{ocrEngine} Scanning Document(s)...</p>
+                    <p className="text-xs text-slate-500 font-medium mt-1">{scanProgress ? `File ${scanProgress.current} of ${scanProgress.total}: ${scanProgress.fileName}` : 'Extracting PR details across all uploaded pages'}</p>
                   </div>
                 </div>
               ) : (
@@ -361,6 +363,12 @@ export const PRUploadModal: React.FC = () => {
             </div>
           )}
 
+          {localScanWarning && !isProcessing && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold">
+              {localScanWarning}
+            </div>
+          )}
+
           {errorMsg && (
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs flex items-center gap-2 font-bold">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -393,7 +401,7 @@ export const PRUploadModal: React.FC = () => {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-slate-950" />
-                  Scan {files.length} {files.length === 1 ? 'File' : 'Files'} with Gemini AI
+                  Scan {files.length} {files.length === 1 ? 'File' : 'Files'} with {ocrEngine}
                 </>
               )}
             </button>
