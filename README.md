@@ -59,6 +59,24 @@ One-time setup on each PC that will scan documents (Windows):
 
 Ollama only serves the browser on the same PC. Staff on other PCs fall back to Gemini unless they run Ollama too.
 
+### Scan speed (`Settings → Local Ollama → Scan read quality`)
+
+Scan time is dominated by how much image the model has to look at and by how much prompt text is
+sent with it, so both are configurable:
+
+| Setting | Image side | When to use |
+| --- | --- | --- |
+| Fast | 896 px | Clean printed challans on a slow CPU (~2× faster than the old setting). |
+| Balanced (default) | 1152 px | Recommended; ~26% fewer vision patches than the old fixed 1344 px with the same readability for the Star Electric forms. |
+| Accurate | 1536 px | Faint or heavily handwritten scans, after a failed read. |
+
+Other speed work: the local model is warmed up when an upload window opens (so the first scan does
+not pay the 10-60 s model load), the PR register sent to the challan reader is a compact
+`PR number | site` list instead of every line item (≈4 500 fewer prompt tokens per challan), and
+multi-file Gemini batches now run up to 3 documents in parallel with the working model remembered for
+the session. See [docs/portal-bug-and-scan-performance-report.md](./docs/portal-bug-and-scan-performance-report.md)
+for the full bug list and measurements.
+
 On a CPU-only PC expect roughly 40–90 seconds per scan. PDFs are rendered to images in the browser (first 3 pages) before they are sent to the model.
 
 **Local PR/DC document audit** (AI Assistant → Overview & AI Audit) compares saved records with their attached scans, one scan per request. Choose a scope (unlinked DCs, a date range, or everything); records without a scan are reported without calling the model, and a run can be stopped at any time with the results so far kept. The audit is read-only. A DC-to-PR link is proposed only when the scan is classified as a delivery challan, a PR number is explicitly printed on it, that number exactly matches one PR in the portal, and model confidence is at least 80%. Review the original scan and approve each proposal before it changes the portal. Small local models miss details, so verify findings against the original documents.

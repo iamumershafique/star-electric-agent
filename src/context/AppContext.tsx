@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react';
 import { FirebaseError } from 'firebase/app';
 import {
   browserLocalPersistence,
@@ -59,6 +59,7 @@ import {
   deleteDCFromCloud
 } from '../lib/firestoreService';
 import { getFirebaseAuth, isFirebaseConfigured } from '../lib/firebase';
+import { normalizePRNumber } from '../lib/utils';
 
 interface AppContextType {
   prs: PRRecord[];
@@ -153,13 +154,13 @@ interface AppContextType {
   recordDeliveryChallan: (
     dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>, 
     fulfillmentMap: Record<string, number>
-  ) => void;
+  ) => { success: boolean; error?: string };
   recordMultipleDeliveryChallans: (
     dcList: Array<{
       dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>;
       fulfillmentMap: Record<string, number>;
     }>
-  ) => void;
+  ) => { savedCount: number; skipped: { dcNumber: string; reason: string }[] };
   attachBuiltyToDC: (
     dcIdOrNumber: string,
     builtyData: Partial<GeminiBuiltyExtractionResult>
@@ -382,6 +383,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Gemini API Key - initialize directly from storage so it is immediately available on first render
   const [geminiApiKey, setGeminiApiKeyState] = useState<string>(() => getGeminiApiKey());
 
+  // Latest reconciliation result, reused by the cloud sync below (kept in a ref so the
+  // auth effect does not have to re-run the whole local database pass on every sign-in).
+  const initLinkRef = useRef<{ updatedPRs: PRRecord[]; updatedDCs: DCRecord[] } | null>(null);
+
   useEffect(() => {
     // 0. Initialize persistent image memory cache from IndexedDB
     initImageMemory().then(() => {
@@ -394,6 +399,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // 1. Initial reconciliation & loading (guarantees all 600+ DCs and linked PRs appear immediately)
     const initLink = autoLinkPRsAndDCsInStorage();
+    initLinkRef.current = initLink;
     setPRs(initLink.updatedPRs);
     setDCs(initLink.updatedDCs);
 
@@ -402,11 +408,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (typeof window !== 'undefined' && initialKey) {
       (window as any).__GEMINI_API_KEY__ = initialKey;
     }
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const initLink = initLinkRef.current ?? autoLinkPRsAndDCsInStorage();
 
     let unsubPR: (() => void) | null = null;
     let unsubDC: (() => void) | null = null;
 
-    if (isAuthenticated) {
+    {
       // Sync only fields verified in Drive, leaving user-managed DC details untouched.
       const cloudDriveImportVersionKey = 'STAR_ELECTRIC_DRIVE_CLOUD_IMPORT_VERSION';
       if (localStorage.getItem(cloudDriveImportVersionKey) !== DRIVE_IMPORT_VERSION) {
@@ -536,8 +547,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  /**
+   * Duplicate check against the PRs already in memory. The storage helper re-reads and
+   * re-parses the whole PR list (and can re-hydrate every scan) on each call, which made
+   * typing a PR number in the review screen do full-database work on every keystroke.
+   */
   const verifyAndCheckDuplicate = (prNumber: string) => {
-    return checkDuplicatePR(prNumber);
+    const normalized = normalizePRNumber(prNumber);
+    if (!normalized) return { isDuplicate: false };
+    const existing = prs.find(pr => normalizePRNumber(pr.prNumber) === normalized);
+    if (!existing) return { isDuplicate: false };
+    return { isDuplicate: true, existingPR: existing };
   };
 
   const addNewPR = (newPR: PRRecord): boolean => {
@@ -606,21 +626,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     deleteDCFromCloud(id).catch(() => {});
   };
 
+  /** "DC-601", "dc 601" and "601" are the same challan. */
+  const dcNumberKey = (value: string) => (value || '').replace(/[^a-zA-Z0-9]/g, '').replace(/^0+(?=\d)/, '').toLowerCase();
+
   const recordDeliveryChallan = (
     dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>,
     fulfillmentMap: Record<string, number>
-  ) => {
+  ): { success: boolean; error?: string } => {
     const cleanDcNum = dcData.dcNumber.trim().toUpperCase();
-    if (dcs.some(d => d.dcNumber.toUpperCase() === cleanDcNum)) {
-      alert(`Error: Delivery Challan ${cleanDcNum} has already been recorded. Please use 'Edit DC' if you need to modify it.`);
-      return;
+    const key = dcNumberKey(cleanDcNum);
+    const existing = dcs.find(d => dcNumberKey(d.dcNumber) === key);
+    if (existing) {
+      // Returned instead of alert()-ing so the caller can keep the user's draft on screen.
+      return {
+        success: false,
+        error: `Delivery Challan ${existing.dcNumber} has already been recorded. Open it in the Delivery log and use 'Edit DC' if you need to change it.`
+      };
     }
 
-    const { updatedPRs, updatedDCs } = saveDCAndFulfillPR(dcData, fulfillmentMap);
+    const { updatedPRs, updatedDCs } = saveDCAndFulfillPR({ ...dcData, dcNumber: cleanDcNum }, fulfillmentMap);
     setPRs(updatedPRs);
     setDCs(updatedDCs);
     
-    const createdDC = updatedDCs.find(d => d.dcNumber === dcData.dcNumber);
+    const createdDC = updatedDCs.find(d => dcNumberKey(d.dcNumber) === key);
     if (createdDC) saveDCToCloud(createdDC).catch(() => {});
     if (dcData.prId) {
       const fulfilledPR = updatedPRs.find(p => p.id === dcData.prId);
@@ -631,6 +659,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const refreshed = updatedPRs.find(p => p.id === selectedPR.id);
       if (refreshed) setSelectedPR(refreshed);
     }
+    return { success: true };
   };
 
   const recordMultipleDeliveryChallans = (
@@ -638,13 +667,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>;
       fulfillmentMap: Record<string, number>;
     }>
-  ) => {
-    const { updatedPRs, updatedDCs } = saveMultipleDCsAndFulfillPRs(dcList);
+  ): { savedCount: number; skipped: { dcNumber: string; reason: string }[] } => {
+    // Batch saves used to skip duplicate detection entirely and happily write a challan
+    // that is already in the ledger (or twice into the same batch).
+    const knownNumbers = new Set(dcs.map(d => dcNumberKey(d.dcNumber)));
+    const skipped: { dcNumber: string; reason: string }[] = [];
+    const accepted = dcList.filter(item => {
+      const clean = item.dcData.dcNumber.trim().toUpperCase();
+      const key = dcNumberKey(clean);
+      if (knownNumbers.has(key)) {
+        skipped.push({ dcNumber: clean, reason: 'This DC number already exists in the ledger.' });
+        return false;
+      }
+      knownNumbers.add(key);
+      return true;
+    });
+
+    if (accepted.length === 0) {
+      return { savedCount: 0, skipped };
+    }
+
+    const { updatedPRs, updatedDCs } = saveMultipleDCsAndFulfillPRs(accepted);
     setPRs(updatedPRs);
     setDCs(updatedDCs);
 
-    dcList.forEach(item => {
-      const createdDC = updatedDCs.find(d => d.dcNumber === item.dcData.dcNumber);
+    accepted.forEach(item => {
+      const createdDC = updatedDCs.find(d => dcNumberKey(d.dcNumber) === dcNumberKey(item.dcData.dcNumber));
       if (createdDC) saveDCToCloud(createdDC).catch(() => {});
       if (item.dcData.prId) {
         const fulfilledPR = updatedPRs.find(p => p.id === item.dcData.prId);
@@ -656,6 +704,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const refreshed = updatedPRs.find(p => p.id === selectedPR.id);
       if (refreshed) setSelectedPR(refreshed);
     }
+    return { savedCount: accepted.length, skipped };
   };
 
   const linkDCToPR = (dcId: string, prId: string) => {
@@ -880,13 +929,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const importBackupJSON = (jsonStr: string): boolean => {
     try {
       const parsed = JSON.parse(jsonStr);
-      if (parsed.prs && Array.isArray(parsed.prs)) {
-        setPRs(parsed.prs);
-        localStorage.setItem('STAR_ELECTRIC_PRS_V2', JSON.stringify(parsed.prs));
+      const incomingPRs: PRRecord[] = Array.isArray(parsed?.prs) ? parsed.prs : [];
+      const incomingDCs: DCRecord[] = Array.isArray(parsed?.dcs) ? parsed.dcs : [];
+      if (incomingPRs.length === 0 && incomingDCs.length === 0) return false;
+
+      // Write through the storage helpers: they move embedded scans into IndexedDB and keep
+      // only lightweight references in localStorage. Writing the raw backup straight into
+      // localStorage (previous behaviour) pushed base64 images into the 5 MB quota and could
+      // fail midway, leaving the two stores out of step.
+      if (incomingPRs.length > 0) {
+        const stored = saveAllPRs(incomingPRs);
+        if (!stored) return false;
+        setPRs(getPRs());
       }
-      if (parsed.dcs && Array.isArray(parsed.dcs)) {
-        setDCs(parsed.dcs);
-        localStorage.setItem('STAR_ELECTRIC_DCS_V2', JSON.stringify(parsed.dcs));
+      if (incomingDCs.length > 0) {
+        const stored = saveAllDCs(incomingDCs);
+        if (!stored) return false;
+        setDCs(getDCs());
       }
       return true;
     } catch (e) {

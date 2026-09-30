@@ -14,6 +14,36 @@ export const STAR_DC_LAYOUT_GUIDE = `STAR ELECTRIC DELIVERY CHALLAN LAYOUT (the 
 - The large pen stroke and the signature at the bottom right are not items. Ignore the footer address and phone numbers.
 Worked example of this exact form: "No. 664", handwritten "PR#119", Date "17-09-2026", "JADEED GROUP  Feed Mill Khanewal", row "5 coil Cable 7/29 2-core PVC/PVC copper" -> dcNumber "DC-664", prNumber "PR-119", date "2026-09-17", siteName "Feed Mill Khanewal", shippedItems [{"itemName": "Cable 7/29 2-Core PVC/PVC Copper", "quantityShipped": 5, "unit": "Coil"}].`;
 
+/**
+ * Compact PR register handed to the DC scanner so it can validate a handwritten "PR-xxx".
+ *
+ * The item lists used to be sent as well (up to 50 PRs x every line item, thousands of
+ * tokens) and were re-evaluated for every uploaded challan. On a CPU-only PC that prompt
+ * cost tens of seconds per scan and the model never needed the rows: the register is only
+ * used to confirm that a number it already read exists. PR number + site is enough.
+ */
+export function buildKnownPRMemory(
+  prs: ReadonlyArray<{ prNumber?: string; siteName?: string }>,
+  limit = 60
+): string {
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  let length = 0;
+  for (const pr of prs) {
+    const number = (pr.prNumber || '').trim();
+    const key = number.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (!key || key === 'NOPR' || seen.has(key)) continue;
+    seen.add(key);
+    const site = (pr.siteName || '').trim();
+    const line = site ? `- ${number} | ${site}` : `- ${number}`;
+    if (length + line.length > 3000) break; // hard cap: the register must never dominate the prompt
+    lines.push(line);
+    length += line.length + 1;
+    if (lines.length >= limit) break;
+  }
+  return lines.join('\n');
+}
+
 const digitsOf = (value: string | undefined) => (value || '').replace(/\D/g, '').replace(/^0+(?=\d)/, '');
 
 function toIsoDate(value: string): string {

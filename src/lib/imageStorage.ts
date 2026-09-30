@@ -61,6 +61,10 @@ export { normalizeImageKey, scanKeyFromReference };
 
 // Uploads already sent this session (key -> fingerprint), so repeated local saves don't re-upload.
 const uploadedThisSession = new Map<string, string>();
+// Scans already written to IndexedDB this session. saveAllPRs/saveAllDCs run on every save and
+// re-hydrate every record from storage, so without this guard each save re-wrote every scan of
+// the ledger into IndexedDB again.
+const persistedThisSession = new Map<string, string>();
 const fingerprint = (dataUrl: string) => `${dataUrl.length}:${dataUrl.slice(-64)}`;
 
 /** Copies a scan to Firestore (star_scans) so every logged-in browser can open it. */
@@ -96,6 +100,8 @@ export async function initImageMemory(): Promise<number> {
         list.forEach(item => {
           if (item && item.id && item.dataUrl) {
             inMemoryCache.set(item.id, item.dataUrl);
+            // Already on disk: a later ledger save does not have to write it again.
+            persistedThisSession.set(item.id, fingerprint(item.dataUrl));
             // Also index by normalized reference number for dual-lookup
             if (item.referenceNumber) {
               const refKey = normalizeImageKey(item.type, item.referenceNumber);
@@ -147,6 +153,11 @@ export async function saveImageToMemory(
   if (!identifier || !dataUrl) return;
 
   const primaryKey = normalizeImageKey(type, identifier);
+  const refNum = meta?.referenceNumber || identifier;
+  const refKey = normalizeImageKey(type, refNum);
+  // Same scan + same metadata = nothing new to persist; only the content changes matter.
+  const writeFingerprint = `${fingerprint(dataUrl)}|${refNum}|${meta?.fileName || ''}|${meta?.siteName || ''}`;
+  const alreadyPersisted = persistedThisSession.get(primaryKey) === writeFingerprint;
   inMemoryCache.set(primaryKey, dataUrl);
 
   if (!meta?.skipCloud && dataUrl.startsWith('data:')) {
@@ -154,9 +165,11 @@ export async function saveImageToMemory(
       .catch(error => console.warn('[ImageMemory] Cloud upload failed for', primaryKey, error));
   }
 
-  const refNum = meta?.referenceNumber || identifier;
-  const refKey = normalizeImageKey(type, refNum);
   inMemoryCache.set(refKey, dataUrl);
+
+  // The exact same scan is already on disk under this key - writing it again would just
+  // re-encode nothing but still cost a transaction per record on every ledger save.
+  if (alreadyPersisted) return;
 
   try {
     const db = await getDB();
@@ -175,7 +188,10 @@ export async function saveImageToMemory(
       const store = tx.objectStore(STORE_NAME);
       const req = store.put(record);
 
-      req.onsuccess = () => resolve();
+      req.onsuccess = () => {
+        persistedThisSession.set(primaryKey, writeFingerprint);
+        resolve();
+      };
       req.onerror = () => reject(req.error);
     });
   } catch (err) {
@@ -191,7 +207,10 @@ export async function removeImageFromMemory(
   if (!referenceNumber || !dataUrl) return;
 
   inMemoryCache.forEach((cachedUrl, key) => {
-    if (key.startsWith(`${type}_`) && cachedUrl === dataUrl) inMemoryCache.delete(key);
+    if (key.startsWith(`${type}_`) && cachedUrl === dataUrl) {
+      inMemoryCache.delete(key);
+      persistedThisSession.delete(key);
+    }
   });
 
   const db = await getDB();

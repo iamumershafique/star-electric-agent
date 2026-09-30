@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { DocumentClassificationError, fileToBase64 } from '../lib/gemini';
-import { getActiveOCRProvider, getOCREngineLabel, processDCWithAI } from '../lib/aiOcr';
+import { getActiveOCRProvider, getOCREngineLabel, getLocalScanQualityNote, preloadLocalOCRModel, processDCWithAI } from '../lib/aiOcr';
+import { buildKnownPRMemory } from '../lib/dcLayout';
+import { findBestItemMatch, normalizeMatchText } from '../lib/itemMatch';
 import type { BrandCategory, PRRecord, TransportType } from '../types';
 import { 
   X, 
@@ -56,39 +58,8 @@ interface ScannedDCDraft {
   prDocumentImage?: string;
 }
 
-  const normalizeReference = (value: string) => {
-    return value
-      .toLowerCase()
-      .replace(/[^\w\s]/g, '') // Remove special chars but keep spaces
-      .replace(/\s+/g, ' ')     // Normalize whitespace
-      .trim();
-  };
-
-  const calculateSimilarity = (s1: string, s2: string) => {
-    const longer = s1.length > s2.length ? s1 : s2;
-    const shorter = s1.length > s2.length ? s2 : s1;
-    if (longer.length === 0) return 1.0;
-    return (longer.length - editDistance(longer, shorter)) / longer.length;
-  };
-
-  const editDistance = (s1: string, s2: string) => {
-    const costs = [];
-    for (let i = 0; i <= s1.length; i++) {
-      let lastValue = i;
-      for (let j = 0; j <= s2.length; j++) {
-        if (i === 0) costs[j] = j;
-        else if (j > 0) {
-          let newValue: number = costs[j - 1];
-          if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
-            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-          }
-          costs[j] = newValue;
-          lastValue = newValue;
-        }
-      }
-    }
-    return costs[s2.length];
-  };
+  const normalizeReference = normalizeMatchText;
+  const MATCH_THRESHOLD = 0.8;
 
 const createDefaultDraft = (targetPR?: PRRecord | null): ScannedDCDraft => {
   const today = new Date().toISOString().split('T')[0];
@@ -262,6 +233,10 @@ export const DCUploadModal: React.FC = () => {
     setScanAnalysisNote(null);
 
     try {
+      // Load the local model while the files are being read, so the first scan does not
+      // wait for the 10-60 s model load on a CPU-only PC.
+      void preloadLocalOCRModel();
+
       const filePayloads = await Promise.all(
         filesList.map(async f => ({
           base64: await fileToBase64(f),
@@ -269,10 +244,8 @@ export const DCUploadModal: React.FC = () => {
         }))
       );
 
-      // Provide active PR memory to Gemini so it can accurately recognize handwritten PR numbers and sites
-      const prSummaryMemory = prs.slice(0, 50).map(p => 
-        `- PR Number: ${p.prNumber} | Site: "${p.siteName}" | Items: ${p.items.map(it => `${it.name} (${it.requestedQty} ${it.unit})`).join(', ')}`
-      ).join('\n');
+      // Compact PR register: the model only needs it to confirm a handwritten PR number.
+      const prSummaryMemory = buildKnownPRMemory(prs);
 
       const results = await processDCWithAI(
         filePayloads, 
@@ -318,10 +291,11 @@ export const DCUploadModal: React.FC = () => {
           : undefined;
         const scannedItems = res.shippedItems || [];
         const draftItems: DraftItem[] = scannedItems.map((shipped, itemIndex) => {
-          const matchedItem = matchedPR?.items.find(item => {
-            const score = calculateSimilarity(normalizeReference(item.name), normalizeReference(shipped.itemName));
-            return score > 0.8; // Fuzzy match threshold
-          });
+          // Line the scanned row up with the requisition row it fulfils; that link is what
+          // carries the shipped quantity back into the PR.
+          const matchedItem = matchedPR
+            ? findBestItemMatch(shipped.itemName, matchedPR.items, item => item.name, MATCH_THRESHOLD)?.item
+            : undefined;
           const remaining = matchedItem
             ? Math.max(0, matchedItem.requestedQty - matchedItem.fulfilledQty)
             : shipped.quantityShipped;
@@ -337,7 +311,9 @@ export const DCUploadModal: React.FC = () => {
           };
         });
 
-        const dcImg = filePayloads[index]?.base64 || '';
+        // The page this challan was actually read from (a single page can hold several
+        // challans, so the upload index is not a reliable match).
+        const dcImg = res.documentImage || filePayloads[index]?.base64 || filePayloads[0]?.base64 || '';
         const prImg = matchedPR?.documentImage || '';
 
         return {
@@ -398,11 +374,10 @@ export const DCUploadModal: React.FC = () => {
     }
 
     updateCurrentDraft(prev => {
+      const scannedRows = prev.items;
       const mappedItems: DraftItem[] = selected.items.map(item => {
-          const scanned = prev.items.find(draftItem => {
-            const score = calculateSimilarity(normalizeReference(draftItem.name), normalizeReference(item.name));
-            return score > 0.8;
-          });
+        // Carry over a quantity only when the scanned row is really the same item.
+        const scanned = findBestItemMatch(item.name, scannedRows, row => row.name, MATCH_THRESHOLD)?.item;
 
         return {
           id: item.id,
@@ -415,12 +390,11 @@ export const DCUploadModal: React.FC = () => {
           maxRemaining: Math.max(0, item.requestedQty - item.fulfilledQty)
         };
       });
-          const matchedDraftNames = new Set(selected.items.map(item => normalizeReference(item.name)));
-          const unverifiedScannedItems = prev.items.filter(item => {
-            const itemNorm = normalizeReference(item.name);
-            return !Array.from(matchedDraftNames).some(dn => calculateSimilarity(dn, itemNorm) > 0.8);
-          });
-
+      // Scanned rows that are not on the requisition are kept so nothing read from the
+      // challan photo is silently dropped.
+      const unverifiedScannedItems = scannedRows.filter(item =>
+        !findBestItemMatch(item.name, selected.items, prItem => prItem.name, MATCH_THRESHOLD)
+      );
 
       return {
         ...prev,
@@ -513,7 +487,7 @@ export const DCUploadModal: React.FC = () => {
       if (it.shippedQty > 0) fulfillmentMap[it.id] = it.shippedQty;
     });
 
-    recordDeliveryChallan(
+    const result = recordDeliveryChallan(
       {
         dcNumber: cleanDC,
         invoiceNumber: cleanDC,
@@ -541,6 +515,12 @@ export const DCUploadModal: React.FC = () => {
       },
       fulfillmentMap
     );
+
+    // A saved DC that already exists must not close the window and throw the draft away.
+    if (!result.success) {
+      setErrorMsg(result.error || `Delivery Challan ${cleanDC} could not be recorded.`);
+      return;
+    }
 
     if (drafts.length > 1) {
       const remaining = drafts.filter((_, i) => i !== activeDraftIndex);
@@ -573,7 +553,32 @@ export const DCUploadModal: React.FC = () => {
       }
     }
 
-    const batchList = drafts.map(d => {
+    // DC numbers already recorded (or repeated inside this batch) are left out instead of
+    // being written twice; they stay in the window so nothing the user typed is lost.
+    const digitsOf = (value: string) => value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '');
+    const existingNumbers = new Set(
+      dcs.flatMap(dc => [dc.dcNumber.trim().toUpperCase(), digitsOf(dc.dcNumber)])
+    );
+    const duplicateIndexes = new Set<number>();
+    const seenInBatch = new Set<string>();
+    drafts.forEach((draft, index) => {
+      const clean = draft.dcNumber.trim().toUpperCase();
+      const digits = digitsOf(clean);
+      if (existingNumbers.has(clean) || (digits !== '' && existingNumbers.has(digits)) || seenInBatch.has(clean)) {
+        duplicateIndexes.add(index);
+        return;
+      }
+      seenInBatch.add(clean);
+    });
+
+    const draftsToSave = drafts.filter((_, index) => !duplicateIndexes.has(index));
+    if (draftsToSave.length === 0) {
+      setErrorMsg(`None of the ${drafts.length} Delivery Challan(s) could be recorded: their DC numbers already exist in the ledger.`);
+      setActiveDraftIndex(duplicateIndexes.values().next().value ?? 0);
+      return;
+    }
+
+    const batchList = draftsToSave.map(d => {
       const cleanDC = d.dcNumber.trim().toUpperCase();
       const fulfillmentMap: Record<string, number> = {};
       d.items.forEach(it => {
@@ -611,6 +616,17 @@ export const DCUploadModal: React.FC = () => {
     });
 
     recordMultipleDeliveryChallans(batchList);
+
+    if (duplicateIndexes.size > 0) {
+      const skipped = drafts.filter((_, index) => duplicateIndexes.has(index));
+      setDrafts(skipped);
+      setActiveDraftIndex(0);
+      setScanAnalysisNote(
+        `✓ Recorded ${batchList.length} DC(s). Skipped ${skipped.length} already-recorded DC(s): ${skipped.map(d => d.dcNumber).join(', ')}. Review or discard them below.`
+      );
+      return;
+    }
+
     setIsDCUploadOpen(false);
     setActiveTab('deliveries');
   };
@@ -853,7 +869,7 @@ export const DCUploadModal: React.FC = () => {
                 </div>
                 {scanProgress && (
                   <span className="font-mono font-extrabold text-amber-800 bg-amber-200/70 px-2 py-0.5 rounded-md text-[11px]">
-                    {scanProgress.current} / {scanProgress.total} ({scanProgress.percent}%)
+                    {Math.min(scanProgress.current, scanProgress.total)} / {scanProgress.total} ({scanProgress.percent}%)
                   </span>
                 )}
               </div>
@@ -869,6 +885,7 @@ export const DCUploadModal: React.FC = () => {
                   <p className="text-[11px] text-amber-800 font-medium truncate">
                     {scanProgress.status || `Processing: ${scanProgress.fileName}`}
                   </p>
+                  <p className="text-[10px] text-amber-700/80 font-medium">{getLocalScanQualityNote()}</p>
                 </>
               )}
             </div>

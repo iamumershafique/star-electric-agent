@@ -51,8 +51,10 @@ export function normalizeBrand(inputStr: string): BrandCategory {
   const str = inputStr.toLowerCase();
   if (str.includes('pakistan cable') || str.includes('pk cable')) return 'Pakistan Cables';
   if (str.includes('amer cable') || str.includes('amer')) return 'Amer Cables';
-  if (str.includes('schneider') || str.includes('mcb') || str.includes('mccb')) return 'Schneider Electric';
+  // Brand names are checked before generic component types: "MCCB 630Amp ... Terasaki"
+  // used to be tagged Schneider Electric because "mccb" was tested first.
   if (str.includes('terasaki')) return 'Terasaki';
+  if (str.includes('schneider') || str.includes('mcb') || str.includes('mccb')) return 'Schneider Electric';
   if (str.includes('philips') || str.includes('led') || str.includes('light') || str.includes('floodlight')) return 'Philips / Pak Lighting';
   if (str.includes('conduit') || str.includes('pvc') || str.includes('pipe') || str.includes('flex')) return 'Conduit & Accessories';
   if (str.includes('switch') || str.includes('socket') || str.includes('gang')) return 'Switches & Sockets';

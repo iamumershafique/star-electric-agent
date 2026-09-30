@@ -14,6 +14,7 @@ import {
   getImageFromMemorySync, 
   normalizeImageKey
 } from './imageStorage';
+import { DEFAULT_SCAN_QUALITY, normalizeScanQuality, type ScanQuality } from './scanQuality';
 
 const STORAGE_KEY_PRS = 'STAR_ELECTRIC_PRS_V2';
 const STORAGE_KEY_DCS = 'STAR_ELECTRIC_DCS_V2';
@@ -1958,13 +1959,16 @@ export interface OllamaSettings {
   baseUrl: string;
   visionModel: string;
   timeoutSeconds: number;
+  /** Image detail sent to the model: fast (896 px) / balanced (1152 px) / accurate (1536 px). */
+  scanQuality: ScanQuality;
 }
 
 export const DEFAULT_OLLAMA_SETTINGS: OllamaSettings = {
   enabled: false,
   baseUrl: 'http://127.0.0.1:11434',
   visionModel: 'qwen2.5vl:3b',
-  timeoutSeconds: 300
+  timeoutSeconds: 300,
+  scanQuality: DEFAULT_SCAN_QUALITY
 };
 
 export function getOllamaSettings(): OllamaSettings {
@@ -1979,7 +1983,8 @@ export function getOllamaSettings(): OllamaSettings {
       visionModel: (parsed.visionModel || DEFAULT_OLLAMA_SETTINGS.visionModel).trim(),
       timeoutSeconds: Number.isFinite(parsed.timeoutSeconds) && Number(parsed.timeoutSeconds) >= 30
         ? Number(parsed.timeoutSeconds)
-        : DEFAULT_OLLAMA_SETTINGS.timeoutSeconds
+        : DEFAULT_OLLAMA_SETTINGS.timeoutSeconds,
+      scanQuality: normalizeScanQuality(parsed.scanQuality)
     };
   } catch {
     return { ...DEFAULT_OLLAMA_SETTINGS };

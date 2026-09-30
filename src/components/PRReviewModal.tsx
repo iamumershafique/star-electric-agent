@@ -35,6 +35,8 @@ interface DraftPRItem {
   items: LineItem[];
   confidence?: number;
   documentImage?: string;
+  /** True when the scan returned no line items at all, so the reviewer must type them. */
+  needsManualItems?: boolean;
 }
 
 export const PRReviewModal: React.FC = () => {
@@ -51,7 +53,7 @@ export const PRReviewModal: React.FC = () => {
 
   const [drafts, setDrafts] = useState<DraftPRItem[]>([]);
   const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [duplicateWarning, setDuplicateWarning] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     const listToProcess = (pendingExtractedDataList && pendingExtractedDataList.length > 0)
@@ -63,6 +65,8 @@ export const PRReviewModal: React.FC = () => {
         const rawPr = data.prNumber ? data.prNumber.trim() : '';
         const prNum = rawPr || 'NO PR';
 
+        // When the scan produced no rows the sheet stays empty and the reviewer is warned;
+        // it used to be filled with a made-up cable row that then went into the ledger.
         const mappedItems: LineItem[] = (data.lineItems && data.lineItems.length > 0)
           ? data.lineItems.map(item => ({
               id: generateId('item'),
@@ -77,11 +81,11 @@ export const PRReviewModal: React.FC = () => {
           : [
               {
                 id: generateId('item'),
-                name: '95mm 4-Core Armoured Copper Cable',
-                brand: 'Pakistan Cables',
-                requestedQty: 200,
+                name: '',
+                brand: 'General Electrical',
+                requestedQty: 1,
                 fulfilledQty: 0,
-                unit: 'Meters',
+                unit: 'Numbers',
                 status: 'Pending'
               }
             ];
@@ -93,26 +97,26 @@ export const PRReviewModal: React.FC = () => {
           siteName: data.siteName || (sites[0] ? sites[0].name : 'Jadeed Group Farm Location'),
           items: mappedItems,
           confidence: data.confidence,
-          documentImage: data.documentImage
+          documentImage: data.documentImage,
+          needsManualItems: !(data.lineItems && data.lineItems.length > 0)
         };
       });
 
       setDrafts(initialDrafts);
       setActiveIndex(0);
-
-      const firstPr = initialDrafts[0]?.prNumber;
-      if (firstPr && firstPr !== 'NO PR') {
-        const dupCheck = verifyAndCheckDuplicate(firstPr);
-        setDuplicateWarning(dupCheck.isDuplicate);
-      } else {
-        setDuplicateWarning(false);
-      }
     }
   }, [pendingExtractedData, pendingExtractedDataList]);
 
   if (!isPRReviewOpen || drafts.length === 0) return null;
 
   const currentDraft = drafts[activeIndex] || drafts[0];
+  // Derived from the draft on screen: the old state was only refreshed while typing, so
+  // switching tabs showed the previous requisition's duplicate status.
+  const duplicateWarning = Boolean(
+    currentDraft?.prNumber.trim()
+    && currentDraft.prNumber.trim().toUpperCase() !== 'NO PR'
+    && verifyAndCheckDuplicate(currentDraft.prNumber).isDuplicate
+  );
 
   const updateCurrentDraft = (fields: Partial<DraftPRItem>) => {
     setDrafts(prev => {
@@ -120,15 +124,6 @@ export const PRReviewModal: React.FC = () => {
       updated[activeIndex] = { ...updated[activeIndex], ...fields };
       return updated;
     });
-
-    if (fields.prNumber !== undefined) {
-      if (fields.prNumber.trim() && fields.prNumber.trim() !== 'NO PR') {
-        const dupCheck = verifyAndCheckDuplicate(fields.prNumber);
-        setDuplicateWarning(dupCheck.isDuplicate);
-      } else {
-        setDuplicateWarning(false);
-      }
-    }
   };
 
   const handleAddItem = () => {
@@ -166,8 +161,27 @@ export const PRReviewModal: React.FC = () => {
     setActiveIndex(prev => Math.min(prev, updated.length - 1));
   };
 
+  /** A requisition must name at least one real item and carry a positive quantity. */
+  const validateDraft = (draft: DraftPRItem): string | null => {
+    const named = draft.items.filter(item => item.name.trim() !== '');
+    if (named.length === 0) {
+      return 'Add at least one line item description before saving this requisition.';
+    }
+    const badQuantity = named.find(item => !(item.requestedQty > 0));
+    if (badQuantity) {
+      return `Enter a requested quantity greater than 0 for "${badQuantity.name}".`;
+    }
+    return null;
+  };
+
   const handleSaveCurrentPR = () => {
     try {
+      const invalid = validateDraft(currentDraft);
+      if (invalid) {
+        setSaveError(invalid);
+        return;
+      }
+      setSaveError(null);
       const cleanPRNum = currentDraft.prNumber.trim() || 'NO PR';
 
       const prRecord: PRRecord = {
@@ -200,6 +214,15 @@ export const PRReviewModal: React.FC = () => {
 
   const handleSaveAllPRs = () => {
     try {
+      for (let index = 0; index < drafts.length; index++) {
+        const invalid = validateDraft(drafts[index]);
+        if (invalid) {
+          setSaveError(`Requisition #${index + 1} (${drafts[index].prNumber}): ${invalid}`);
+          setActiveIndex(index);
+          return;
+        }
+      }
+      setSaveError(null);
       const recordsToSave: PRRecord[] = drafts.map(d => {
         const cleanPRNum = d.prNumber.trim() || 'NO PR';
         return {
@@ -324,6 +347,23 @@ export const PRReviewModal: React.FC = () => {
         )}
 
         <div className="overflow-y-auto space-y-5 pr-1 flex-1">
+          {saveError && (
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs flex items-center gap-2 font-bold">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              <span>{saveError}</span>
+            </div>
+          )}
+
+          {currentDraft.needsManualItems && (
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-2 font-semibold">
+              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <span>
+                The scan returned no line items for this document. Type the rows below (or re-scan with a
+                higher scan quality in Settings) — nothing is saved until you do.
+              </span>
+            </div>
+          )}
+
           {duplicateWarning && (
             <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-2 font-semibold">
               <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />

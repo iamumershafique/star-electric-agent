@@ -19,6 +19,8 @@ import { getOllamaSettings, type OllamaSettings } from './storage';
 import { DocumentClassificationError, type DCFileInput, type PRFileInput } from './gemini';
 import { getImageFromMemory, resolveScanReference } from './imageStorage';
 import { STAR_DC_LAYOUT_GUIDE } from './dcLayout';
+import { mapWithConcurrency } from './concurrency';
+import { imageSideForQuality } from './scanQuality';
 
 type JsonObject = Record<string, unknown>;
 type ProgressHandler = (progress: {
@@ -33,10 +35,24 @@ interface SourceFile {
   name: string;
 }
 
-/** Longest image side sent to the model. Larger scans are downscaled; CPU time grows with pixels. */
-const MAX_IMAGE_SIDE = 1344;
+/**
+ * Longest image side sent to the model when no scan-quality setting is available.
+ * Larger scans are downscaled; CPU time grows with the number of image patches.
+ */
+const FALLBACK_IMAGE_SIDE = 1152;
 /** PDF pages rendered per document. Multi-page DCs beyond this are truncated with a warning. */
 const MAX_PDF_PAGES = 3;
+/** Vision patches are 28 px cells; used to size the context window to the real payload. */
+const PATCH = 28;
+/** How many scans can be decoded/prepared ahead of the model. */
+const PREPARE_CONCURRENCY = 3;
+/** Prepared-page cache size (scans); keeps a retried or re-audited scan free of re-rendering. */
+const PREPARED_CACHE_LIMIT = 16;
+
+/** Image side chosen by the scan quality setting (fast / balanced / accurate). */
+export function getMaxImageSide(settings: OllamaSettings = getOllamaSettings()): number {
+  return imageSideForQuality(settings.scanQuality) || FALLBACK_IMAGE_SIDE;
+}
 
 /** Thrown when Ollama cannot be reached, times out, or rejects the request (not a document problem). */
 export class OllamaConnectionError extends Error {
@@ -128,12 +144,17 @@ function canvasToJpegBase64(canvas: HTMLCanvasElement): string {
   return canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
 }
 
-async function downscaleImage(dataUrl: string): Promise<string> {
+async function downscaleImage(dataUrl: string, maxSide: number): Promise<string> {
   const image = new Image();
   image.decoding = 'async';
   image.src = dataUrl;
   await image.decode();
-  const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(image.naturalWidth, image.naturalHeight));
+  const longest = Math.max(image.naturalWidth, image.naturalHeight);
+  // Already small enough and already JPEG: send it as-is instead of decode + re-encode.
+  if (longest <= maxSide && /^data:image\/jpe?g;base64,/i.test(dataUrl)) {
+    return dataUrl.replace(/^data:image\/jpe?g;base64,/i, '');
+  }
+  const scale = Math.min(1, maxSide / longest);
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
   canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
@@ -145,7 +166,7 @@ async function downscaleImage(dataUrl: string): Promise<string> {
   return canvasToJpegBase64(canvas);
 }
 
-async function renderPdfPages(data: string): Promise<{ images: string[]; totalPages: number }> {
+async function renderPdfPages(data: string, maxSide: number): Promise<{ images: string[]; totalPages: number }> {
   const pdfjs = await import('pdfjs-dist');
   const workerUrl = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
   pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
@@ -155,7 +176,7 @@ async function renderPdfPages(data: string): Promise<{ images: string[]; totalPa
   for (let pageNumber = 1; pageNumber <= pages; pageNumber++) {
     const page = await pdf.getPage(pageNumber);
     const base = page.getViewport({ scale: 1 });
-    const viewport = page.getViewport({ scale: MAX_IMAGE_SIDE / Math.max(base.width, base.height) });
+    const viewport = page.getViewport({ scale: maxSide / Math.max(base.width, base.height) });
     const canvas = document.createElement('canvas');
     canvas.width = Math.round(viewport.width);
     canvas.height = Math.round(viewport.height);
@@ -170,10 +191,10 @@ async function renderPdfPages(data: string): Promise<{ images: string[]; totalPa
 }
 
 /** Converts an uploaded image or PDF into downscaled JPEG pages (raw base64, no data: prefix). */
-async function prepareImages(file: SourceFile): Promise<{ images: string[]; note: string }> {
+async function prepareImages(file: SourceFile, maxSide: number): Promise<{ images: string[]; note: string }> {
   const { mimeType, data } = splitDataUrl(file.base64, file.name);
   if (mimeType === 'application/pdf') {
-    const { images, totalPages } = await renderPdfPages(data);
+    const { images, totalPages } = await renderPdfPages(data, maxSide);
     const note = totalPages > images.length
       ? `Only the first ${images.length} of ${totalPages} PDF pages were read.`
       : '';
@@ -182,12 +203,95 @@ async function prepareImages(file: SourceFile): Promise<{ images: string[]; note
   if (!mimeType.startsWith('image/')) {
     throw new Error(`${file.name || 'The file'} is not an image or PDF.`);
   }
-  return { images: [await downscaleImage(`data:${mimeType};base64,${data}`)], note: '' };
+  return { images: [await downscaleImage(`data:${mimeType};base64,${data}`, maxSide)], note: '' };
+}
+
+/**
+ * Prepared pages are cached (and pre-rendered ahead of the model) so the CPU is never idle
+ * between documents: preparing the next scan takes a few hundred ms per photo and used to
+ * be paid one file at a time, in front of every model call.
+ */
+const preparedScanCache = new Map<string, { images: string[]; note: string }>();
+
+const preparedScanKey = (file: SourceFile, maxSide: number) =>
+  `${maxSide}|${file.name}|${file.base64.length}|${file.base64.slice(-48)}`;
+
+export async function prepareScan(file: SourceFile, maxSide: number): Promise<{ images: string[]; note: string }> {
+  const key = preparedScanKey(file, maxSide);
+  const cached = preparedScanCache.get(key);
+  if (cached) return cached;
+  const prepared = await prepareImages(file, maxSide);
+  preparedScanCache.set(key, prepared);
+  if (preparedScanCache.size > PREPARED_CACHE_LIMIT) {
+    const oldest = preparedScanCache.keys().next().value;
+    if (oldest) preparedScanCache.delete(oldest);
+  }
+  return prepared;
+}
+
+/** Prepares every document up front (bounded concurrency) so the model never waits on canvas work. */
+async function prepareAll(
+  files: SourceFile[],
+  maxSide: number
+): Promise<Array<{ images: string[]; note: string }>> {
+  if (files.length <= 1) return Promise.all(files.map(file => prepareScan(file, maxSide)));
+  return mapWithConcurrency(files, PREPARE_CONCURRENCY, file => prepareScan(file, maxSide));
+}
+
+/** Frees the cached pages of a finished batch so long sessions do not hold onto scans. */
+export function clearPreparedScanCache(): void {
+  preparedScanCache.clear();
+}
+
+/**
+ * Loads the model into memory before the user starts a scan, so the first document does not
+ * pay the 10-60 s load time. Safe to call repeatedly; failures are ignored on purpose.
+ */
+let warmedTarget = '';
+let warmedAt = 0;
+
+export async function warmUpOllama(settings: OllamaSettings = getOllamaSettings()): Promise<boolean> {
+  if (!isOllamaEnabled(settings)) return false;
+  const target = `${settings.baseUrl}|${settings.visionModel}`;
+  if (warmedTarget === target && Date.now() - warmedAt < 15 * 60 * 1000) return true;
+  try {
+    const response = await ollamaFetch(settings, '/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: settings.visionModel,
+        prompt: 'ok',
+        stream: false,
+        keep_alive: '20m',
+        options: { num_predict: 1 }
+      })
+    }, 180_000);
+    if (!response.ok) return false;
+    warmedTarget = target;
+    warmedAt = Date.now();
+    return true;
+  } catch (error) {
+    console.warn('Ollama warm-up skipped:', error instanceof Error ? error.message : error);
+    return false;
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Chat request
 // ---------------------------------------------------------------------------
+
+/**
+ * Context window sized to the payload actually sent (prompt + image patches + room for the
+ * JSON answer). A bigger window than needed costs KV memory and slows every token down.
+ */
+function chooseNumCtx(prompt: string, imageCount: number, settings: OllamaSettings): number {
+  const side = getMaxImageSide(settings);
+  const patchesPerImage = Math.ceil((side * side) / (PATCH * PATCH));
+  const needed = Math.ceil(prompt.length / 3.2) + imageCount * patchesPerImage + 2048;
+  if (needed <= 4096) return 4096;
+  if (needed <= 8192) return 8192;
+  return 12288;
+}
 
 async function requestOllama(
   prompt: string,
@@ -203,7 +307,7 @@ async function requestOllama(
       stream: false,
       format: 'json',
       keep_alive: '20m',
-      options: { temperature: 0, num_ctx: images.length > 1 ? 12288 : 8192 },
+      options: { temperature: 0, num_ctx: chooseNumCtx(prompt, images.length, settings) },
       messages: [{ role: 'user', content: prompt, images }]
     })
   }, settings.timeoutSeconds * 1000, signal);
@@ -424,14 +528,16 @@ export async function processDocumentWithOllama(
 ): Promise<GeminiExtractionResult[]> {
   const settings = getOllamaSettings();
   const files = getFileObjects(Array.isArray(base64Images) ? base64Images : [base64Images]);
+  const prepared = await prepareAll(files, getMaxImageSide(settings));
   const results: GeminiExtractionResult[] = [];
   for (let index = 0; index < files.length; index++) {
     const file = files[index];
     const displayName = file.name || `Document #${index + 1}`;
-    onProgress?.({ current: index + 1, total: files.length, fileName: displayName, status: `Reading ${displayName} with local ${settings.visionModel} (can take a minute on CPU)...` });
-    const { images } = await prepareImages(file);
-    const parsed = await requestOllama(buildPRPrompt(displayName) + JSON_ONLY, images, settings);
-    results.push(...parsePRResults(parsed, displayName));
+    onProgress?.({ current: index, total: files.length, fileName: displayName, status: `Reading ${displayName} with local ${settings.visionModel} (can take a minute on CPU)...` });
+    const parsed = await requestOllama(buildPRPrompt(displayName) + JSON_ONLY, prepared[index].images, settings);
+    // Keep the page these requisitions were read from (one page can hold several PRs).
+    results.push(...parsePRResults(parsed, displayName).map(result => ({ ...result, documentImage: file.base64 })));
+    onProgress?.({ current: index + 1, total: files.length, fileName: displayName, status: `Read ${displayName}` });
   }
   if (results.length === 0) throw new Error('No purchase requisitions were extracted.');
   return results;
@@ -444,27 +550,37 @@ export async function processDCWithOllama(
 ): Promise<GeminiDCExtractionResult[]> {
   const settings = getOllamaSettings();
   const files = getFileObjects(Array.isArray(base64Images) ? base64Images : [base64Images]);
+  const prepared = await prepareAll(files, getMaxImageSide(settings));
+  // The PR register is only used to validate a handwritten reference, so it is sent once and
+  // only when it is short enough to be worth the prompt tokens.
+  const prompt = buildDCPrompt('', knownPRMemory) + JSON_ONLY;
   const results: GeminiDCExtractionResult[] = [];
   for (let index = 0; index < files.length; index++) {
     const file = files[index];
     const displayName = file.name || `Delivery Challan #${index + 1}`;
-    onProgress?.({ current: index + 1, total: files.length, fileName: displayName, status: `Reading ${displayName} with local ${settings.visionModel} (can take a minute on CPU)...` });
-    const { images } = await prepareImages(file);
-    const parsed = await requestOllama(buildDCPrompt(displayName, knownPRMemory) + JSON_ONLY, images, settings);
-    results.push(...parseDCResults(parsed, displayName));
+    onProgress?.({ current: index, total: files.length, fileName: displayName, status: `Reading ${displayName} with local ${settings.visionModel} (can take a minute on CPU)...` });
+    const parsed = await requestOllama(prompt, prepared[index].images, settings);
+    // Keep the page these challans were read from (one page can hold several challans).
+    results.push(...parseDCResults(parsed, displayName).map(result => ({ ...result, documentImage: file.base64 })));
+    onProgress?.({ current: index + 1, total: files.length, fileName: displayName, status: `Read ${displayName}` });
   }
   if (results.length === 0) throw new Error('No Delivery Challan documents were extracted.');
   return results;
 }
 
 export async function processBuiltyWithOllama(
-  base64Images: DCFileInput | DCFileInput[]
+  base64Images: DCFileInput | DCFileInput[],
+  onProgress?: ProgressHandler
 ): Promise<GeminiBuiltyExtractionResult[]> {
   const settings = getOllamaSettings();
   const files = getFileObjects(Array.isArray(base64Images) ? base64Images : [base64Images]);
+  const prepared = await prepareAll(files, getMaxImageSide(settings));
   const results: GeminiBuiltyExtractionResult[] = [];
-  for (const file of files) {
-    const { images } = await prepareImages(file);
+  for (let index = 0; index < files.length; index++) {
+    const file = files[index];
+    const displayName = file.name || `Builty #${index + 1}`;
+    onProgress?.({ current: index, total: files.length, fileName: displayName, status: `Reading ${displayName} with local ${settings.visionModel}...` });
+    const { images } = prepared[index];
     const parsed = await requestOllama(buildBuiltyPrompt(file.name) + JSON_ONLY, images, settings);
     if (asString(parsed.documentType).toUpperCase() !== 'BUILTY') {
       throw new Error(`The local model could not confirm ${file.name || 'the document'} as a goods transport bilty.`);
@@ -492,6 +608,7 @@ export async function processBuiltyWithOllama(
       confidence: Math.min(1, Math.max(0, asNumber(entry.confidence, 0))),
       rawAnalysis: asString(entry.rawAnalysis)
     })));
+    onProgress?.({ current: index + 1, total: files.length, fileName: displayName, status: `Read ${displayName}` });
   }
   return results;
 }
@@ -666,19 +783,29 @@ export async function runOllamaDatabaseAudit(
   if (!connection.valid) throw new OllamaConnectionError(connection.error || 'Ollama is not reachable.');
 
   const records = toAuditRecords(prs, dcs);
+  const maxSide = getMaxImageSide(settings);
   const findings: OllamaAuditFinding[] = [];
   let completed = 0;
   let stopped = false;
 
-  for (const record of records) {
+  for (let index = 0; index < records.length; index++) {
+    const record = records[index];
     if (signal?.aborted) { stopped = true; break; }
     onProgress?.(completed, records.length, `${record.kind} ${record.recordNumber || record.id}`);
+
+    // The scan of the next record is fetched from IndexedDB / Firestore while this one is
+    // being read by the model, so lookups do not add to the per-record time.
+    const nextRecord = records[index + 1];
+    const nextScanReady = nextRecord && !nextRecord.imageAvailable
+      ? resolveAuditImage(nextRecord)
+      : Promise.resolve();
+
     await resolveAuditImage(record);
     if (!record.imageAvailable) {
       findings.push(unreadFinding(record, record.imageError || 'Source scan unavailable.'));
     } else {
       try {
-        const { images, note } = await prepareImages({ base64: record.documentImage || '', name: record.recordNumber });
+        const { images, note } = await prepareScan({ base64: record.documentImage || '', name: record.recordNumber }, maxSide);
         const result = await requestOllama(buildAuditPrompt(record, note), images, settings, signal);
         findings.push({
           recordType: record.kind,
@@ -698,6 +825,7 @@ export async function runOllamaDatabaseAudit(
         findings.push(unreadFinding(record, `The local model could not read this scan: ${error instanceof Error ? error.message : String(error)}`));
       }
     }
+    await nextScanReady;
     completed += 1;
     onProgress?.(completed, records.length, `${record.kind} ${record.recordNumber || record.id}`);
   }
