@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:demo": "vite --config demo-preview/vite.config.ts",
     "build": "tsc -b && vite build",
     "deploy:firebase": "node -e \"if (process.env.PORTAL_DATA_RELEASE_APPROVED !== 'true') { console.error('Hosting release blocked: verify and migrate portal records before setting PORTAL_DATA_RELEASE_APPROVED=true.'); process.exit(1); }\" && npm run build && npx -y firebase-tools@latest deploy --only firestore:rules && npx -y firebase-tools@latest deploy --only hosting",
     "lint": "oxlint",
