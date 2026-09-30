@@ -45,6 +45,11 @@ Before making the app available:
 
 Do not publish the app until all five steps are complete. The normal deploy command is blocked unless the data-release approval flag is explicitly set. Firestore data is restricted to authenticated users by [firestore.rules](./firestore.rules).
 
+To publish: `npm run deploy:staging` first — it puts the build on a temporary preview URL (rules and
+data untouched) so it can be checked against the real ledger — then `PORTAL_DATA_RELEASE_APPROVED=true
+npm run deploy:firebase` for production. Step-by-step commands, a verification checklist and the
+rollback command are in [docs/deploy-runbook.md](./docs/deploy-runbook.md).
+
 ## Local AI with Ollama (OCR and PR/DC audit)
 
 PR, DC and builty scans are read by a vision model running in Ollama on the user's own PC. Gemini is used only as a fallback when Ollama is disabled, unreachable, times out, or cannot read a scan. OpenAI, Anthropic Claude and AgentRouter support has been removed; any keys previously saved for them are deleted from the browser on the next load.
