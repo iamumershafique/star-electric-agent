@@ -2,6 +2,14 @@ import { GoogleGenAI } from '@google/genai';
 import { STAR_DC_LAYOUT_GUIDE } from './dcLayout';
 import type { GeminiExtractionResult, GeminiDCExtractionResult, GeminiBuiltyExtractionResult } from '../types';
 import { normalizeBrand, cleanApiKey } from './utils';
+import { RequestGate, isRateLimitError, mapWithConcurrency } from './concurrency';
+
+/** How many documents are sent to Gemini at the same time in one scan batch. */
+export const GEMINI_FILE_CONCURRENCY = 3;
+/** Wall-clock limit for a single Gemini call; a hung request must not stall a whole batch. */
+const GEMINI_REQUEST_TIMEOUT_MS = 120_000;
+/** Cooldown applied to the whole batch when the API reports a rate limit. */
+const GEMINI_RATE_LIMIT_COOLDOWN_MS = 4000;
 
 export function getActiveGeminiApiKey(apiKey?: string): string {
   const cleanedPassed = cleanApiKey(apiKey);
@@ -37,13 +45,7 @@ export async function validateGeminiApiKey(apiKey: string): Promise<{ valid: boo
     return { valid: false, error: 'No API key provided. Please enter a valid Gemini API key.' };
   }
 
-  const testModels = [
-    'gemini-3.6-flash',
-    'gemini-3.1-flash-lite',
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
-    'gemini-2.0-flash'
-  ];
+  const testModels = modelsToTry(key);
   let lastErr = '';
 
   for (const model of testModels) {
@@ -53,10 +55,12 @@ export async function validateGeminiApiKey(apiKey: string): Promise<{ valid: boo
         model,
         contents: 'Respond with the single word: READY',
         config: {
-          maxOutputTokens: 10
+          maxOutputTokens: 10,
+          httpOptions: { timeout: 30_000 }
         }
       });
       if (response) {
+        rememberGeminiModel(key, model);
         return { valid: true, model };
       }
     } catch (err: any) {
@@ -64,6 +68,7 @@ export async function validateGeminiApiKey(apiKey: string): Promise<{ valid: boo
       console.warn(`[Gemini Test] Model ${model} test failed:`, msg);
       lastErr = msg;
       if (msg.includes('API_KEY_INVALID') || msg.includes('API key not valid') || msg.includes('API_KEY_SERVICE_BLOCKED')) {
+        forgetGeminiModel();
         return { valid: false, error: 'Invalid Google Gemini API Key. Please verify your key in Google AI Studio.' };
       }
       if (msg.includes('PERMISSION_DENIED')) {
@@ -105,6 +110,74 @@ export const CANDIDATE_MODELS = [
   'gemini-2.5-flash-lite',
   'gemini-2.0-flash'
 ];
+
+// ---------------------------------------------------------------------------
+// Model memory
+//
+// Every scan used to walk the whole CANDIDATE_MODELS list from the top. If the first
+// four models are not enabled for the API key (common), each uploaded document paid for
+// four failed round trips before the working model answered - and a 20-document batch
+// paid for 80. The model that answered last is remembered per key and tried first.
+// ---------------------------------------------------------------------------
+let preferredModel: { apiKey: string; model: string } | null = null;
+const modelsWithoutThinkingConfig = new Set<string>();
+
+/** The model that last answered for this API key, if any. */
+export function getPreferredGeminiModel(apiKey: string): string | null {
+  const key = cleanApiKey(apiKey);
+  return preferredModel && preferredModel.apiKey === key ? preferredModel.model : null;
+}
+
+export function rememberGeminiModel(apiKey: string, model: string): void {
+  const key = cleanApiKey(apiKey);
+  if (!key || !model) return;
+  preferredModel = { apiKey: key, model };
+}
+
+/** Drops the remembered model so the next scan probes the list again. */
+export function forgetGeminiModel(): void {
+  preferredModel = null;
+}
+
+/** Ordered list of models to try: the remembered one first, then the defaults. */
+function modelsToTry(apiKey: string): string[] {
+  const remembered = getPreferredGeminiModel(apiKey);
+  return remembered
+    ? [remembered, ...CANDIDATE_MODELS.filter(model => model !== remembered)]
+    : [...CANDIDATE_MODELS];
+}
+
+function isInvalidApiKeyError(error: unknown): boolean {
+  const message = (error instanceof Error ? error.message : String(error ?? '')).toUpperCase();
+  return message.includes('API_KEY_INVALID')
+    || message.includes('API KEY NOT VALID')
+    || message.includes('API_KEY_SERVICE_BLOCKED')
+    || message.includes('PERMISSION_DENIED');
+}
+
+function isThinkingConfigError(error: unknown): boolean {
+  const message = (error instanceof Error ? error.message : String(error ?? '')).toLowerCase();
+  return message.includes('thinking');
+}
+
+/**
+ * Turns off "thinking" where the model supports it - the extraction is a transcription
+ * task, and the default thinking budget is the single biggest latency cost per scan.
+ */
+function thinkingConfigFor(model: string): Record<string, unknown> | undefined {
+  if (modelsWithoutThinkingConfig.has(model)) return undefined;
+  if (/^gemini-3/i.test(model)) return { thinkingLevel: 'LOW' };
+  if (/^gemini-2\.5/i.test(model)) return { thinkingBudget: 0 };
+  return undefined;
+}
+
+function withRequestDefaults(config: any, model: string): any {
+  const merged = { ...(config || {}) };
+  merged.httpOptions = { timeout: GEMINI_REQUEST_TIMEOUT_MS, ...(config?.httpOptions || {}) };
+  const thinkingConfig = thinkingConfigFor(model);
+  if (thinkingConfig) merged.thinkingConfig = thinkingConfig;
+  return merged;
+}
 
 function extractJsonFromText(text: string): any {
   const clean = text.replace(/```json/gi, '').replace(/```/g, '').trim();
@@ -159,27 +232,51 @@ function extractJsonFromText(text: string): any {
   }
 }
 
+/**
+ * Calls Gemini, remembering the model that works so later scans skip the dead probes.
+ * `apiKey` is optional: when omitted the active key from settings is used for the cache.
+ */
 export async function generateWithFallback(
   ai: GoogleGenAI,
   contents: any,
-  config?: any
+  config?: any,
+  apiKey?: string
 ) {
+  const key = cleanApiKey(apiKey) || getActiveGeminiApiKey();
   let lastError: any = null;
-  for (const model of CANDIDATE_MODELS) {
-    try {
-      const response = await ai.models.generateContent({
-        model,
-        contents,
-        config
-      });
-      if (response) {
-        (response as any).activeModel = model;
-        return response;
+
+  for (const model of modelsToTry(key)) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents,
+          config: withRequestDefaults(config, model)
+        });
+        if (response) {
+          (response as any).activeModel = model;
+          rememberGeminiModel(key, model);
+          return response;
+        }
+      } catch (err: any) {
+        const message = err?.message || String(err);
+        // A bad key will not work on any other model either - fail fast instead of
+        // burning five round trips on every document.
+        if (isInvalidApiKeyError(err)) {
+          forgetGeminiModel();
+          throw err;
+        }
+        // Some models reject the thinking settings; retry once without them.
+        if (attempt === 0 && isThinkingConfigError(err)) {
+          modelsWithoutThinkingConfig.add(model);
+          console.warn(`Gemini model ${model} rejected the thinking settings; retrying without them.`, message);
+          continue;
+        }
+        console.warn(`Gemini model ${model} attempt failed:`, message);
+        lastError = err;
+        if (getPreferredGeminiModel(key) === model) forgetGeminiModel();
+        break;
       }
-    } catch (err: any) {
-      console.warn(`Gemini model ${model} attempt failed:`, err?.message || err);
-      lastError = err;
-      continue;
     }
   }
   throw lastError;
@@ -216,7 +313,8 @@ function readDocumentType(value: unknown): DocumentClassificationError['document
 
 async function scanSinglePRDocument(
   ai: GoogleGenAI,
-  file: { base64: string; name?: string }
+  file: { base64: string; name?: string },
+  apiKey: string
 ): Promise<GeminiExtractionResult[]> {
   const prompt = `
 You are an expert document OCR scanner for Star Electric Enterprises (Rawalpindi).
@@ -329,7 +427,8 @@ Return a JSON object in strict valid JSON format:
     {
       maxOutputTokens: 8192,
       responseMimeType: 'application/json'
-    }
+    },
+    apiKey
   );
 
   const text = response.text || '';
@@ -452,97 +551,78 @@ export async function processDocumentWithGemini(
 
   try {
     const ai = new GoogleGenAI({ apiKey: activeKey });
-    const allResults: GeminiExtractionResult[] = [];
+    const total = fileObjects.length;
+    const gate = new RequestGate(GEMINI_RATE_LIMIT_COOLDOWN_MS);
     const skippedFiles: string[] = [];
+    let finished = 0;
 
-    // Process file-by-file so payload size never exceeds limits and every document is extracted
-    for (let i = 0; i < fileObjects.length; i++) {
-      const file = fileObjects[i];
-      const displayName = file.name || `Document #${i + 1}`;
-
-      if (onProgress) {
-        onProgress({
-          current: i + 1,
-          total: fileObjects.length,
-          fileName: displayName,
-          status: `Scanning document ${i + 1} of ${fileObjects.length} (${displayName})...`
-        });
-      }
-
+    const scanOne = async (file: { base64: string; name?: string }): Promise<GeminiExtractionResult[]> => {
+      await gate.wait();
       try {
-        const singleResult = await scanSinglePRDocument(ai, file);
+        return await scanSinglePRDocument(ai, file, activeKey);
+      } catch (err) {
+        if (isRateLimitError(err)) {
+          // Hold the whole batch back instead of hammering a rate-limited endpoint.
+          gate.penalize(GEMINI_RATE_LIMIT_COOLDOWN_MS);
+          await gate.wait();
+          return await scanSinglePRDocument(ai, file, activeKey);
+        }
+        throw err;
+      }
+    };
+
+    // Files are independent, so up to GEMINI_FILE_CONCURRENCY documents are read at once.
+    const perFile = await mapWithConcurrency(fileObjects, GEMINI_FILE_CONCURRENCY, async (file, i) => {
+      const displayName = file.name || `Document #${i + 1}`;
+      onProgress?.({
+        current: finished,
+        total,
+        fileName: displayName,
+        status: total > 1
+          ? `Reading ${displayName} (${finished + 1} of ${total} started, ${GEMINI_FILE_CONCURRENCY} in parallel)...`
+          : `Reading ${displayName}...`
+      });
+      try {
+        const singleResult = await scanOne(file);
         if (singleResult.length === 0) {
           throw new Error('No PR data was extracted from this document.');
         }
-        allResults.push(...singleResult);
+        // Remember which upload produced these requisitions so the review screen can
+        // show the right scan even when one page holds several PR numbers.
+        singleResult.forEach(result => {
+          if (!result.documentImage) result.documentImage = file.base64;
+        });
+        finished += 1;
+        onProgress?.({
+          current: finished,
+          total,
+          fileName: displayName,
+          status: `Read ${displayName}`
+        });
+        return singleResult;
       } catch (err: any) {
-        const errMsg = String(err?.message || err);
-        
-        // Always re-throw DC classification errors
+        // Re-throw DC classification errors so the user is sent to the DC uploader.
         if (err instanceof DocumentClassificationError) throw err;
-        
-        // Handle rate limit errors with retry
-        if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED')) {
-          if (onProgress) {
-            onProgress({
-              current: i + 1,
-              total: fileObjects.length,
-              fileName: displayName,
-              status: `API rate-limit reached. Pausing 4s before retrying ${displayName}...`
-            });
-          }
-          await new Promise(r => setTimeout(r, 4000));
-          try {
-            const retryRes = await scanSinglePRDocument(ai, file);
-            if (retryRes.length > 0) {
-              allResults.push(...retryRes);
-              // Small delay between calls
-              if (fileObjects.length > 1 && i < fileObjects.length - 1) {
-                await new Promise(r => setTimeout(r, 300));
-              }
-              continue;
-            }
-          } catch (retryErr) {
-            if (retryErr instanceof DocumentClassificationError) throw retryErr;
-            // Rate limit retry failed - skip this file and continue
-            const skipMsg = `Skipped ${displayName}: ${String((retryErr as Error)?.message || retryErr)}`;
-            console.warn(skipMsg);
-            skippedFiles.push(displayName);
-            continue;
-          }
-        }
-        
-        // For other errors (JSON parse, extraction failures, crossed-out items), skip the file and continue
-        const skipMsg = `Skipped ${displayName}: ${errMsg}`;
+        const skipMsg = `Skipped ${displayName}: ${String(err?.message || err)}`;
         console.warn(skipMsg);
         skippedFiles.push(displayName);
-        
-        if (onProgress) {
-          onProgress({
-            current: i + 1,
-            total: fileObjects.length,
-            fileName: displayName,
-            status: skipMsg
-          });
-        }
+        finished += 1;
+        onProgress?.({ current: finished, total, fileName: displayName, status: skipMsg });
+        return [] as GeminiExtractionResult[];
       }
+    });
 
-      // Small delay between calls to stay well within Gemini RPM rate limits
-      if (fileObjects.length > 1 && i < fileObjects.length - 1) {
-        await new Promise(r => setTimeout(r, 300));
-      }
-    }
+    const allResults = perFile.flat();
 
     if (allResults.length === 0) {
       const skipInfo = skippedFiles.length > 0 ? `\nSkipped files: ${skippedFiles.join(', ')}` : '';
       throw new Error(`No Purchase Requisition documents were extracted.${skipInfo}`);
     }
-    
-    // Log skipped files if any
+
     if (skippedFiles.length > 0) {
-      console.info(`Successfully processed ${allResults.length} file(s), skipped ${skippedFiles.length}: ${skippedFiles.join(', ')}`);
+      console.info(`Successfully processed ${allResults.length} requisition(s), skipped ${skippedFiles.length} file(s): ${skippedFiles.join(', ')}`);
     }
-    
+
     return allResults;
   } catch (error) {
     console.error('Gemini PR API Extraction error:', error);
@@ -552,146 +632,12 @@ export async function processDocumentWithGemini(
 
 export type DCFileInput = string | { base64: string; name?: string };
 
-export function createFallbackSingleDC(
-  file: { base64: string; name?: string },
-  index: number
-): GeminiDCExtractionResult {
-  const today = new Date().toISOString().split('T')[0];
-  const fn = file.name || '';
-  const fnLower = fn.toLowerCase();
-
-  if (fnLower.includes('682')) {
-    return {
-      dcNumber: 'DC-682',
-      invoiceNumber: 'DC-682',
-      prNumber: 'PR-139',
-      date: '2026-09-23',
-      siteName: 'Hatchery Rawat',
-      driverName: 'Nawaz',
-      vehicleNumber: 'STS-1500',
-      remarks: 'Dispatched via Star Electric Express',
-      shippedItems: [{ itemName: 'EOCR - Electronic Overload control Relay 5-60AMP Schneider', brand: 'Schneider Electric', quantityShipped: 12, unit: 'Numbers' }],
-      confidence: 0.99,
-      rawAnalysis: 'Fallback match for 682'
-    };
-  }
-  if (fnLower.includes('683')) {
-    return {
-      dcNumber: 'DC-683',
-      invoiceNumber: 'DC-683',
-      prNumber: 'PR-60',
-      date: '2026-09-23',
-      siteName: 'Warehouse Rawat',
-      driverName: 'Nawaz',
-      vehicleNumber: 'STS-1500',
-      remarks: 'Dispatched via Star Electric Express',
-      shippedItems: [
-        { itemName: 'Limit Switch', brand: 'General Electrical', quantityShipped: 36, unit: 'Numbers' },
-        { itemName: 'EOCR- Electronic Overload controls Relay Schneider', brand: 'Schneider Electric', quantityShipped: 10, unit: 'Numbers' }
-      ],
-      confidence: 0.99,
-      rawAnalysis: 'Fallback match for 683'
-    };
-  }
-  if (fnLower.includes('684')) {
-    return {
-      dcNumber: 'DC-684',
-      invoiceNumber: 'DC-684',
-      prNumber: 'PR-58',
-      date: '2026-09-23',
-      siteName: 'Warehouse Khanewal via Rawat Warehouse',
-      driverName: 'Nawaz',
-      vehicleNumber: 'STS-1500',
-      remarks: 'Dispatched via Star Electric Express',
-      shippedItems: [{ itemName: 'Industrial Plug/Socket 5-pin 16AMP', brand: 'General Electrical', quantityShipped: 50, unit: 'Set' }],
-      confidence: 0.99,
-      rawAnalysis: 'Fallback match for 684'
-    };
-  }
-  if (fnLower.includes('685')) {
-    return {
-      dcNumber: 'DC-685',
-      invoiceNumber: 'DC-685',
-      prNumber: '',
-      date: '2026-09-23',
-      siteName: 'Oil Extraction Khanewal',
-      driverName: 'Nawaz',
-      vehicleNumber: 'STS-1500',
-      remarks: 'Direct Delivery by PCL',
-      shippedItems: [
-        { itemName: 'PVC Insulation Tape (Red, Yellow, Blue, Black, Green)', brand: 'General Electrical', quantityShipped: 100, unit: 'Numbers' },
-        { itemName: 'PVC Socket 1" white Turk Plast', brand: 'General Electrical', quantityShipped: 100, unit: 'Numbers' }
-      ],
-      confidence: 0.99,
-      rawAnalysis: 'Fallback match for 685'
-    };
-  }
-  if (fnLower.includes('667')) {
-    return {
-      dcNumber: 'DC-667',
-      invoiceNumber: 'DC-667',
-      prNumber: 'PR-58',
-      date: '2026-09-17',
-      siteName: 'Mankera via Ware House Rawat',
-      driverName: 'Nawaz',
-      vehicleNumber: 'STS-1500',
-      remarks: 'Dispatched via Star Electric Express',
-      shippedItems: [{ itemName: 'MCCB 630Amp 36kA Adjustable High Breaking Terasaki Japan model E-630NE', brand: 'Terasaki', quantityShipped: 1, unit: 'Numbers' }],
-      confidence: 0.99,
-      rawAnalysis: 'Fallback match for 667'
-    };
-  }
-
-  const dcMatch = fn.match(/DC[-_\s]?(\d+)/i) || fn.match(/Challan[-_\s]?(\d+)/i) || fn.match(/(\d+)/);
-  const dcDigits = dcMatch ? dcMatch[1] : String(600 + index);
-  const dcNo = `DC-${dcDigits}`;
-
-  const prMatch = fn.match(/PR[-_\s]?([0-9A-Za-z]+)/i);
-  const prNum = prMatch ? `PR-${prMatch[1].toUpperCase()}` : '';
-
-  const sampleItemsList = [
-    [
-      { itemName: '50mm 4-Core Armoured XLPE Copper Cable', brand: 'Pakistan Cables', quantityShipped: 100, unit: 'Meters' },
-      { itemName: '100A 3-Pole Circuit Breaker', brand: 'Terasaki', quantityShipped: 2, unit: 'Numbers' }
-    ],
-    [
-      { itemName: 'MCCB 630Amp 36kA Adjustable High Breaking Terasaki Japan model E-630NE', brand: 'Terasaki', quantityShipped: 1, unit: 'Numbers' }
-    ],
-    [
-      { itemName: 'Limit Switch Heavy Duty Industrial', brand: 'General Electrical', quantityShipped: 36, unit: 'Numbers' },
-      { itemName: 'EOCR- Electronic Overload controls Relay Schneider', brand: 'Schneider Electric', quantityShipped: 10, unit: 'Numbers' }
-    ],
-    [
-      { itemName: 'Industrial Plug/Socket 5-pin 16AMP', brand: 'General Electrical', quantityShipped: 50, unit: 'Set' }
-    ],
-    [
-      { itemName: 'PVC Insulation Tape (Red, Yellow, Blue, Black, Green)', brand: 'General Electrical', quantityShipped: 100, unit: 'Numbers' },
-      { itemName: 'PVC Socket 1" white Turk Plast', brand: 'General Electrical', quantityShipped: 100, unit: 'Numbers' }
-    ]
-  ];
-
-  const items = sampleItemsList[index % sampleItemsList.length];
-
-  return {
-    dcNumber: dcNo,
-    invoiceNumber: dcNo,
-    prNumber: prNum,
-    date: today,
-    siteName: 'Jadeed Group Site',
-    driverName: 'Nawaz',
-    vehicleNumber: 'STS-1500',
-    remarks: 'Dispatched via Star Electric Express',
-    shippedItems: items,
-    confidence: 0.95,
-    rawAnalysis: `OCR parsing for ${fn || `Challan #${index + 1}`}`
-  };
-}
-
 async function scanSingleDCDocument(
   ai: GoogleGenAI,
   file: { base64: string; name?: string },
   _index: number,
-  knownPRMemory?: string
+  knownPRMemory?: string,
+  apiKey?: string
 ): Promise<GeminiDCExtractionResult[]> {
   const prompt = `
 You are an expert document OCR scanner for Star Electric Enterprises (Rawalpindi).
@@ -793,7 +739,8 @@ Return a JSON object in strict valid JSON format:
     {
       maxOutputTokens: 8192,
       responseMimeType: 'application/json'
-    }
+    },
+    apiKey
   );
 
   const text = response.text || '';
@@ -831,97 +778,70 @@ export async function processDCWithGemini(
 
   try {
     const ai = new GoogleGenAI({ apiKey: activeKey });
-    const allResults: GeminiDCExtractionResult[] = [];
+    const total = fileObjects.length;
+    const gate = new RequestGate(GEMINI_RATE_LIMIT_COOLDOWN_MS);
     const skippedFiles: string[] = [];
+    let finished = 0;
 
-    // Process file-by-file so payload size never exceeds limits and every document is extracted
-    for (let i = 0; i < fileObjects.length; i++) {
-      const file = fileObjects[i];
-      const displayName = file.name || `Delivery Challan #${i + 1}`;
-
-      if (onProgress) {
-        onProgress({
-          current: i + 1,
-          total: fileObjects.length,
-          fileName: displayName,
-          status: `Scanning Delivery Challan ${i + 1} of ${fileObjects.length} (${displayName})...`
-        });
-      }
-
+    const scanOne = async (file: { base64: string; name?: string }, index: number): Promise<GeminiDCExtractionResult[]> => {
+      await gate.wait();
       try {
-        const singleResult = await scanSingleDCDocument(ai, file, i, knownPRMemory);
+        return await scanSingleDCDocument(ai, file, index, knownPRMemory, activeKey);
+      } catch (err) {
+        if (isRateLimitError(err)) {
+          gate.penalize(GEMINI_RATE_LIMIT_COOLDOWN_MS);
+          await gate.wait();
+          return await scanSingleDCDocument(ai, file, index, knownPRMemory, activeKey);
+        }
+        throw err;
+      }
+    };
+
+    // Challans are independent documents, so several can be read at the same time.
+    const perFile = await mapWithConcurrency(fileObjects, GEMINI_FILE_CONCURRENCY, async (file, i) => {
+      const displayName = file.name || `Delivery Challan #${i + 1}`;
+      onProgress?.({
+        current: finished,
+        total,
+        fileName: displayName,
+        status: total > 1
+          ? `Reading ${displayName} (${finished + 1} of ${total} started, ${GEMINI_FILE_CONCURRENCY} in parallel)...`
+          : `Reading ${displayName}...`
+      });
+      try {
+        const singleResult = await scanOne(file, i);
         if (singleResult.length === 0) {
           throw new Error('No Delivery Challan data was extracted from this document.');
         }
-        allResults.push(...singleResult);
+        // Keep the uploaded page with the challan(s) read from it.
+        singleResult.forEach(result => {
+          if (!result.documentImage) result.documentImage = file.base64;
+        });
+        finished += 1;
+        onProgress?.({ current: finished, total, fileName: displayName, status: `Read ${displayName}` });
+        return singleResult;
       } catch (err: any) {
-        const errMsg = String(err?.message || err);
-        
-        // Always re-throw DC classification errors
         if (err instanceof DocumentClassificationError) throw err;
-        
-        // Handle rate limit errors with retry
-        if (errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED')) {
-          if (onProgress) {
-            onProgress({
-              current: i + 1,
-              total: fileObjects.length,
-              fileName: displayName,
-              status: `API rate-limit reached. Pausing 4s before retrying ${displayName}...`
-            });
-          }
-          await new Promise(r => setTimeout(r, 4000));
-          try {
-            const retryRes = await scanSingleDCDocument(ai, file, i, knownPRMemory);
-            if (retryRes.length > 0) {
-              allResults.push(...retryRes);
-              // Small delay between calls
-              if (fileObjects.length > 1 && i < fileObjects.length - 1) {
-                await new Promise(r => setTimeout(r, 300));
-              }
-              continue;
-            }
-          } catch (retryErr) {
-            if (retryErr instanceof DocumentClassificationError) throw retryErr;
-            // Rate limit retry failed - skip this file and continue
-            const skipMsg = `Skipped ${displayName}: ${String((retryErr as Error)?.message || retryErr)}`;
-            console.warn(skipMsg);
-            skippedFiles.push(displayName);
-            continue;
-          }
-        }
-        
-        // For other errors (JSON parse, extraction failures), skip the file and continue
-        const skipMsg = `Skipped ${displayName}: ${errMsg}`;
+        const skipMsg = `Skipped ${displayName}: ${String(err?.message || err)}`;
         console.warn(skipMsg);
         skippedFiles.push(displayName);
-        
-        if (onProgress) {
-          onProgress({
-            current: i + 1,
-            total: fileObjects.length,
-            fileName: displayName,
-            status: skipMsg
-          });
-        }
+        finished += 1;
+        onProgress?.({ current: finished, total, fileName: displayName, status: skipMsg });
+        return [] as GeminiDCExtractionResult[];
       }
+    });
 
-      // Small delay between calls to stay well within Gemini RPM rate limits
-      if (fileObjects.length > 1 && i < fileObjects.length - 1) {
-        await new Promise(r => setTimeout(r, 300));
-      }
-    }
+    const allResults = perFile.flat();
 
     if (allResults.length === 0) {
       const skipInfo = skippedFiles.length > 0 ? `\nSkipped files: ${skippedFiles.join(', ')}` : '';
       throw new Error(`No Delivery Challan documents were extracted.${skipInfo}`);
     }
-    
-    // Log skipped files if any
+
     if (skippedFiles.length > 0) {
-      console.info(`Successfully processed ${allResults.length} DC file(s), skipped ${skippedFiles.length}: ${skippedFiles.join(', ')}`);
+      console.info(`Successfully processed ${allResults.length} DC record(s), skipped ${skippedFiles.length} file(s): ${skippedFiles.join(', ')}`);
     }
-    
+
     return allResults;
   } catch (error) {
     console.error('Gemini DC API Extraction error:', error);
@@ -1009,7 +929,8 @@ Return a JSON object in strict valid JSON format:
       {
         maxOutputTokens: 8192,
         responseMimeType: 'application/json'
-      }
+      },
+      activeKey
     );
 
     const text = response.text || '';
@@ -1044,129 +965,3 @@ Return a JSON object in strict valid JSON format:
   }
 }
 
-// Multi-page intelligent simulator for Goods Transport Builty receipts (Matches real Pakistani Adda receipts)
-export function simulateBuiltyExtraction(
-  pageCount: number = 1,
-  images: string[] = [],
-  fileNames: string[] = []
-): Promise<GeminiBuiltyExtractionResult[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const BUILTY_674: GeminiBuiltyExtractionResult = {
-        dcNumber: 'DC-674',
-        builtyNumber: '78412',
-        addaName: 'Tariq Goods Transport Saddar Rawalpindi',
-        destinationCity: 'Khanewal',
-        packagesCount: '3 Bundles 16mm Flexible Cable',
-        freightCharges: 750,
-        freightStatus: 'Paid',
-        builtyDate: '2026-09-18',
-        sender: 'Star Electric Enterprises Rawalpindi',
-        receiver: 'Jadeed Group Oil Extraction Khanewal',
-        confidence: 0.99,
-        rawAnalysis: 'Extracted Builty #78412 for DC-674 via Tariq Goods'
-      };
-
-      const BUILTY_668: GeminiBuiltyExtractionResult = {
-        dcNumber: 'DC-668',
-        builtyNumber: '89143',
-        addaName: 'Rawalpindi Goods Transport Adda',
-        destinationCity: 'Mankera',
-        packagesCount: '2 Cartons Vintage Wall Lights',
-        freightCharges: 500,
-        freightStatus: 'To Pay',
-        builtyDate: '2026-09-17',
-        sender: 'Star Electric Enterprises Rawalpindi',
-        receiver: 'Jadeed Group Agri Farm Mankera I',
-        confidence: 0.99,
-        rawAnalysis: 'Extracted Builty #89143 for DC-668 via Rawalpindi Goods'
-      };
-
-      const BUILTY_667: GeminiBuiltyExtractionResult = {
-        dcNumber: 'DC-667',
-        builtyNumber: '89144',
-        addaName: 'Rawalpindi Goods Transport Adda',
-        destinationCity: 'Mankera',
-        packagesCount: '1 Wooden Crate Terasaki MCCB Breaker',
-        freightCharges: 600,
-        freightStatus: 'To Pay',
-        builtyDate: '2026-09-17',
-        sender: 'Star Electric Enterprises Rawalpindi',
-        receiver: 'Jadeed Group Mankera via Rawat',
-        confidence: 0.99,
-        rawAnalysis: 'Extracted Builty #89144 for DC-667 via Rawalpindi Goods'
-      };
-
-      const BUILTY_673: GeminiBuiltyExtractionResult = {
-        dcNumber: 'DC-673',
-        builtyNumber: '78413',
-        addaName: 'Tariq Goods Transport Saddar Rawalpindi',
-        destinationCity: 'Khanewal',
-        packagesCount: '4 Bundles 6mm Flexible Cable',
-        freightCharges: 900,
-        freightStatus: 'Paid',
-        builtyDate: '2026-09-18',
-        sender: 'Star Electric Enterprises Rawalpindi',
-        receiver: 'Jadeed Group Oil Extraction Khanewal',
-        confidence: 0.99,
-        rawAnalysis: 'Extracted Builty #78413 for DC-673 via Tariq Goods'
-      };
-
-      const BUILTY_666: GeminiBuiltyExtractionResult = {
-        dcNumber: 'DC-666',
-        builtyNumber: '89140',
-        addaName: 'Rawalpindi Goods Transport Adda',
-        destinationCity: 'Khanewal',
-        packagesCount: '3 Coils Std PVC Cable + 8 Coils Control Wire',
-        freightCharges: 1100,
-        freightStatus: 'Paid',
-        builtyDate: '2026-09-17',
-        sender: 'Star Electric Enterprises Rawalpindi',
-        receiver: 'Jadeed Group Feed Mill Khanewal',
-        confidence: 0.99,
-        rawAnalysis: 'Extracted Builty #89140 for DC-666 for Feed Mill Khanewal'
-      };
-
-      // 1. Check filenames for DC numbers
-      if (fileNames && fileNames.length > 0) {
-        const detected: GeminiBuiltyExtractionResult[] = [];
-        for (let i = 0; i < fileNames.length; i++) {
-          const fn = (fileNames[i] || '').toLowerCase();
-          const img = images[i] || images[0];
-          if (fn.includes('674')) detected.push({ ...BUILTY_674, builtyImage: img });
-          else if (fn.includes('668')) detected.push({ ...BUILTY_668, builtyImage: img });
-          else if (fn.includes('667')) detected.push({ ...BUILTY_667, builtyImage: img });
-          else if (fn.includes('673')) detected.push({ ...BUILTY_673, builtyImage: img });
-          else if (fn.includes('666')) detected.push({ ...BUILTY_666, builtyImage: img });
-        }
-
-        if (detected.length === fileNames.length && detected.length > 0) {
-          resolve(detected);
-          return;
-        }
-      }
-
-      // 2. Default pool of authentic builtys
-      const pool = [BUILTY_674, BUILTY_668, BUILTY_667, BUILTY_673, BUILTY_666];
-      const count = Math.max(1, pageCount);
-      const results: GeminiBuiltyExtractionResult[] = [];
-
-      for (let i = 0; i < count; i++) {
-        const base = pool[i % pool.length];
-        const fn = fileNames[i] || '';
-        const numMatch = fn.match(/\d+/g);
-        const dcNum = numMatch ? `DC-${numMatch[numMatch.length - 1]}` : base.dcNumber;
-
-        results.push({
-          ...base,
-          dcNumber: dcNum,
-          builtyNumber: String(parseInt(base.builtyNumber, 10) + i),
-          builtyImage: images[i] || images[0] || undefined,
-          rawAnalysis: `Simulated Builty extraction for ${fn || `Receipt #${i + 1}`}`
-        });
-      }
-
-      resolve(results);
-    }, 600);
-  });
-}

@@ -1,7 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { DocumentClassificationError, fileToBase64 } from '../lib/gemini';
-import { getActiveOCRProvider, getLocalScanWarning, getOCREngineLabel, processDocumentWithAI } from '../lib/aiOcr';
+import {
+  getActiveOCRProvider,
+  getLocalScanQualityNote,
+  getLocalScanWarning,
+  getOCREngineLabel,
+  preloadLocalOCRModel,
+  processDocumentWithAI
+} from '../lib/aiOcr';
 import { 
   X, 
   UploadCloud, 
@@ -52,6 +59,13 @@ export const PRUploadModal: React.FC = () => {
   const ocrEngine = getOCREngineLabel(activeOCRProvider);
   const localScanWarning = getLocalScanWarning(activeOCRProvider, files.length);
 
+  // Load the local model as soon as the upload window opens, so the first document does not
+  // wait for the model to load (10-60 s on a CPU-only PC).
+  useEffect(() => {
+    if (!isPRUploadOpen) return;
+    void preloadLocalOCRModel();
+  }, [isPRUploadOpen]);
+
   if (!isPRUploadOpen) return null;
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,26 +77,33 @@ export const PRUploadModal: React.FC = () => {
 
   const addFiles = async (newFiles: File[]) => {
     setErrorMsg(null);
-    const newItems: FilePreviewItem[] = [];
-
-    for (const file of newFiles) {
+    // Read the files in parallel; a single unreadable file must not silently disappear
+    // from the batch.
+    const read = await Promise.all(newFiles.map(async file => {
       try {
-        const base64 = await fileToBase64(file);
-        const sizeFormatted = file.size > 1024 * 1024 
-          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-          : `${Math.round(file.size / 1024)} KB`;
-        
-        newItems.push({
-          id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-          file,
-          name: file.name,
-          size: sizeFormatted,
-          base64
-        });
+        return { file, base64: await fileToBase64(file) };
       } catch (err) {
         console.error('Error reading file:', file.name, err);
+        return { file, base64: null };
       }
+    }));
+
+    const unreadable = read.filter(entry => entry.base64 === null).map(entry => entry.file.name);
+    if (unreadable.length > 0) {
+      setErrorMsg(`Could not read ${unreadable.join(', ')}. Re-select the file(s) and try again.`);
     }
+
+    const newItems: FilePreviewItem[] = read
+      .filter((entry): entry is { file: File; base64: string } => entry.base64 !== null)
+      .map(({ file, base64 }) => ({
+        id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        file,
+        name: file.name,
+        size: file.size > 1024 * 1024
+          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+          : `${Math.round(file.size / 1024)} KB`,
+        base64
+      }));
 
     setFiles(prev => [...prev, ...newItems]);
   };
@@ -130,7 +151,9 @@ export const PRUploadModal: React.FC = () => {
         throw new Error('No requisitions could be extracted from the uploaded file(s).');
       }
 
-      // Attach original document images into each extracted PR item
+      // Attach the page each requisition was read from. The OCR layer already reports it,
+      // because one page can hold several PR numbers - indexing by upload position used to
+      // hand PRs the wrong scan.
       resultList.forEach((res, i) => {
         if (!res.documentImage) {
           res.documentImage = files[i]?.base64 || files[0]?.base64 || '';
@@ -347,7 +370,7 @@ export const PRUploadModal: React.FC = () => {
               <div className="flex items-center justify-between text-xs font-bold text-amber-900">
                 <span className="flex items-center gap-1.5">
                   <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
-                  Scanning Requisition {scanProgress.current} of {scanProgress.total}...
+                  Scanned {Math.min(scanProgress.current, scanProgress.total)} of {scanProgress.total} file(s)...
                 </span>
                 <span className="font-mono text-amber-800 font-extrabold">{scanProgress.percent}%</span>
               </div>
@@ -367,6 +390,10 @@ export const PRUploadModal: React.FC = () => {
             <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold">
               {localScanWarning}
             </div>
+          )}
+
+          {activeOCRProvider.startsWith('Ollama') && !isProcessing && (
+            <p className="text-[10px] text-slate-500 font-medium">{getLocalScanQualityNote()}</p>
           )}
 
           {errorMsg && (

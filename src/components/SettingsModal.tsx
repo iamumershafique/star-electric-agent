@@ -30,8 +30,9 @@ import {
   type OllamaSettings
 } from '../lib/storage';
 import { validateGeminiApiKey } from '../lib/gemini';
-import { testOllamaConnection } from '../lib/ollama';
+import { testOllamaConnection, warmUpOllama } from '../lib/ollama';
 import { cleanApiKey } from '../lib/utils';
+import { SCAN_QUALITY_HELP, SCAN_QUALITY_LABEL, SCAN_QUALITY_ORDER, normalizeScanQuality } from '../lib/scanQuality';
 
 export const SettingsModal: React.FC = () => {
   const { 
@@ -184,11 +185,15 @@ export const SettingsModal: React.FC = () => {
     setOllamaModels(result.models || []);
     saveOllamaSettings({ ...next, enabled: next.enabled && result.valid });
     setOllamaSettings({ ...next, enabled: next.enabled && result.valid });
+    if (result.valid) {
+      // Start loading the model now so the next scan does not pay for the model load.
+      void warmUpOllama(next);
+    }
     setOllamaTestResult(result.valid
       ? {
           status: 'success',
           message: next.enabled
-            ? `Connected to Ollama ${result.version || ''}. PR, DC and builty OCR will use ${next.visionModel} first${hasLinkedKey ? ', with Gemini as fallback' : ''}.`
+            ? `Connected to Ollama ${result.version || ''}. PR, DC and builty OCR will use ${next.visionModel} at ${SCAN_QUALITY_LABEL[next.scanQuality]}${hasLinkedKey ? ', with Gemini as fallback' : ''}.`
             : `Connected to Ollama ${result.version || ''} and ${next.visionModel} is installed. Tick "Use Ollama" to switch OCR to it.`
         }
       : { status: 'error', message: result.error || 'Ollama connection failed.' });
@@ -464,7 +469,23 @@ export const SettingsModal: React.FC = () => {
                 className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-[11px] focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </label>
+            <label className="text-[11px] font-bold text-slate-700 space-y-1">
+              <span>Scan read quality (speed)</span>
+              <select
+                value={ollamaSettings.scanQuality}
+                onChange={event => updateOllama({ scanQuality: normalizeScanQuality(event.target.value) })}
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-[11px] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                {SCAN_QUALITY_ORDER.map(quality => (
+                  <option key={quality} value={quality}>{SCAN_QUALITY_LABEL[quality]}</option>
+                ))}
+              </select>
+            </label>
           </div>
+
+          <p className="text-[10px] text-slate-600 leading-relaxed font-medium">
+            {SCAN_QUALITY_HELP[ollamaSettings.scanQuality]}
+          </p>
 
           <div className="flex flex-col sm:flex-row gap-2">
             <button

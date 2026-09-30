@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { fileToBase64 } from '../lib/gemini';
-import { getActiveOCRProvider, getOCREngineLabel, processBuiltyWithAI } from '../lib/aiOcr';
+import { getActiveOCRProvider, getOCREngineLabel, preloadLocalOCRModel, processBuiltyWithAI } from '../lib/aiOcr';
 import type { GeminiBuiltyExtractionResult } from '../types';
 import { 
   X, 
@@ -54,11 +54,18 @@ export const BuiltyUploadModal: React.FC = () => {
   const [activeDraftIndex, setActiveDraftIndex] = useState<number>(0);
   
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [scanProgress, setScanProgress] = useState<{ current: number; total: number; fileName: string; status: string } | null>(null);
   const [statusNote, setStatusNote] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeOCRProvider = getActiveOCRProvider(geminiApiKey);
   const ocrEngine = getOCREngineLabel(activeOCRProvider);
+
+  // Warm the local model up while the user is still choosing files.
+  useEffect(() => {
+    if (!isBuiltyUploadOpen) return;
+    void preloadLocalOCRModel();
+  }, [isBuiltyUploadOpen]);
 
   // Initialize draft when modal opens
   useEffect(() => {
@@ -116,6 +123,7 @@ export const BuiltyUploadModal: React.FC = () => {
     setIsScanning(true);
     setErrorMsg(null);
     setStatusNote(null);
+    setScanProgress({ current: 0, total: filesList.length, fileName: '', status: `Preparing ${filesList.length} builty file(s)...` });
 
     try {
       const filePayloads = await Promise.all(
@@ -125,7 +133,14 @@ export const BuiltyUploadModal: React.FC = () => {
         }))
       );
 
-      const results = await processBuiltyWithAI(filePayloads, geminiApiKey);
+      const results = await processBuiltyWithAI(filePayloads, geminiApiKey, progress => {
+        setScanProgress({
+          current: progress.current,
+          total: progress.total,
+          fileName: progress.fileName,
+          status: progress.status
+        });
+      });
 
       if (!results || results.length === 0) {
         throw new Error('No builty details extracted from document.');
@@ -175,6 +190,7 @@ export const BuiltyUploadModal: React.FC = () => {
       setActiveMode('manual');
     } finally {
       setIsScanning(false);
+      setScanProgress(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -471,12 +487,17 @@ export const BuiltyUploadModal: React.FC = () => {
           )}
 
           {isScanning && (
-            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-3">
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-start gap-3">
               <Loader2 className="w-5 h-5 text-amber-600 animate-spin flex-shrink-0" />
-              <div>
-                <p className="font-bold">{ocrEngine} Scanning Builty Receipt(s)...</p>
-                <p className="text-[11px] text-amber-800 font-medium">
-                  Locating handwritten DC Number, Consignment #, Goods Transport Company, Destination & Freight charges...
+              <div className="space-y-1 min-w-0 flex-1">
+                <p className="font-bold">
+                  {ocrEngine} Scanning Builty Receipt(s)
+                  {scanProgress && scanProgress.total > 0
+                    ? ` — ${Math.min(scanProgress.current, scanProgress.total)} of ${scanProgress.total} done`
+                    : '...'}
+                </p>
+                <p className="text-[11px] text-amber-800 font-medium truncate">
+                  {scanProgress?.status || 'Locating handwritten DC Number, Consignment #, Goods Transport Company, Destination & Freight charges...'}
                 </p>
               </div>
             </div>

@@ -45,6 +45,11 @@ Before making the app available:
 
 Do not publish the app until all five steps are complete. The normal deploy command is blocked unless the data-release approval flag is explicitly set. Firestore data is restricted to authenticated users by [firestore.rules](./firestore.rules).
 
+To publish: `npm run deploy:staging` first — it puts the build on a temporary preview URL (rules and
+data untouched) so it can be checked against the real ledger — then `PORTAL_DATA_RELEASE_APPROVED=true
+npm run deploy:firebase` for production. Step-by-step commands, a verification checklist and the
+rollback command are in [docs/deploy-runbook.md](./docs/deploy-runbook.md).
+
 ## Local AI with Ollama (OCR and PR/DC audit)
 
 PR, DC and builty scans are read by a vision model running in Ollama on the user's own PC. Gemini is used only as a fallback when Ollama is disabled, unreachable, times out, or cannot read a scan. OpenAI, Anthropic Claude and AgentRouter support has been removed; any keys previously saved for them are deleted from the browser on the next load.
@@ -58,6 +63,24 @@ One-time setup on each PC that will scan documents (Windows):
 4. In the portal, open **Settings → Local Ollama**, tick **Use Ollama**, and click **Save & Test Connection**. If Chrome asks to allow access to devices on the local network, allow it.
 
 Ollama only serves the browser on the same PC. Staff on other PCs fall back to Gemini unless they run Ollama too.
+
+### Scan speed (`Settings → Local Ollama → Scan read quality`)
+
+Scan time is dominated by how much image the model has to look at and by how much prompt text is
+sent with it, so both are configurable:
+
+| Setting | Image side | When to use |
+| --- | --- | --- |
+| Fast | 896 px | Clean printed challans on a slow CPU (~2× faster than the old setting). |
+| Balanced (default) | 1152 px | Recommended; ~26% fewer vision patches than the old fixed 1344 px with the same readability for the Star Electric forms. |
+| Accurate | 1536 px | Faint or heavily handwritten scans, after a failed read. |
+
+Other speed work: the local model is warmed up when an upload window opens (so the first scan does
+not pay the 10-60 s model load), the PR register sent to the challan reader is a compact
+`PR number | site` list instead of every line item (≈4 500 fewer prompt tokens per challan), and
+multi-file Gemini batches now run up to 3 documents in parallel with the working model remembered for
+the session. See [docs/portal-bug-and-scan-performance-report.md](./docs/portal-bug-and-scan-performance-report.md)
+for the full bug list and measurements.
 
 On a CPU-only PC expect roughly 40–90 seconds per scan. PDFs are rendered to images in the browser (first 3 pages) before they are sent to the model.
 
