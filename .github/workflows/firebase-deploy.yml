@@ -25,7 +25,12 @@ jobs:
       - name: Build Project
         run: npm run build
 
-      - name: Deploy to Firebase
+      - name: Deploy Firestore Rules
+        run: npx firebase-tools deploy --only firestore:rules
+        env:
+          FIREBASE_TOKEN: '${{ secrets.FIREBASE_TOKEN }}'
+
+      - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
