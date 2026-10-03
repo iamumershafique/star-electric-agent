@@ -24,5 +24,5 @@ IMPORTANT NOTES:
 - Supplier: Star Electric Enterprises (Saddar, Rawalpindi)
 - Unified Rule: DC Number = Invoice Number
 - Master Reset Password: 2214
-- To enable Gemini AI document scanning on your domain: Click the Settings (gear icon) in the navbar and enter your Gemini API Key.
+- To enable local Ollama OCR scanning on your domain or local PC: open Settings and configure the local Ollama URL and model.
 ========================================================================
