@@ -1,19 +1,9 @@
 import {
-  getActiveGeminiApiKey,
-  processBuiltyWithGemini,
-  processDCWithGemini,
-  processDocumentWithGemini,
-  DocumentClassificationError,
-  type DCFileInput,
-  type PRFileInput
-} from './gemini';
-import {
   isOllamaEnabled,
   processBuiltyWithOllama,
   processDCWithOllama,
   processDocumentWithOllama,
-  warmUpOllama,
-  OllamaConnectionError
+  warmUpOllama
 } from './ollama';
 import { normalizeDCResult } from './dcLayout';
 import { getOllamaSettings } from './storage';
@@ -48,10 +38,10 @@ export function getActiveOCRProvider(_geminiApiKey?: string): OCRProviderName {
   return isOllamaEnabled() ? 'Ollama' : 'None';
 }
 
-type FileInput = PRFileInput | DCFileInput;
+type FileInput = { base64: string; name: string };
 
 const fileName = (file: FileInput, index: number) =>
-  (typeof file === 'string' ? '' : file.name || '') || `File #${index + 1}`;
+  (file.name || '') || `File #${index + 1}`;
 
 /**
  * Loads the local model into memory before the first document is sent, so the scan does not
@@ -63,8 +53,8 @@ export async function preloadLocalOCRModel(): Promise<void> {
 }
 
 /**
- * Run OCR through Ollama only. Gemini is intentionally no longer required for the portal.
- * If Ollama is disabled or fails, the user is guided to enable local Ollama.
+ * Run OCR through Ollama only. If Ollama is disabled or fails, an error is thrown
+ * and the user is guided to enable local Ollama.
  */
 async function withOllamaOnly<T>(
   files: FileInput[],
@@ -98,7 +88,7 @@ const perFileProgress = (onProgress: OCRProgressHandler | undefined, index: numb
   onProgress && (progress => onProgress({ ...progress, current: index + 1, total }));
 
 export function processDocumentWithAI(
-  files: PRFileInput | PRFileInput[],
+  files: { base64: string; name: string } | { base64: string; name: string }[],
   _geminiApiKey?: string,
   onProgress?: OCRProgressHandler
 ): Promise<GeminiExtractionResult[]> {
@@ -109,7 +99,7 @@ export function processDocumentWithAI(
 }
 
 export function processDCWithAI(
-  files: DCFileInput | DCFileInput[],
+  files: { base64: string; name: string } | { base64: string; name: string }[],
   _geminiApiKey?: string,
   onProgress?: OCRProgressHandler,
   knownPRMemory?: string
@@ -121,7 +111,7 @@ export function processDCWithAI(
 }
 
 export function processBuiltyWithAI(
-  files: DCFileInput | DCFileInput[],
+  files: { base64: string; name: string } | { base64: string; name: string }[],
   _geminiApiKey?: string,
   onProgress?: OCRProgressHandler
 ): Promise<GeminiBuiltyExtractionResult[]> {
