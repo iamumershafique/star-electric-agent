@@ -3,7 +3,6 @@ import { useApp } from '../context/AppContext';
 import { 
   Settings, 
   X, 
-  Key, 
   Database, 
   Download, 
   Upload, 
@@ -12,10 +11,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Loader2,
-  Eye,
-  EyeOff,
   ExternalLink,
-  Trash2,
   Smartphone,
   QrCode,
   Copy,
@@ -23,23 +19,18 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import {
-  getGeminiApiKey,
   getOllamaSettings,
   saveOllamaSettings,
   DEFAULT_OLLAMA_SETTINGS,
   type OllamaSettings
 } from '../lib/storage';
-import { validateGeminiApiKey } from '../lib/gemini';
 import { testOllamaConnection, warmUpOllama } from '../lib/ollama';
-import { cleanApiKey } from '../lib/utils';
 import { SCAN_QUALITY_HELP, SCAN_QUALITY_LABEL, SCAN_QUALITY_ORDER, normalizeScanQuality } from '../lib/scanQuality';
 
 export const SettingsModal: React.FC = () => {
   const { 
     isSettingsOpen, 
     setIsSettingsOpen, 
-    geminiApiKey, 
-    updateGeminiApiKey, 
     exportBackupJSON,
     importBackupJSON,
     setIsMasterResetOpen,
@@ -47,7 +38,6 @@ export const SettingsModal: React.FC = () => {
     publicUrl
   } = useApp();
 
-  const [inputKey, setInputKey] = useState(geminiApiKey || '');
   const [ollamaSettings, setOllamaSettings] = useState<OllamaSettings>(() => getOllamaSettings());
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [isTestingOllama, setIsTestingOllama] = useState(false);
@@ -56,116 +46,21 @@ export const SettingsModal: React.FC = () => {
     status: 'idle' | 'success' | 'error';
     message: string;
   }>({ status: 'idle', message: '' });
-  const [showKey, setShowKey] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
-  const [testResult, setTestResult] = useState<{
-    status: 'idle' | 'success' | 'error';
-    message: string;
-    model?: string;
-  }>({ status: 'idle', message: '' });
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
   const currentPortalUrl = publicUrl || (typeof window !== 'undefined' ? window.location.origin : 'https://star-agent-jpf.web.app');
 
-  // Sync input whenever modal opens or geminiApiKey state changes
+  // Sync input whenever modal opens
   useEffect(() => {
     if (isSettingsOpen) {
-      setInputKey('');
       setOllamaSettings(getOllamaSettings());
-      setTestResult({ status: 'idle', message: '' });
       setOllamaTestResult({ status: 'idle', message: '' });
       setImportStatus(null);
     }
-  }, [isSettingsOpen, geminiApiKey]);
+  }, [isSettingsOpen]);
 
   if (!isSettingsOpen) return null;
-
-  const handleSaveAndTest = async () => {
-    const cleaned = cleanApiKey(inputKey);
-    if (!cleaned) {
-      setTestResult({
-        status: 'error',
-        message: 'Please paste your Google Gemini API key first.'
-      });
-      return;
-    }
-
-    // Save immediately so state & local storage are updated
-    updateGeminiApiKey(cleaned);
-    setInputKey('');
-    setIsTesting(true);
-    setTestResult({ status: 'idle', message: '' });
-
-    try {
-      const res = await validateGeminiApiKey(cleaned);
-      if (res.valid) {
-        setTestResult({
-          status: 'success',
-          message: `API Key verified & linked! Gemini is ready for live OCR scanning.`,
-          model: res.model || 'gemini-3.6-flash'
-        });
-      } else {
-        setTestResult({
-          status: 'error',
-          message: res.error || 'Connection failed. Please check the API key format and permissions.'
-        });
-      }
-    } catch (err: any) {
-      setTestResult({
-        status: 'error',
-        message: err?.message || 'Unable to reach Google Gemini API. Check your internet connection.'
-      });
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
-  const handleTestOnly = async () => {
-    const keyToTest = cleanApiKey(inputKey) || geminiApiKey || getGeminiApiKey();
-    if (!keyToTest) {
-      setTestResult({
-        status: 'error',
-        message: 'No API key provided to test. Please enter a Gemini API key.'
-      });
-      return;
-    }
-
-    setIsTesting(true);
-    setTestResult({ status: 'idle', message: '' });
-
-    try {
-      const res = await validateGeminiApiKey(keyToTest);
-      if (res.valid) {
-        setTestResult({
-          status: 'success',
-          message: `Connection successful! Active model: ${res.model || 'gemini-3.6-flash'}`,
-          model: res.model
-        });
-      } else {
-        setTestResult({
-          status: 'error',
-          message: res.error || 'Connection failed. Please check your API key.'
-        });
-      }
-    } catch (err: any) {
-      setTestResult({
-        status: 'error',
-        message: err?.message || 'Failed to connect to Google Gemini API.'
-      });
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
-  const handleClearKey = () => {
-    updateGeminiApiKey('');
-    setInputKey('');
-    setTestResult({
-      status: 'idle',
-      message: 'Gemini API key disconnected. Ollama remains active if enabled.'
-    });
-  };
 
   const updateOllama = (patch: Partial<OllamaSettings>) => {
     setOllamaSettings(current => ({ ...current, ...patch }));
@@ -193,7 +88,7 @@ export const SettingsModal: React.FC = () => {
       ? {
           status: 'success',
           message: next.enabled
-            ? `Connected to Ollama ${result.version || ''}. PR, DC and builty OCR will use ${next.visionModel} at ${SCAN_QUALITY_LABEL[next.scanQuality]}${hasLinkedKey ? ', with Gemini as fallback' : ''}.`
+            ? `Connected to Ollama ${result.version || ''}. PR, DC and builty OCR will use ${next.visionModel} at ${SCAN_QUALITY_LABEL[next.scanQuality]}.`
             : `Connected to Ollama ${result.version || ''} and ${next.visionModel} is installed. Tick "Use Ollama" to switch OCR to it.`
         }
       : { status: 'error', message: result.error || 'Ollama connection failed.' });
@@ -204,7 +99,7 @@ export const SettingsModal: React.FC = () => {
     const next = { ...ollamaSettings, enabled: false };
     saveOllamaSettings(next);
     setOllamaSettings(next);
-    setOllamaTestResult({ status: 'idle', message: 'Ollama disabled. OCR uses Gemini if its key is saved.' });
+    setOllamaTestResult({ status: 'idle', message: 'Ollama disabled. PR/DC scanning will not be available until Ollama is re-enabled.' });
   };
 
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,10 +119,6 @@ export const SettingsModal: React.FC = () => {
     }
   };
 
-  const hasLinkedKey = Boolean(geminiApiKey && geminiApiKey.trim());
-  const maskedKey = hasLinkedKey 
-    ? `${geminiApiKey.substring(0, 6)}••••••••••••${geminiApiKey.slice(-4)}`
-    : '';
   const ollamaActive = ollamaSettings.enabled;
 
   return (
@@ -237,14 +128,14 @@ export const SettingsModal: React.FC = () => {
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
               <Settings className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-lg font-extrabold text-slate-900">
-                Settings & API Configuration
+                Portal Settings
               </h3>
-              <p className="text-xs text-slate-500 font-medium">AI OCR provider & data management</p>
+              <p className="text-xs text-slate-500 font-medium">Local Ollama OCR & data management</p>
             </div>
           </div>
 
@@ -256,172 +147,25 @@ export const SettingsModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Gemini API Key Section */}
-        <div className="space-y-4 bg-amber-50/60 p-4 rounded-xl border border-amber-200">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-700" />
-              Google Gemini API Key
-            </label>
-
-            {hasLinkedKey ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                {ollamaActive ? 'Linked (fallback to Ollama)' : 'Linked & Active'}
-              </span>
-            ) : ollamaActive ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
-                Ollama OCR Active
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-300">
-                Offline Simulator Mode
-              </span>
-            )}
-          </div>
-
-          <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-            Gemini is the cloud fallback. When Ollama is enabled it reads documents first, and Gemini is only used if Ollama is off, times out, or cannot read a scan.
-          </p>
-
-          {/* Current saved status banner */}
-          {hasLinkedKey && (
-            <div className="p-2.5 rounded-lg bg-emerald-50/80 border border-emerald-200 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2 text-emerald-900 font-medium font-mono text-[11px]">
-                <Key className="w-3.5 h-3.5 text-emerald-600" />
-                <span>{maskedKey}</span>
-              </div>
-              <button
-                onClick={handleClearKey}
-                className="text-[11px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 hover:underline"
-                title="Disconnect API Key"
-              >
-                <Trash2 className="w-3 h-3" /> Disconnect
-              </button>
-            </div>
-          )}
-
-          {/* Input Box */}
-          <div className="space-y-2">
-            <div className="relative flex items-center">
-              <Key className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
-              <input
-                type={showKey ? 'text' : 'password'}
-                value={inputKey}
-                onChange={(e) => {
-                  setInputKey(e.target.value);
-                  setTestResult({ status: 'idle', message: '' });
-                }}
-                placeholder={hasLinkedKey ? 'Saved key available; paste to replace' : 'AIzaSy...'}
-                className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-mono font-medium focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
-              />
-              <button
-                type="button"
-                onClick={() => setShowKey(!showKey)}
-                className="absolute right-3 text-slate-400 hover:text-slate-600 p-1"
-                title={showKey ? 'Hide Key' : 'Show Key'}
-              >
-                {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleSaveAndTest}
-                disabled={isTesting || !inputKey.trim()}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 disabled:opacity-50 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
-              >
-                {isTesting ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Linking & Verifying...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-slate-950" />
-                    Save & Link API Key
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={handleTestOnly}
-                disabled={isTesting || (!inputKey.trim() && !hasLinkedKey)}
-                className="py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
-                title="Test Gemini API Connection"
-              >
-                {isTesting ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
-                ) : (
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                )}
-                Test
-              </button>
-            </div>
-          </div>
-
-          {/* Feedback Banners */}
-          {testResult.status === 'success' && (
-            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-medium space-y-1 animate-fadeIn">
-              <div className="flex items-center gap-1.5 font-bold text-emerald-800">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                API Key Linked & Verified!
-              </div>
-              <p className="text-[11px] text-emerald-700">
-                {testResult.message}
-              </p>
-            </div>
-          )}
-
-          {testResult.status === 'error' && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-900 text-xs font-medium space-y-1.5 animate-fadeIn">
-              <div className="flex items-center gap-1.5 font-bold text-rose-800">
-                <AlertTriangle className="w-4 h-4 text-rose-600" />
-                API Connection Issue
-              </div>
-              <p className="text-[11px] text-rose-700 leading-relaxed font-mono">
-                {testResult.message}
-              </p>
-              <div className="pt-1 text-[10px] text-rose-600 border-t border-rose-200">
-                Tip: Make sure the Generative Language API is enabled for your key in Google AI Studio or Google Cloud Console.
-              </div>
-            </div>
-          )}
-
-          {/* Helper Link */}
-          <div className="pt-1 border-t border-amber-200/60 flex items-center justify-between text-[11px]">
-            <span className="text-slate-500 font-medium">Need a free Gemini API key?</span>
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-amber-800 font-bold hover:text-amber-950 flex items-center gap-1 hover:underline"
-            >
-              Get Key from Google AI Studio <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </div>
-
-        {/* Local Ollama (OCR + document audit) */}
-        <div className="space-y-4 bg-emerald-50/50 p-4 rounded-xl border border-emerald-200">
+        {/* Local Ollama (OCR + document audit) - PRIMARY SECTION */}
+        <div className="space-y-4 bg-emerald-50/60 p-4 rounded-xl border border-emerald-200">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-slate-900 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-emerald-700" />
-              Local Ollama (this PC)
+              Local Ollama Vision Model (Required)
             </label>
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
               ollamaActive
                 ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                : 'bg-slate-100 text-slate-600 border-slate-300'
+                : 'bg-rose-100 text-rose-800 border-rose-300'
             }`}>
               {ollamaActive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />}
-              {ollamaActive ? 'Primary OCR & audit' : 'Disabled'}
+              {ollamaActive ? 'Active & Ready' : 'Disabled (Required)'}
             </span>
           </div>
 
           <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-            Reads PR, DC and builty scans and runs the PR/DC document audit with a vision model on this computer. Documents never leave the PC. On a CPU-only machine expect roughly 40–90 seconds per scan.
+            Ollama is required for scanning Purchase Requisitions, Delivery Challans, and builty receipts. Documents are processed locally on your PC—nothing leaves your machine. Expect 40–90 seconds per document on CPU-only hardware.
           </p>
 
           <label className="flex items-center gap-2 text-xs font-bold text-slate-800">
@@ -431,12 +175,12 @@ export const SettingsModal: React.FC = () => {
               onChange={event => updateOllama({ enabled: event.target.checked })}
               className="accent-emerald-600"
             />
-            Use Ollama for OCR and audit
+            Enable Ollama for PR/DC/Builty Scanning & Audit
           </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <label className="text-[11px] font-bold text-slate-700 space-y-1">
-              <span>Ollama URL</span>
+              <span>Ollama Server URL</span>
               <input
                 type="url"
                 value={ollamaSettings.baseUrl}
@@ -446,7 +190,7 @@ export const SettingsModal: React.FC = () => {
               />
             </label>
             <label className="text-[11px] font-bold text-slate-700 space-y-1">
-              <span>Vision model</span>
+              <span>Vision Model Name</span>
               <input
                 list="ollama-models"
                 value={ollamaSettings.visionModel}
@@ -459,7 +203,7 @@ export const SettingsModal: React.FC = () => {
               </datalist>
             </label>
             <label className="text-[11px] font-bold text-slate-700 space-y-1">
-              <span>Timeout per scan (seconds)</span>
+              <span>Timeout per Scan (seconds)</span>
               <input
                 type="number"
                 min={30}
@@ -470,7 +214,7 @@ export const SettingsModal: React.FC = () => {
               />
             </label>
             <label className="text-[11px] font-bold text-slate-700 space-y-1">
-              <span>Scan read quality (speed)</span>
+              <span>Read Quality (Speed vs. Accuracy)</span>
               <select
                 value={ollamaSettings.scanQuality}
                 onChange={event => updateOllama({ scanQuality: normalizeScanQuality(event.target.value) })}
@@ -514,7 +258,7 @@ export const SettingsModal: React.FC = () => {
             }`}>
               <div className="font-bold flex items-center gap-1.5">
                 {ollamaTestResult.status === 'success' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
-                {ollamaTestResult.status === 'success' ? 'Ollama connected' : 'Ollama connection issue'}
+                {ollamaTestResult.status === 'success' ? 'Ollama Connected' : 'Ollama Connection Failed'}
               </div>
               <p className="text-[11px] mt-1">{ollamaTestResult.message}</p>
             </div>
@@ -523,7 +267,7 @@ export const SettingsModal: React.FC = () => {
             <p className="text-[11px] text-slate-600">{ollamaTestResult.message}</p>
           )}
 
-          <div className="pt-1 border-t border-emerald-200">
+          <div className="pt-2 border-t border-emerald-200">
             <button
               onClick={() => setShowOllamaSetup(!showOllamaSetup)}
               className="text-[11px] font-bold text-emerald-800 hover:underline"
@@ -532,23 +276,24 @@ export const SettingsModal: React.FC = () => {
             </button>
             {showOllamaSetup && (
               <ol className="mt-2 list-decimal pl-4 space-y-1.5 text-[11px] text-slate-700">
-                <li>Install Ollama for Windows from ollama.com and let it start.</li>
+                <li>Download and install Ollama for Windows from <a href="https://ollama.com" target="_blank" rel="noopener noreferrer" className="text-emerald-800 font-bold hover:underline">ollama.com</a></li>
                 <li>
-                  In PowerShell, download the vision model:
-                  <code className="block mt-1 p-1.5 rounded bg-slate-900 text-emerald-200 font-mono select-all">ollama pull {ollamaSettings.visionModel || DEFAULT_OLLAMA_SETTINGS.visionModel}</code>
+                  In PowerShell (Admin), download the vision model:
+                  <code className="block mt-1 p-1.5 rounded bg-slate-900 text-emerald-200 font-mono select-all text-[10px]">ollama pull {ollamaSettings.visionModel || DEFAULT_OLLAMA_SETTINGS.visionModel}</code>
                 </li>
                 <li>
-                  Allow this portal to call Ollama, then quit Ollama from the tray and start it again:
-                  <code className="block mt-1 p-1.5 rounded bg-slate-900 text-emerald-200 font-mono select-all break-all">setx OLLAMA_ORIGINS "{currentPortalUrl},http://localhost:5173"</code>
+                  Allow this portal to access Ollama. In PowerShell (Admin), set the CORS origin:
+                  <code className="block mt-1 p-1.5 rounded bg-slate-900 text-emerald-200 font-mono select-all text-[10px] break-all">setx OLLAMA_ORIGINS "{currentPortalUrl},http://localhost:5173"</code>
                 </li>
-                <li>If Chrome asks to allow access to devices on your local network, click Allow.</li>
-                <li>Tick "Use Ollama", then Save &amp; Test Connection.</li>
+                <li>Quit Ollama from the system tray, then start it again.</li>
+                <li>In this Settings panel, tick "Enable Ollama for PR/DC/Builty Scanning" and click "Save &amp; Test Connection".</li>
+                <li>If Chrome asks for permission to access local network devices, click Allow.</li>
               </ol>
             )}
           </div>
         </div>
 
-        {/* Mobile Access & Tablet Link Section (Moved from Navbar) */}
+        {/* Mobile Access & Tablet Link Section */}
         <div className="space-y-3 bg-blue-50/60 p-4 rounded-xl border border-blue-200">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-slate-900 flex items-center gap-2">
@@ -556,12 +301,12 @@ export const SettingsModal: React.FC = () => {
               Mobile &amp; Remote Tablet Access
             </label>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">
-              Live Cloud Access
+              Cloud / Network
             </span>
           </div>
 
           <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-            Open Star Electric Portal on mobile phones, tablets, or warehouse devices without installation.
+            Open Star Electric Portal on mobile phones, tablets, or warehouse devices without installation—via cloud or local network.
           </p>
 
           <div className="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200">
@@ -596,7 +341,7 @@ export const SettingsModal: React.FC = () => {
               setIsSettingsOpen(false);
               setIsMobileAccessOpen(true);
             }}
-            className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-2xs cursor-pointer"
+            className="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
           >
             <QrCode className="w-4 h-4" />
             <span>Open Mobile QR Code &amp; Scanner Screen</span>
@@ -617,12 +362,12 @@ export const SettingsModal: React.FC = () => {
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={exportBackupJSON}
-              className="px-3 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+              className="px-3 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
             >
               <Download className="w-3.5 h-3.5 text-emerald-600" /> Export JSON
             </button>
 
-            <label className="px-3 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs">
+            <label className="px-3 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer">
               <Upload className="w-3.5 h-3.5 text-blue-600" /> Import JSON
               <input type="file" accept=".json" onChange={handleFileImport} className="hidden" />
             </label>
@@ -635,7 +380,7 @@ export const SettingsModal: React.FC = () => {
           )}
         </div>
 
-        {/* Master Reset Danger Zone (Moved from Navbar) */}
+        {/* Master Reset Danger Zone */}
         <div className="space-y-3 bg-rose-50/70 p-4 rounded-xl border border-rose-200">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-rose-900 flex items-center gap-2">
@@ -656,7 +401,7 @@ export const SettingsModal: React.FC = () => {
               setIsSettingsOpen(false);
               setIsMasterResetOpen(true);
             }}
-            className="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-2xs cursor-pointer"
+            className="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-sm"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Execute Master Reset (Wipe All Records)</span>
@@ -667,7 +412,7 @@ export const SettingsModal: React.FC = () => {
         <div className="pt-2 border-t border-slate-200 flex justify-end items-center">
           <button
             onClick={() => setIsSettingsOpen(false)}
-            className="px-6 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
+            className="px-6 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
           >
             Close Settings
           </button>
