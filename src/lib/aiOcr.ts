@@ -24,7 +24,7 @@ import type {
   GeminiExtractionResult
 } from '../types';
 
-export type OCRProviderName = 'Ollama' | 'Ollama + Gemini fallback' | 'Gemini' | 'None';
+export type OCRProviderName = 'Ollama' | 'None';
 export type OCRProgressHandler = (progress: {
   current: number;
   total: number;
@@ -34,21 +34,18 @@ export type OCRProgressHandler = (progress: {
 
 /** Short engine name for buttons and status text. */
 export function getOCREngineLabel(provider: OCRProviderName): string {
-  if (provider.startsWith('Ollama')) return 'Local Ollama';
-  if (provider === 'Gemini') return 'Gemini AI';
+  if (provider === 'Ollama') return 'Local Ollama';
   return 'AI';
 }
 
 /** Rough CPU-only time for a local batch, shown before large Ollama scans. */
 export function getLocalScanWarning(provider: OCRProviderName, fileCount: number): string {
-  if (!provider.startsWith('Ollama') || fileCount <= 10) return '';
-  return `${fileCount} files at roughly 1 minute each is about ${fileCount} minutes on this PC. Keep this window open, or scan in batches of 10–20. Lower the scan quality in Settings for a faster read.`;
+  if (provider !== 'Ollama' || fileCount <= 10) return '';
+  return `${fileCount} files at roughly 1 minute each is about ${fileCount} minutes on this PC. Keep this window open, or scan in batches of 10–20. Lower the scan quality in Settings for a faster pass.`;
 }
 
-export function getActiveOCRProvider(geminiApiKey?: string): OCRProviderName {
-  const hasGemini = Boolean(getActiveGeminiApiKey(geminiApiKey));
-  if (isOllamaEnabled()) return hasGemini ? 'Ollama + Gemini fallback' : 'Ollama';
-  return hasGemini ? 'Gemini' : 'None';
+export function getActiveOCRProvider(_geminiApiKey?: string): OCRProviderName {
+  return isOllamaEnabled() ? 'Ollama' : 'None';
 }
 
 type FileInput = PRFileInput | DCFileInput;
@@ -66,58 +63,32 @@ export async function preloadLocalOCRModel(): Promise<void> {
 }
 
 /**
- * Runs each file through Ollama first. A wrong document type is reported as-is; any other
- * Ollama failure (not running, timeout, unreadable output) falls back to Gemini for that file
- * when a Gemini key is configured.
- *
- * If Ollama fails to answer twice in a row (server off, wrong port, blocked origin) the rest
- * of the batch goes straight to Gemini instead of paying a failed round trip per file.
+ * Run OCR through Ollama only. Gemini is intentionally no longer required for the portal.
+ * If Ollama is disabled or fails, the user is guided to enable local Ollama.
  */
-async function withOllamaFirst<T>(
+async function withOllamaOnly<T>(
   files: FileInput[],
-  geminiApiKey: string | undefined,
   onProgress: OCRProgressHandler | undefined,
-  viaOllama: (file: FileInput, index: number) => Promise<T[]>,
-  viaGemini: (files: FileInput[]) => Promise<T[]>
+  viaOllama: (file: FileInput, index: number) => Promise<T[]>
 ): Promise<T[]> {
-  if (!isOllamaEnabled()) return viaGemini(files);
-  const hasGemini = Boolean(getActiveGeminiApiKey(geminiApiKey));
-  const results: T[] = [];
-  let consecutiveOllamaFailures = 0;
-  let ollamaSkipped = false;
+  if (!isOllamaEnabled()) {
+    throw new Error('Ollama is required for PR/DC scanning. Enable Local Ollama in Settings before uploading documents.');
+  }
 
+  const results: T[] = [];
   for (let index = 0; index < files.length; index++) {
     const name = fileName(files[index], index);
-    if (ollamaSkipped) {
-      const batch = files.slice(index);
-      onProgress?.({ current: index, total: files.length, fileName: name, status: `Local model unavailable; reading the remaining ${batch.length} file(s) with Gemini...` });
-      results.push(...await viaGemini(batch));
-      break;
-    }
     try {
       results.push(...await viaOllama(files[index], index));
-      consecutiveOllamaFailures = 0;
     } catch (error) {
-      if (error instanceof DocumentClassificationError || !hasGemini) throw error;
       const reason = error instanceof Error ? error.message : String(error);
-      const localModelDown = error instanceof OllamaConnectionError;
-      consecutiveOllamaFailures = localModelDown ? consecutiveOllamaFailures + 1 : 0;
-      if (localModelDown && consecutiveOllamaFailures >= 2) {
-        ollamaSkipped = true;
-      }
-      console.warn(`Ollama OCR failed for ${name}; using Gemini.`, reason);
       onProgress?.({
         current: index,
         total: files.length,
         fileName: name,
-        status: `Local model failed (${reason.slice(0, 120)}). Retrying with Gemini...`
+        status: `Ollama failed (${reason.slice(0, 120)}). Please check the local model or settings.`
       });
-      try {
-        results.push(...await viaGemini([files[index]]));
-      } catch (geminiError) {
-        const geminiReason = geminiError instanceof Error ? geminiError.message : String(geminiError);
-        throw new Error(`${name}: local Ollama failed (${reason}) and the Gemini fallback also failed (${geminiReason}).`);
-      }
+      throw error;
     }
   }
   return results;
@@ -128,37 +99,36 @@ const perFileProgress = (onProgress: OCRProgressHandler | undefined, index: numb
 
 export function processDocumentWithAI(
   files: PRFileInput | PRFileInput[],
-  geminiApiKey?: string,
+  _geminiApiKey?: string,
   onProgress?: OCRProgressHandler
 ): Promise<GeminiExtractionResult[]> {
   const list = Array.isArray(files) ? files : [files];
-  return withOllamaFirst(list, geminiApiKey, onProgress,
-    (file, index) => processDocumentWithOllama(file, perFileProgress(onProgress, index, list.length)),
-    batch => processDocumentWithGemini(batch, geminiApiKey, onProgress));
+  return withOllamaOnly(list, onProgress, (file, index) =>
+    processDocumentWithOllama(file, perFileProgress(onProgress, index, list.length))
+  );
 }
 
 export function processDCWithAI(
   files: DCFileInput | DCFileInput[],
-  geminiApiKey?: string,
+  _geminiApiKey?: string,
   onProgress?: OCRProgressHandler,
   knownPRMemory?: string
 ): Promise<GeminiDCExtractionResult[]> {
   const list = Array.isArray(files) ? files : [files];
-  return withOllamaFirst(list, geminiApiKey, onProgress,
-    (file, index) => processDCWithOllama(file, perFileProgress(onProgress, index, list.length), knownPRMemory),
-    batch => processDCWithGemini(batch, geminiApiKey, onProgress, knownPRMemory))
-    .then(results => results.map(normalizeDCResult));
+  return withOllamaOnly(list, onProgress, (file, index) =>
+    processDCWithOllama(file, perFileProgress(onProgress, index, list.length), knownPRMemory)
+  ).then(results => results.map(normalizeDCResult));
 }
 
 export function processBuiltyWithAI(
   files: DCFileInput | DCFileInput[],
-  geminiApiKey?: string,
+  _geminiApiKey?: string,
   onProgress?: OCRProgressHandler
 ): Promise<GeminiBuiltyExtractionResult[]> {
   const list = Array.isArray(files) ? files : [files];
-  return withOllamaFirst(list, geminiApiKey, onProgress,
-    (file, index) => processBuiltyWithOllama(file, perFileProgress(onProgress, index, list.length)),
-    batch => processBuiltyWithGemini(batch, geminiApiKey));
+  return withOllamaOnly(list, onProgress, (file, index) =>
+    processBuiltyWithOllama(file, perFileProgress(onProgress, index, list.length))
+  );
 }
 
 /** One-line description of the read quality used by the local model, for the upload modals. */
