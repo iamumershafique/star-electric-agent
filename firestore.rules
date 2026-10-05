@@ -9,6 +9,15 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // Document scans (compressed JPEG data URLs), one per PR/DC/builty.
+    match /star_scans/{scanId} {
+      allow read, delete: if request.auth != null;
+      allow create, update: if request.auth != null
+        && request.resource.data.dataUrl is string
+        && request.resource.data.dataUrl.size() < 1000000
+        && request.resource.data.type in ['pr', 'dc', 'builty'];
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
