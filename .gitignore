@@ -26,10 +26,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-*.zip
-scratch/
-
-# Firebase admin credentials and script output
-service-account*.json
-scripts/out/
