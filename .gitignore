@@ -29,3 +29,7 @@ dist-ssr
 
 *.zip
 scratch/
+
+# Firebase admin credentials and script output
+service-account*.json
+scripts/out/
