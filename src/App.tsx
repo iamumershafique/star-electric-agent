@@ -20,7 +20,6 @@ import { BuiltyUploadModal } from './components/BuiltyUploadModal';
 import { BuiltyPreviewModal } from './components/BuiltyPreviewModal';
 import { MobileAccessModal } from './components/MobileAccessModal';
 import { GeminiDiagnosticsView } from './components/GeminiDiagnosticsView';
-import { LoginView } from './components/LoginView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const MainContent: React.FC = () => {
@@ -44,12 +43,9 @@ const MainPortalLayout: React.FC = () => {
   if (isAuthLoading) {
     return (
       <main className="min-h-dvh grid place-items-center bg-slate-50 text-slate-700">
-        <p role="status" className="font-semibold">Checking secure sign-in…</p>
+        <p role="status" className="font-semibold">Loading portal...</p>
       </main>
     );
-  }
-  if (!isAuthenticated) {
-    return <LoginView />;
   }
 
   return (
