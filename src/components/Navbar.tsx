@@ -19,7 +19,6 @@ export const Navbar: React.FC = () => {
     setIsPRUploadOpen, 
     setIsDCUploadOpen, 
     setIsSettingsOpen,
-    authError,
     prs,
     dcs,
     logout
@@ -172,7 +171,6 @@ export const Navbar: React.FC = () => {
             >
               <LogOut className="w-4 h-4" />
             </button>
-            {authError && <span role="alert" className="text-[11px] font-semibold text-rose-700">{authError}</span>}
           </div>
         </div>
 

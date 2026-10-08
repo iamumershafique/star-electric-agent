@@ -38,7 +38,7 @@ const MainContent: React.FC = () => {
 };
 
 const MainPortalLayout: React.FC = () => {
-  const { isAuthenticated, isAuthLoading } = useApp();
+  const { isAuthLoading } = useApp();
 
   if (isAuthLoading) {
     return (

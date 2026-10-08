@@ -1,0 +1,2388 @@
+[
+  {
+    "id": "dc-jad-0501",
+    "dcNumber": "DC 501",
+    "invoiceNumber": "DC 501",
+    "prNumber": "PR-JAD-0501",
+    "prId": "pr-jad-0501",
+    "date": "2026-03-07",
+    "siteName": "Pirowal 1 Extension Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000501000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0501-1",
+        "itemName": "Electrical Supplies & Consumables (Pirowal 1 Extension Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1yyvxzW3lCWp-8-D2x750mWgKOk5q-NoJ=w1200"
+  },
+  {
+    "id": "dc-jad-0502",
+    "dcNumber": "DC 502",
+    "invoiceNumber": "DC 502",
+    "prNumber": "PR-JAD-0502",
+    "prId": "pr-jad-0502",
+    "date": "2026-04-07",
+    "siteName": "Khanewal Hatchery",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000502000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0502-1",
+        "itemName": "Electrical Supplies & Consumables (Khanewal Hatchery)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1RpMchODNZcHYqzo0C4JmEBCHg6nZyPGU=w1200"
+  },
+  {
+    "id": "dc-jad-0503",
+    "dcNumber": "DC 503",
+    "invoiceNumber": "DC 503",
+    "prNumber": "PR-JAD-0503",
+    "prId": "pr-jad-0503",
+    "date": "2026-04-07",
+    "siteName": "Agri Farm Bahawalpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000503000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0503-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Bahawalpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1lrPeEsdD9zibPYx9PAvY5dWExH52bJSg=w1200"
+  },
+  {
+    "id": "dc-jad-0504",
+    "dcNumber": "DC 504",
+    "invoiceNumber": "DC 504",
+    "prNumber": "PR-JAD-0504",
+    "prId": "pr-jad-0504",
+    "date": "2026-04-07",
+    "siteName": "WareHouse Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000504000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0504-1",
+        "itemName": "Electrical Supplies & Consumables (WareHouse Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1FyPiBR4ZkOhLo-EDtIT5WRdjQB219bkY=w1200"
+  },
+  {
+    "id": "dc-jad-0505",
+    "dcNumber": "DC 505",
+    "invoiceNumber": "DC 505",
+    "prNumber": "PR-JAD-0505",
+    "prId": "pr-jad-0505",
+    "date": "2026-04-07",
+    "siteName": "Chicks Hatchery Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000505000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0505-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1AKUkgOmblv4HjP44lQujEC1OqIuN5sin=w1200"
+  },
+  {
+    "id": "dc-jad-0506",
+    "dcNumber": "DC 506",
+    "invoiceNumber": "DC 506",
+    "prNumber": "PR-JAD-0506",
+    "prId": "pr-jad-0506",
+    "date": "2026-06-07",
+    "siteName": "Agri Farm Mankera 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000506000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0506-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #1742",
+    "isBuiltyAttached": true,
+    "biltyNumber": "1742",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay",
+    "documentImage": "https://lh3.googleusercontent.com/d/1yd6IEjWauoMFR7lKoRd-X9YoI6OdhBkc=w1200"
+  },
+  {
+    "id": "dc-jad-0507",
+    "dcNumber": "DC 507",
+    "invoiceNumber": "DC 507",
+    "prNumber": "PR-JAD-0507",
+    "prId": "pr-jad-0507",
+    "date": "2026-06-07",
+    "siteName": "Feed Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000507000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0507-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #4394",
+    "isBuiltyAttached": true,
+    "biltyNumber": "4394",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay",
+    "documentImage": "https://lh3.googleusercontent.com/d/1M7pEkUNDv6mKEWD8VvNylfeMn4ot-5JD=w1200"
+  },
+  {
+    "id": "dc-jad-0508",
+    "dcNumber": "DC 508",
+    "invoiceNumber": "DC 508",
+    "prNumber": "PR-JAD-0508",
+    "prId": "pr-jad-0508",
+    "date": "2026-06-07",
+    "siteName": "P.D Khan Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000508000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0508-1",
+        "itemName": "Electrical Supplies & Consumables (P.D Khan Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1itR1Z_wsRKPLphCeBsiE8-0k-UaDGus0=w1200"
+  },
+  {
+    "id": "dc-jad-0509",
+    "dcNumber": "DC 509",
+    "invoiceNumber": "DC 509",
+    "prNumber": "PR-JAD-0509",
+    "prId": "pr-jad-0509",
+    "date": "2026-06-07",
+    "siteName": "P.D Khan Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000509000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0509-1",
+        "itemName": "Electrical Supplies & Consumables (P.D Khan Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #3632",
+    "isBuiltyAttached": true,
+    "biltyNumber": "3632",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay",
+    "documentImage": "https://lh3.googleusercontent.com/d/1jWbCiBjjFpTjV7AYkHRORgUdwCDinnAb=w1200"
+  },
+  {
+    "id": "dc-jad-0510",
+    "dcNumber": "DC 510",
+    "invoiceNumber": "DC 510",
+    "prNumber": "PR-JAD-0510",
+    "prId": "pr-jad-0510",
+    "date": "2026-08-07",
+    "siteName": "Chicks Hatchery Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000510000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0510-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1GJ50fOmt8Hir59rowC6I_T8XiMzbOh5s=w1200"
+  },
+  {
+    "id": "dc-jad-0511",
+    "dcNumber": "DC 511",
+    "invoiceNumber": "DC 511",
+    "prNumber": "PR-JAD-0511",
+    "prId": "pr-jad-0511",
+    "date": "2026-08-07",
+    "siteName": "Balkasar Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000511000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0511-1",
+        "itemName": "Electrical Supplies & Consumables (Balkasar Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1QDWf--hwS2PD-BxtRdOvnNI87BFrPk97=w1200"
+  },
+  {
+    "id": "dc-jad-0512",
+    "dcNumber": "DC 512",
+    "invoiceNumber": "DC 512",
+    "prNumber": "PR-JAD-0512",
+    "prId": "pr-jad-0512",
+    "date": "2026-08-07",
+    "siteName": "Humak Model Town",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000512000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0512-1",
+        "itemName": "Electrical Supplies & Consumables (Humak Model Town)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1Qmx-sLeOE77rOC7arLbA3PuoHSPGE13S=w1200"
+  },
+  {
+    "id": "dc-jad-0513",
+    "dcNumber": "DC 513",
+    "invoiceNumber": "DC 513",
+    "prNumber": "PR-JAD-0513",
+    "prId": "pr-jad-0513",
+    "date": "2026-08-07",
+    "siteName": "P.D Khan Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000513000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0513-1",
+        "itemName": "Electrical Supplies & Consumables (P.D Khan Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1EArg-UDtYIXqVIC6aD80GxEWc5BcRtJz=w1200"
+  },
+  {
+    "id": "dc-jad-0514",
+    "dcNumber": "DC 514",
+    "invoiceNumber": "DC 514",
+    "prNumber": "PR-JAD-0514",
+    "prId": "pr-jad-0514",
+    "date": "2026-08-07",
+    "siteName": "Battal Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000514000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0514-1",
+        "itemName": "Electrical Supplies & Consumables (Battal Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1xthJ8W8fTsglqxg11r-Th4FbhbyU_-Ls=w1200"
+  },
+  {
+    "id": "dc-jad-0515",
+    "dcNumber": "DC 515",
+    "invoiceNumber": "DC 515",
+    "prNumber": "PR-JAD-0515",
+    "prId": "pr-jad-0515",
+    "date": "2026-08-07",
+    "siteName": "GP-1 Farm Bhalwal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000515000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0515-1",
+        "itemName": "Electrical Supplies & Consumables (GP-1 Farm Bhalwal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1gwp5Hj1jjSztOuO10mVxmY6t3m0tAQsw=w1200"
+  },
+  {
+    "id": "dc-jad-0516",
+    "dcNumber": "DC 516",
+    "invoiceNumber": "DC 516",
+    "prNumber": "PR-JAD-0516",
+    "prId": "pr-jad-0516",
+    "date": "2026-08-07",
+    "siteName": "B-2 1907",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000516000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0516-1",
+        "itemName": "Electrical Supplies & Consumables (B-2 1907)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1K0ODFX0Pmd7O3RCkYgeGh29UgCjElIYZ=w1200"
+  },
+  {
+    "id": "dc-jad-0517",
+    "dcNumber": "DC 517",
+    "invoiceNumber": "DC 517",
+    "prNumber": "PR-JAD-0517",
+    "prId": "pr-jad-0517",
+    "date": "2026-08-07",
+    "siteName": "Oggi Mansera",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000517000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0517-1",
+        "itemName": "Electrical Supplies & Consumables (Oggi Mansera)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1Z4kbFjKOdTi1nkHhF6iNHjeLmr6Qf_Yj=w1200"
+  },
+  {
+    "id": "dc-jad-0518",
+    "dcNumber": "DC 518",
+    "invoiceNumber": "DC 518",
+    "prNumber": "PR-JAD-0518",
+    "prId": "pr-jad-0518",
+    "date": "2026-08-07",
+    "siteName": "Kawajghang",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000518000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0518-1",
+        "itemName": "Electrical Supplies & Consumables (Kawajghang)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1piSkMc9kmhXy2qAqSR1tXw00jQT7PYGW=w1200"
+  },
+  {
+    "id": "dc-jad-0519",
+    "dcNumber": "DC 519",
+    "invoiceNumber": "DC 519",
+    "prNumber": "PR-JAD-0519",
+    "prId": "pr-jad-0519",
+    "date": "2026-08-07",
+    "siteName": "P.D Khan Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000519000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0519-1",
+        "itemName": "Electrical Supplies & Consumables (P.D Khan Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1DyjbYxgSJ32SP32j8lYNhUygrreAX3x8=w1200"
+  },
+  {
+    "id": "dc-jad-0520",
+    "dcNumber": "DC 520",
+    "invoiceNumber": "DC 520",
+    "prNumber": "PR-JAD-0520",
+    "prId": "pr-jad-0520",
+    "date": "2026-08-07",
+    "siteName": "WareHouse Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000520000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0520-1",
+        "itemName": "Electrical Supplies & Consumables (WareHouse Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/19Rh-e8oMST1YB_wygQBheQZD0Ip7wBT5=w1200"
+  },
+  {
+    "id": "dc-jad-0521",
+    "dcNumber": "DC 521",
+    "invoiceNumber": "DC 521",
+    "prNumber": "PR-JAD-0521",
+    "prId": "pr-jad-0521",
+    "date": "2026-08-07",
+    "siteName": "Agri Farm Mankera 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000521000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0521-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #1762",
+    "isBuiltyAttached": true,
+    "biltyNumber": "1762",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay",
+    "documentImage": "https://lh3.googleusercontent.com/d/1_fXI8ftgWcGXF5iFwuJpBGipFYrxefbI=w1200"
+  },
+  {
+    "id": "dc-jad-0522",
+    "dcNumber": "DC 522",
+    "invoiceNumber": "DC 522",
+    "prNumber": "PR-JAD-0522",
+    "prId": "pr-jad-0522",
+    "date": "2026-08-07",
+    "siteName": "Hatchery Kotmomin",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000522000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0522-1",
+        "itemName": "Electrical Supplies & Consumables (Hatchery Kotmomin)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1zNJu5LUPMuv1u1qbtmbNwMlnaNtnNM6g=w1200"
+  },
+  {
+    "id": "dc-jad-0523",
+    "dcNumber": "DC 523",
+    "invoiceNumber": "DC 523",
+    "prNumber": "PR-JAD-0523",
+    "prId": "pr-jad-0523",
+    "date": "2026-08-07",
+    "siteName": "Chicks Hatchery Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000523000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0523-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1hnb8WKkR0F9fTJLWCeD7kf_eZb_UEB3L=w1200"
+  },
+  {
+    "id": "dc-jad-0524",
+    "dcNumber": "DC 524",
+    "invoiceNumber": "DC 524",
+    "prNumber": "PR-JAD-0524",
+    "prId": "pr-jad-0524",
+    "date": "2026-09-07",
+    "siteName": "House 10 ISB",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000524000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0524-1",
+        "itemName": "Electrical Supplies & Consumables (House 10 ISB)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1FJyCGKxX6DXqwphCKQbO9IQ0rEsZj6MP=w1200"
+  },
+  {
+    "id": "dc-jad-0525",
+    "dcNumber": "DC 525",
+    "invoiceNumber": "DC 525",
+    "prNumber": "PR-JAD-0525",
+    "prId": "pr-jad-0525",
+    "date": "2026-09-07",
+    "siteName": "Pirowal 1 Extension Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000525000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0525-1",
+        "itemName": "Electrical Supplies & Consumables (Pirowal 1 Extension Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1vKGSJERvYZ8cbNka8ChllPf9gaX5oeuB=w1200"
+  },
+  {
+    "id": "dc-jad-0526",
+    "dcNumber": "DC 526",
+    "invoiceNumber": "DC 526",
+    "prNumber": "PR-JAD-0526",
+    "prId": "pr-jad-0526",
+    "date": "2026-09-07",
+    "siteName": "Feed Mill Bhawalpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000526000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0526-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Bhawalpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/12IMc-mFjTRPSoYVII-yqUPCtVCacZ_Pl=w1200"
+  },
+  {
+    "id": "dc-jad-0527",
+    "dcNumber": "DC 527",
+    "invoiceNumber": "DC 527",
+    "prNumber": "PR-JAD-0527",
+    "prId": "pr-jad-0527",
+    "date": "2026-10-07",
+    "siteName": "Hatchery Karachi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000527000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0527-1",
+        "itemName": "Electrical Supplies & Consumables (Hatchery Karachi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1Yv3XKSEvM-Wzt0m3lIk1vek9lVPg1gf0=w1200"
+  },
+  {
+    "id": "dc-jad-0528",
+    "dcNumber": "DC 528",
+    "invoiceNumber": "DC 528",
+    "prNumber": "PR-JAD-0528",
+    "prId": "pr-jad-0528",
+    "date": "2026-07-13",
+    "siteName": "Pirowal 1 Extension Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000528000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0528-1",
+        "itemName": "Electrical Supplies & Consumables (Pirowal 1 Extension Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1Xvf8596UBLw06BmeyiAlEuISsv7kKSJo=w1200"
+  },
+  {
+    "id": "dc-jad-0529",
+    "dcNumber": "DC 529",
+    "invoiceNumber": "DC 529",
+    "prNumber": "PR-JAD-0529",
+    "prId": "pr-jad-0529",
+    "date": "2026-07-13",
+    "siteName": "Agri Farm Mankera 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000529000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0529-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1CKQgfAC457fQz05mLhiVmmmEW7c1M-1U=w1200"
+  },
+  {
+    "id": "dc-jad-0530",
+    "dcNumber": "DC 530",
+    "invoiceNumber": "DC 530",
+    "prNumber": "PR-JAD-0530",
+    "prId": "pr-jad-0530",
+    "date": "2026-07-13",
+    "siteName": "Agri Farm Bahawalpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000530000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0530-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Bahawalpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1eRCKbrJp3c-fVynUfl2_plUjicVGhn7B=w1200"
+  },
+  {
+    "id": "dc-jad-0531",
+    "dcNumber": "DC 531",
+    "invoiceNumber": "DC 531",
+    "prNumber": "PR-JAD-0531",
+    "prId": "pr-jad-0531",
+    "date": "2026-07-15",
+    "siteName": "WareHouse Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000531000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0531-1",
+        "itemName": "Electrical Supplies & Consumables (WareHouse Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1k0aRUoUqC-sPP9G0kweShgv_sl5BwX10=w1200"
+  },
+  {
+    "id": "dc-jad-0532",
+    "dcNumber": "DC 532",
+    "invoiceNumber": "DC 532",
+    "prNumber": "PR-JAD-0532",
+    "prId": "pr-jad-0532",
+    "date": "2026-07-15",
+    "siteName": "Khanewal Hatchery",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000532000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0532-1",
+        "itemName": "Electrical Supplies & Consumables (Khanewal Hatchery)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1T0-a6NKB5GHL8qAdf-Si6nvi3kIafPMn=w1200"
+  },
+  {
+    "id": "dc-jad-0533",
+    "dcNumber": "DC 533",
+    "invoiceNumber": "DC 533",
+    "prNumber": "PR-JAD-0533",
+    "prId": "pr-jad-0533",
+    "date": "2026-07-15",
+    "siteName": "Head Office Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000533000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0533-1",
+        "itemName": "Electrical Supplies & Consumables (Head Office Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1GhIaHmf-37Q-gWUm1h95SKQQkOwPh-N1=w1200"
+  },
+  {
+    "id": "dc-jad-0534",
+    "dcNumber": "DC 534",
+    "invoiceNumber": "DC 534",
+    "prNumber": "PR-JAD-0534",
+    "prId": "pr-jad-0534",
+    "date": "2026-07-15",
+    "siteName": "WareHouse Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000534000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0534-1",
+        "itemName": "Electrical Supplies & Consumables (WareHouse Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1K3mF0wdU5mTrQ5oVgqdhVTe2oQw-w7DQ=w1200"
+  },
+  {
+    "id": "dc-jad-0535",
+    "dcNumber": "DC 535",
+    "invoiceNumber": "DC 535",
+    "prNumber": "PR-JAD-0535",
+    "prId": "pr-jad-0535",
+    "date": "2026-07-17",
+    "siteName": "GP-5 Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000535000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0535-1",
+        "itemName": "Electrical Supplies & Consumables (GP-5 Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/12ydMBiGAmo-K7eT0P1qFwn1uXUetAs5Z=w1200"
+  },
+  {
+    "id": "dc-jad-0536",
+    "dcNumber": "DC 536",
+    "invoiceNumber": "DC 536",
+    "prNumber": "PR-JAD-0536",
+    "prId": "pr-jad-0536",
+    "date": "2026-07-18",
+    "siteName": "Chicks Hatchery Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000536000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0536-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1qdNsZKOEOXN-JoiHh5g1hC6o6SH2JRFO=w1200"
+  },
+  {
+    "id": "dc-jad-0537",
+    "dcNumber": "DC 537",
+    "invoiceNumber": "DC 537",
+    "prNumber": "PR-JAD-0537",
+    "prId": "pr-jad-0537",
+    "date": "2026-07-18",
+    "siteName": "Ware House Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000537000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0537-1",
+        "itemName": "Electrical Supplies & Consumables (Ware House Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1Wfb2cDr1OkF1wEMADNGYH_clftbulHxp=w1200"
+  },
+  {
+    "id": "dc-jad-0538",
+    "dcNumber": "DC 538",
+    "invoiceNumber": "DC 538",
+    "prNumber": "PR-JAD-0538",
+    "prId": "pr-jad-0538",
+    "date": "2026-07-20",
+    "siteName": "Farm Mankera Bhakkar",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000538000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0538-1",
+        "itemName": "Electrical Supplies & Consumables (Farm Mankera Bhakkar)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1toEdABuKZQZ5CxZ2jIOkuEE7VeGz-9EQ=w1200"
+  },
+  {
+    "id": "dc-jad-0539",
+    "dcNumber": "DC 539",
+    "invoiceNumber": "DC 539",
+    "prNumber": "PR-JAD-0539",
+    "prId": "pr-jad-0539",
+    "date": "2026-07-20",
+    "siteName": "Farm Mankera Bhakkar",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000539000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0539-1",
+        "itemName": "Electrical Supplies & Consumables (Farm Mankera Bhakkar)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1uqkJRZmJEpjyxPUnAvo3Gx0mEAFU7kVe=w1200"
+  },
+  {
+    "id": "dc-jad-0540",
+    "dcNumber": "DC 540",
+    "invoiceNumber": "DC 540",
+    "prNumber": "PR-JAD-0540",
+    "prId": "pr-jad-0540",
+    "date": "2026-07-20",
+    "siteName": "J.T.C Islamabad",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000540000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0540-1",
+        "itemName": "Electrical Supplies & Consumables (J.T.C Islamabad)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/18ZUkeB2FF_WL0FtxfcYM5Q7sF0nNTLU_=w1200"
+  },
+  {
+    "id": "dc-jad-0541",
+    "dcNumber": "DC 541",
+    "invoiceNumber": "DC 541",
+    "prNumber": "PR-JAD-0541",
+    "prId": "pr-jad-0541",
+    "date": "2026-07-21",
+    "siteName": "Head Office Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000541000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0541-1",
+        "itemName": "Electrical Supplies & Consumables (Head Office Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/14pif4Owsv0d9KEfjkpEQl99P8mXtYeV9=w1200"
+  },
+  {
+    "id": "dc-jad-0542",
+    "dcNumber": "DC 542",
+    "invoiceNumber": "DC 542",
+    "prNumber": "PR-JAD-0542",
+    "prId": "pr-jad-0542",
+    "date": "2026-07-21",
+    "siteName": "Head Office Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000542000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0542-1",
+        "itemName": "Electrical Supplies & Consumables (Head Office Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1AZUIg_-z8a1z2GrilzQqWkekFEU-zgLL=w1200"
+  },
+  {
+    "id": "dc-jad-0543",
+    "dcNumber": "DC 543",
+    "invoiceNumber": "DC 543",
+    "prNumber": "PR-JAD-0543",
+    "prId": "pr-jad-0543",
+    "date": "2026-07-21",
+    "siteName": "Head Office Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000543000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0543-1",
+        "itemName": "Electrical Supplies & Consumables (Head Office Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1bJ24xTgFGFXIBF7EgkzdbVtES0psXLL0=w1200"
+  },
+  {
+    "id": "dc-jad-0544",
+    "dcNumber": "DC 544",
+    "invoiceNumber": "DC 544",
+    "prNumber": "PR-JAD-0544",
+    "prId": "pr-jad-0544",
+    "date": "2026-07-23",
+    "siteName": "Agri Farm Bahawalpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000544000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0544-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Bahawalpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1A39P2gLKTiTVCCMvTF1jqEsfcy7qxCo7=w1200"
+  },
+  {
+    "id": "dc-jad-0545",
+    "dcNumber": "DC 545",
+    "invoiceNumber": "DC 545",
+    "prNumber": "PR-JAD-0545",
+    "prId": "pr-jad-0545",
+    "date": "2026-07-23",
+    "siteName": "Feed Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000545000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0545-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1MP06Me4AFuVtmtlrS8BOzHp0ioDmlc4w=w1200"
+  },
+  {
+    "id": "dc-jad-0546",
+    "dcNumber": "DC 546",
+    "invoiceNumber": "DC 546",
+    "prNumber": "PR-JAD-0546",
+    "prId": "pr-jad-0546",
+    "date": "2026-07-23",
+    "siteName": "Oil Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000546000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0546-1",
+        "itemName": "Electrical Supplies & Consumables (Oil Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1RaBkZD5I4OPlloxZsWJ2WixLj0dGgbOE=w1200"
+  },
+  {
+    "id": "dc-jad-0547",
+    "dcNumber": "DC 547",
+    "invoiceNumber": "DC 547",
+    "prNumber": "PR-JAD-0547",
+    "prId": "pr-jad-0547",
+    "date": "2026-07-23",
+    "siteName": "Feed Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000547000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0547-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1h1h1to2tqRrwkHDCw7-CGgY3p4iDoGLX=w1200"
+  },
+  {
+    "id": "dc-jad-0548",
+    "dcNumber": "DC 548",
+    "invoiceNumber": "DC 548",
+    "prNumber": "PR-JAD-0548",
+    "prId": "pr-jad-0548",
+    "date": "2026-07-23",
+    "siteName": "Farm Mankera Bhakkar",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000548000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0548-1",
+        "itemName": "Electrical Supplies & Consumables (Farm Mankera Bhakkar)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1yA8UuYNJLBVxIjMC1PY1DfcmdFqKTMnr=w1200"
+  },
+  {
+    "id": "dc-jad-0549",
+    "dcNumber": "DC 549",
+    "invoiceNumber": "DC 549",
+    "prNumber": "PR-JAD-0549",
+    "prId": "pr-jad-0549",
+    "date": "2026-07-24",
+    "siteName": "Feed Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000549000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0549-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1YoQIpzxdNDugVsEqI8X0Rz5ILct0thLr=w1200"
+  },
+  {
+    "id": "dc-jad-0550",
+    "dcNumber": "DC 550",
+    "invoiceNumber": "DC 550",
+    "prNumber": "PR-JAD-0550",
+    "prId": "pr-jad-0550",
+    "date": "2026-07-24",
+    "siteName": "Agri Farm Bahawalpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000550000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0550-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Bahawalpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1bK2OvegFHI7FrVI7E2P7IMga-97mh7mi=w1200"
+  },
+  {
+    "id": "dc-jad-0551",
+    "dcNumber": "DC 551",
+    "invoiceNumber": "DC 551",
+    "prNumber": "PR-JAD-0551",
+    "prId": "pr-jad-0551",
+    "date": "2026-07-24",
+    "siteName": "Oil Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000551000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0551-1",
+        "itemName": "Electrical Supplies & Consumables (Oil Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0552",
+    "dcNumber": "DC 552",
+    "invoiceNumber": "DC 552",
+    "prNumber": "PR-JAD-0552",
+    "prId": "pr-jad-0552",
+    "date": "2026-07-24",
+    "siteName": "J.T.C Islamabad",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000552000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0552-1",
+        "itemName": "Electrical Supplies & Consumables (J.T.C Islamabad)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0553",
+    "dcNumber": "DC 553",
+    "invoiceNumber": "DC 553",
+    "prNumber": "PR-JAD-0553",
+    "prId": "pr-jad-0553",
+    "date": "2026-07-14",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000553000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0553-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0554",
+    "dcNumber": "DC 554",
+    "invoiceNumber": "DC 554",
+    "prNumber": "PR-JAD-0554",
+    "prId": "pr-jad-0554",
+    "date": "2026-07-14",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000554000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0554-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0555",
+    "dcNumber": "DC 555",
+    "invoiceNumber": "DC 555",
+    "prNumber": "PR-JAD-0555",
+    "prId": "pr-jad-0555",
+    "date": "2026-07-16",
+    "siteName": "Agri Farm Mankera 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000555000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0555-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0556",
+    "dcNumber": "DC 556",
+    "invoiceNumber": "DC 556",
+    "prNumber": "PR-JAD-0556",
+    "prId": "pr-jad-0556",
+    "date": "2026-07-28",
+    "siteName": "WareHouse Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000556000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0556-1",
+        "itemName": "Electrical Supplies & Consumables (WareHouse Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0557",
+    "dcNumber": "DC 557",
+    "invoiceNumber": "DC 557",
+    "prNumber": "PR-JAD-0557",
+    "prId": "pr-jad-0557",
+    "date": "2026-07-28",
+    "siteName": "Agri Farm Rangpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000557000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0557-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Rangpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0558",
+    "dcNumber": "DC 558",
+    "invoiceNumber": "DC 558",
+    "prNumber": "PR-JAD-0558",
+    "prId": "pr-jad-0558",
+    "date": "2026-07-28",
+    "siteName": "Agri Farm Rangpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000558000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0558-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Rangpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #5331",
+    "isBuiltyAttached": true,
+    "biltyNumber": "5331",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0559",
+    "dcNumber": "DC 559",
+    "invoiceNumber": "DC 559",
+    "prNumber": "PR-JAD-0559",
+    "prId": "pr-jad-0559",
+    "date": "2026-07-28",
+    "siteName": "Kalar Kahar",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000559000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0559-1",
+        "itemName": "Electrical Supplies & Consumables (Kalar Kahar)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0560",
+    "dcNumber": "DC 560",
+    "invoiceNumber": "DC 560",
+    "prNumber": "PR-JAD-0560",
+    "prId": "pr-jad-0560",
+    "date": "2026-07-30",
+    "siteName": "Chicks Hatchery Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000560000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0560-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0561",
+    "dcNumber": "DC 561",
+    "invoiceNumber": "DC 561",
+    "prNumber": "PR-JAD-0561",
+    "prId": "pr-jad-0561",
+    "date": "2026-07-30",
+    "siteName": "Oil Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000561000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0561-1",
+        "itemName": "Electrical Supplies & Consumables (Oil Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0562",
+    "dcNumber": "DC 562",
+    "invoiceNumber": "DC 562",
+    "prNumber": "PR-JAD-0562",
+    "prId": "pr-jad-0562",
+    "date": "2026-07-28",
+    "siteName": "Khanewal Hatchery",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000562000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0562-1",
+        "itemName": "Electrical Supplies & Consumables (Khanewal Hatchery)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0563",
+    "dcNumber": "DC 563",
+    "invoiceNumber": "DC 563",
+    "prNumber": "PR-JAD-0563",
+    "prId": "pr-jad-0563",
+    "date": "2026-07-29",
+    "siteName": "42/10R",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000563000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0563-1",
+        "itemName": "Electrical Supplies & Consumables (42/10R)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #2034",
+    "isBuiltyAttached": true,
+    "biltyNumber": "2034",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0564",
+    "dcNumber": "DC 564",
+    "invoiceNumber": "DC 564",
+    "prNumber": "PR-JAD-0564",
+    "prId": "pr-jad-0564",
+    "date": "2026-07-29",
+    "siteName": "Kalar Kahar",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000564000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0564-1",
+        "itemName": "Electrical Supplies & Consumables (Kalar Kahar)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0565",
+    "dcNumber": "DC 565",
+    "invoiceNumber": "DC 565",
+    "prNumber": "PR-JAD-0565",
+    "prId": "pr-jad-0565",
+    "date": "2026-07-31",
+    "siteName": "House 10 ISB",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000565000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0565-1",
+        "itemName": "Electrical Supplies & Consumables (House 10 ISB)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0566",
+    "dcNumber": "DC 566",
+    "invoiceNumber": "DC 566",
+    "prNumber": "PR-JAD-0566",
+    "prId": "pr-jad-0566",
+    "date": "2026-07-31",
+    "siteName": "Bahter Farm 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000566000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0566-1",
+        "itemName": "Electrical Supplies & Consumables (Bahter Farm 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0567",
+    "dcNumber": "DC 567",
+    "invoiceNumber": "DC 567",
+    "prNumber": "PR-JAD-0567",
+    "prId": "pr-jad-0567",
+    "date": "2026-07-31",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000567000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0567-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0568",
+    "dcNumber": "DC 568",
+    "invoiceNumber": "DC 568",
+    "prNumber": "PR-JAD-0568",
+    "prId": "pr-jad-0568",
+    "date": "2026-07-31",
+    "siteName": "J.T.C Islamabad",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000568000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0568-1",
+        "itemName": "Electrical Supplies & Consumables (J.T.C Islamabad)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0569",
+    "dcNumber": "DC 569",
+    "invoiceNumber": "DC 569",
+    "prNumber": "PR-JAD-0569",
+    "prId": "pr-jad-0569",
+    "date": "2026-01-08",
+    "siteName": "Oil Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000569000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0569-1",
+        "itemName": "Electrical Supplies & Consumables (Oil Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0570",
+    "dcNumber": "DC 570",
+    "invoiceNumber": "DC 570",
+    "prNumber": "PR-JAD-0570",
+    "prId": "pr-jad-0570",
+    "date": "2026-03-08",
+    "siteName": "Bahter Farm 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000570000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0570-1",
+        "itemName": "Electrical Supplies & Consumables (Bahter Farm 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #3751",
+    "isBuiltyAttached": true,
+    "biltyNumber": "3751",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0571",
+    "dcNumber": "DC 571",
+    "invoiceNumber": "DC 571",
+    "prNumber": "PR-JAD-0571",
+    "prId": "pr-jad-0571",
+    "date": "2026-03-08",
+    "siteName": "WareHouse Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000571000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0571-1",
+        "itemName": "Electrical Supplies & Consumables (WareHouse Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0572",
+    "dcNumber": "DC 572",
+    "invoiceNumber": "DC 572",
+    "prNumber": "PR-JAD-0572",
+    "prId": "pr-jad-0572",
+    "date": "2026-03-08",
+    "siteName": "Agri Farm Mankera 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000572000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0572-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0573",
+    "dcNumber": "DC 573",
+    "invoiceNumber": "DC 573",
+    "prNumber": "PR-JAD-0573",
+    "prId": "pr-jad-0573",
+    "date": "2026-03-08",
+    "siteName": "P.D Khan Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000573000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0573-1",
+        "itemName": "Electrical Supplies & Consumables (P.D Khan Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0574",
+    "dcNumber": "DC 574",
+    "invoiceNumber": "DC 574",
+    "prNumber": "PR-JAD-0574",
+    "prId": "pr-jad-0574",
+    "date": "2026-03-08",
+    "siteName": "Agri Farm Mankera 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000574000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0574-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0575",
+    "dcNumber": "DC 575",
+    "invoiceNumber": "DC 575",
+    "prNumber": "PR-JAD-0575",
+    "prId": "pr-jad-0575",
+    "date": "2026-04-08",
+    "siteName": "House 10 ISB",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000575000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0575-1",
+        "itemName": "Electrical Supplies & Consumables (House 10 ISB)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0576",
+    "dcNumber": "DC 576",
+    "invoiceNumber": "DC 576",
+    "prNumber": "PR-JAD-0576",
+    "prId": "pr-jad-0576",
+    "date": "2026-04-08",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000576000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0576-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0577",
+    "dcNumber": "DC 577",
+    "invoiceNumber": "DC 577",
+    "prNumber": "PR-JAD-0577",
+    "prId": "pr-jad-0577",
+    "date": "2026-06-08",
+    "siteName": "Feed Mill Shahkot",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000577000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0577-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Shahkot)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0578",
+    "dcNumber": "DC 578",
+    "invoiceNumber": "DC 578",
+    "prNumber": "PR-JAD-0578",
+    "prId": "pr-jad-0578",
+    "date": "2026-07-08",
+    "siteName": "Agri Farm Mankera 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000578000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0578-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #4244",
+    "isBuiltyAttached": true,
+    "biltyNumber": "4244",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0579",
+    "dcNumber": "DC 579",
+    "invoiceNumber": "DC 579",
+    "prNumber": "PR-JAD-0579",
+    "prId": "pr-jad-0579",
+    "date": "2026-07-08",
+    "siteName": "Agri Farm Mankera 2",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000579000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0579-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera 2)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0580",
+    "dcNumber": "DC 580",
+    "invoiceNumber": "DC 580",
+    "prNumber": "PR-JAD-0580",
+    "prId": "pr-jad-0580",
+    "date": "2026-07-08",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000580000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0580-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #2085",
+    "isBuiltyAttached": true,
+    "biltyNumber": "2085",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0581",
+    "dcNumber": "DC 581",
+    "invoiceNumber": "DC 581",
+    "prNumber": "PR-JAD-0581",
+    "prId": "pr-jad-0581",
+    "date": "2026-07-08",
+    "siteName": "Bahter Farm 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000581000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0581-1",
+        "itemName": "Electrical Supplies & Consumables (Bahter Farm 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #6561",
+    "isBuiltyAttached": true,
+    "biltyNumber": "6561",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0582",
+    "dcNumber": "DC 582",
+    "invoiceNumber": "DC 582",
+    "prNumber": "PR-JAD-0582",
+    "prId": "pr-jad-0582",
+    "date": "2026-07-08",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000582000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0582-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0583",
+    "dcNumber": "DC 583",
+    "invoiceNumber": "DC 583",
+    "prNumber": "PR-JAD-0583",
+    "prId": "pr-jad-0583",
+    "date": "2026-07-08",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000583000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0583-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0584",
+    "dcNumber": "DC 584",
+    "invoiceNumber": "DC 584",
+    "prNumber": "PR-JAD-0584",
+    "prId": "pr-jad-0584",
+    "date": "2026-07-08",
+    "siteName": "Khanewal Hatchery",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000584000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0584-1",
+        "itemName": "Electrical Supplies & Consumables (Khanewal Hatchery)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0585",
+    "dcNumber": "DC 585",
+    "invoiceNumber": "DC 585",
+    "prNumber": "PR-JAD-0585",
+    "prId": "pr-jad-0585",
+    "date": "2026-07-08",
+    "siteName": "Farm Mankera Bhakkar",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000585000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0585-1",
+        "itemName": "Electrical Supplies & Consumables (Farm Mankera Bhakkar)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0586",
+    "dcNumber": "DC 586",
+    "invoiceNumber": "DC 586",
+    "prNumber": "PR-JAD-0586",
+    "prId": "pr-jad-0586",
+    "date": "2026-08-08",
+    "siteName": "J.T.C Islamabad",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000586000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0586-1",
+        "itemName": "Electrical Supplies & Consumables (J.T.C Islamabad)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0587",
+    "dcNumber": "DC 587",
+    "invoiceNumber": "DC 587",
+    "prNumber": "PR-JAD-0587",
+    "prId": "pr-jad-0587",
+    "date": "2026-08-08",
+    "siteName": "Head Office Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000587000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0587-1",
+        "itemName": "Electrical Supplies & Consumables (Head Office Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0588",
+    "dcNumber": "DC 588",
+    "invoiceNumber": "DC 588",
+    "prNumber": "PR-JAD-0588",
+    "prId": "pr-jad-0588",
+    "date": "2026-11-08",
+    "siteName": "GP-1 Farm Bhalwal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000588000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0588-1",
+        "itemName": "Electrical Supplies & Consumables (GP-1 Farm Bhalwal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0589",
+    "dcNumber": "DC 589",
+    "invoiceNumber": "DC 589",
+    "prNumber": "PR-JAD-0589",
+    "prId": "pr-jad-0589",
+    "date": "2026-08-08",
+    "siteName": "WareHouse Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000589000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0589-1",
+        "itemName": "Electrical Supplies & Consumables (WareHouse Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0590",
+    "dcNumber": "DC 590",
+    "invoiceNumber": "DC 590",
+    "prNumber": "PR-JAD-0590",
+    "prId": "pr-jad-0590",
+    "date": "2026-12-08",
+    "siteName": "42/10R",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000590000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0590-1",
+        "itemName": "Electrical Supplies & Consumables (42/10R)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0591",
+    "dcNumber": "DC 591",
+    "invoiceNumber": "DC 591",
+    "prNumber": "PR-JAD-0591",
+    "prId": "pr-jad-0591",
+    "date": "2026-12-08",
+    "siteName": "66-10/R Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000591000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0591-1",
+        "itemName": "Electrical Supplies & Consumables (66-10/R Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0592",
+    "dcNumber": "DC 592",
+    "invoiceNumber": "DC 592",
+    "prNumber": "PR-JAD-0592",
+    "prId": "pr-jad-0592",
+    "date": "2026-12-08",
+    "siteName": "Jungle Maryala Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000592000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0592-1",
+        "itemName": "Electrical Supplies & Consumables (Jungle Maryala Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0593",
+    "dcNumber": "DC 593",
+    "invoiceNumber": "DC 593",
+    "prNumber": "PR-JAD-0593",
+    "prId": "pr-jad-0593",
+    "date": "2026-12-08",
+    "siteName": "Pirowal 1 Extension Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000593000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0593-1",
+        "itemName": "Electrical Supplies & Consumables (Pirowal 1 Extension Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0594",
+    "dcNumber": "DC 594",
+    "invoiceNumber": "DC 594",
+    "prNumber": "PR-JAD-0594",
+    "prId": "pr-jad-0594",
+    "date": "2026-12-08",
+    "siteName": "P2 Pirowal 2 Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000594000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0594-1",
+        "itemName": "Electrical Supplies & Consumables (P2 Pirowal 2 Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0595",
+    "dcNumber": "DC 595",
+    "invoiceNumber": "DC 595",
+    "prNumber": "PR-JAD-0595",
+    "prId": "pr-jad-0595",
+    "date": "2026-08-13",
+    "siteName": "House 9 F-6/3",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000595000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0595-1",
+        "itemName": "Electrical Supplies & Consumables (House 9 F-6/3)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0596",
+    "dcNumber": "DC 596",
+    "invoiceNumber": "DC 596",
+    "prNumber": "PR-JAD-0596",
+    "prId": "pr-jad-0596",
+    "date": "2026-08-13",
+    "siteName": "J.T.C Islamabad",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000596000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0596-1",
+        "itemName": "Electrical Supplies & Consumables (J.T.C Islamabad)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0597",
+    "dcNumber": "DC 597",
+    "invoiceNumber": "DC 597",
+    "prNumber": "PR-JAD-0597",
+    "prId": "pr-jad-0597",
+    "date": "2026-08-17",
+    "siteName": "66-10/R Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000597000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0597-1",
+        "itemName": "Electrical Supplies & Consumables (66-10/R Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  },
+  {
+    "id": "dc-jad-0598",
+    "dcNumber": "DC 598",
+    "invoiceNumber": "DC 598",
+    "prNumber": "PR-JAD-0598",
+    "prId": "pr-jad-0598",
+    "date": "2026-08-17",
+    "siteName": "GP-5 Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000598000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0598-1",
+        "itemName": "Electrical Supplies & Consumables (GP-5 Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #2250",
+    "isBuiltyAttached": true,
+    "biltyNumber": "2250",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0599",
+    "dcNumber": "DC 599",
+    "invoiceNumber": "DC 599",
+    "prNumber": "PR-JAD-0599",
+    "prId": "pr-jad-0599",
+    "date": "2026-08-17",
+    "siteName": "GP-5 Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000599000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0599-1",
+        "itemName": "Electrical Supplies & Consumables (GP-5 Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #2251",
+    "isBuiltyAttached": true,
+    "biltyNumber": "2251",
+    "addaName": "Goods Transport",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0600",
+    "dcNumber": "DC 600",
+    "invoiceNumber": "DC 600",
+    "prNumber": "PR-JAD-0600",
+    "prId": "pr-jad-0600",
+    "date": "2026-08-17",
+    "siteName": "Jungle Maryala Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000600000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0600-1",
+        "itemName": "Electrical Supplies & Consumables (Jungle Maryala Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false
+  }
+]

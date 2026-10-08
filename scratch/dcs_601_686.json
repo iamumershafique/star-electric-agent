@@ -1,0 +1,2295 @@
+[
+  {
+    "id": "dc-jad-0601",
+    "dcNumber": "DC 601",
+    "invoiceNumber": "DC 601",
+    "prNumber": "PR-JAD-0601",
+    "prId": "pr-jad-0601",
+    "date": "2026-08-18",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000601000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0601-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7701",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1LaP42R6NWjrDghhJ9fR327x1GLqvrLdl=w1200",
+    "biltyNumber": "7701",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0602",
+    "dcNumber": "DC 602",
+    "invoiceNumber": "DC 602",
+    "prNumber": "PR-JAD-0602",
+    "prId": "pr-jad-0602",
+    "date": "2026-08-18",
+    "siteName": "Balkasar Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000602000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0602-1",
+        "itemName": "Electrical Supplies & Consumables (Balkasar Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7702",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1mIfvmXP34QCSkpxDlNwY3ctZMHH5HyuJ=w1200",
+    "biltyNumber": "7702",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0603",
+    "dcNumber": "DC 603",
+    "invoiceNumber": "DC 603",
+    "prNumber": "PR-JAD-0603",
+    "prId": "pr-jad-0603",
+    "date": "2026-08-18",
+    "siteName": "Hatchery Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000603000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0603-1",
+        "itemName": "Electrical Supplies & Consumables (Hatchery Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1jj8RPvZNuCTKWKilO-YGfvgJJ3nXqk6i=w1200"
+  },
+  {
+    "id": "dc-jad-0604",
+    "dcNumber": "DC 604",
+    "invoiceNumber": "DC 604",
+    "prNumber": "PR-JAD-0604",
+    "prId": "pr-jad-0604",
+    "date": "2026-08-19",
+    "siteName": "Head Office Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000604000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0604-1",
+        "itemName": "Electrical Supplies & Consumables (Head Office Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7704",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/16FGunZRKcy0x1MuYhdX91IfbhwQsJzQ3=w1200",
+    "biltyNumber": "7704",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0605",
+    "dcNumber": "DC 605",
+    "invoiceNumber": "DC 605",
+    "prNumber": "PR-JAD-0605",
+    "prId": "pr-jad-0605",
+    "date": "2026-08-19",
+    "siteName": "Agri Farm Mankera",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000605000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0605-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7705",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1rXNQGPb-IR7ceNVkZJszdUvVhxg1hVST=w1200",
+    "biltyNumber": "7705",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0606",
+    "dcNumber": "DC 606",
+    "invoiceNumber": "DC 606",
+    "prNumber": "PR-JAD-0606",
+    "prId": "pr-jad-0606",
+    "date": "2026-08-20",
+    "siteName": "Jadeed Feed Mil Shahcoat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000606000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0606-1",
+        "itemName": "Electrical Supplies & Consumables (Jadeed Feed Mil Shahcoat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1v7wx0TwLtIs8_YV3R1Ql0pjGh1Yrdo5H=w1200"
+  },
+  {
+    "id": "dc-jad-0607",
+    "dcNumber": "DC 607",
+    "invoiceNumber": "DC 607",
+    "prNumber": "PR-JAD-0607",
+    "prId": "pr-jad-0607",
+    "date": "2026-08-20",
+    "siteName": "Warehouse Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000607000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0607-1",
+        "itemName": "Electrical Supplies & Consumables (Warehouse Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7707",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1PZHHeWRGla01Ia05GYSE0vOI4c2s_GkM=w1200",
+    "biltyNumber": "7707",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0608",
+    "dcNumber": "DC 608",
+    "invoiceNumber": "DC 608",
+    "prNumber": "PR-JAD-0608",
+    "prId": "pr-jad-0608",
+    "date": "2026-08-21",
+    "siteName": "Agri Farm Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000608000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0608-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7708",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1tLCpLhYwrlBjNxY8sG7uG-gzFSM4qKhF=w1200",
+    "biltyNumber": "7708",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0609",
+    "dcNumber": "DC 609",
+    "invoiceNumber": "DC 609",
+    "prNumber": "PR-JAD-0609",
+    "prId": "pr-jad-0609",
+    "date": "2026-08-21",
+    "siteName": "Oil Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000609000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0609-1",
+        "itemName": "Electrical Supplies & Consumables (Oil Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/16uPo702XoSCdNMTXXsS9iK2hY4WcZ13x=w1200"
+  },
+  {
+    "id": "dc-jad-0610",
+    "dcNumber": "DC 610",
+    "invoiceNumber": "DC 610",
+    "prNumber": "PR-JAD-0610",
+    "prId": "pr-jad-0610",
+    "date": "2026-08-21",
+    "siteName": "P.D Khan Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000610000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0610-1",
+        "itemName": "Electrical Supplies & Consumables (P.D Khan Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7710",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1RNohV09NJdo2Ce4OWy--7Hi_elMJDdmM=w1200",
+    "biltyNumber": "7710",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0611",
+    "dcNumber": "DC 611",
+    "invoiceNumber": "DC 611",
+    "prNumber": "PR-JAD-0611",
+    "prId": "pr-jad-0611",
+    "date": "2026-08-22",
+    "siteName": "Feed Mill Bhawalpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000611000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0611-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Bhawalpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7711",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1UwprC0DuVRPP_VMcllyE4zsa4U0TTEN6=w1200",
+    "biltyNumber": "7711",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0612",
+    "dcNumber": "DC 612",
+    "invoiceNumber": "DC 612",
+    "prNumber": "PR-JAD-0612",
+    "prId": "pr-jad-0612",
+    "date": "2026-08-22",
+    "siteName": "Ware House Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000612000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0612-1",
+        "itemName": "Electrical Supplies & Consumables (Ware House Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1yE6zQbfWcSx5j9cpZiv5GPciVNo3AToX=w1200"
+  },
+  {
+    "id": "dc-jad-0613",
+    "dcNumber": "DC 613",
+    "invoiceNumber": "DC 613",
+    "prNumber": "PR-JAD-2026-613",
+    "prId": "pr-jad-0613",
+    "date": "2026-09-12",
+    "siteName": "Jadeed Farm - Khanewal Site B",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000613000,
+    "itemsShipped": [
+      {
+        "itemId": "item-613-1",
+        "itemName": "95mm 4-Core Armoured XLPE Copper Cable",
+        "brand": "Pakistan Cables",
+        "quantity": 400,
+        "unit": "Meters"
+      },
+      {
+        "itemId": "item-613-2",
+        "itemName": "250A 3-Pole MCCB Breaker (Adjustable)",
+        "brand": "Schneider Electric",
+        "quantity": 6,
+        "unit": "Pcs"
+      },
+      {
+        "itemId": "item-613-3",
+        "itemName": "150W IP66 LED Floodlight (6500K)",
+        "brand": "Philips / Pak Lighting",
+        "quantity": 40,
+        "unit": "Pcs"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7713",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/17V_Ors4ha6Hq12vPSfQH33RnVXxmXyHv=w1200",
+    "biltyNumber": "7713",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay",
+    "driverName": "Muhammad Rasheed",
+    "vehicleNumber": "LES-4812"
+  },
+  {
+    "id": "dc-jad-0614",
+    "dcNumber": "DC 614",
+    "invoiceNumber": "DC 614",
+    "prNumber": "PR-JAD-2026-614",
+    "prId": "pr-jad-0614",
+    "date": "2026-09-15",
+    "siteName": "Jadeed Hatchery - Chakwal Main Complex",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000614000,
+    "itemsShipped": [
+      {
+        "itemId": "item-614-1",
+        "itemName": "50mm 4-Core Flexible Cu Power Cable",
+        "brand": "Amer Cables",
+        "quantity": 300,
+        "unit": "Meters"
+      },
+      {
+        "itemId": "item-614-2",
+        "itemName": "100A 3-Pole Air Circuit Breaker",
+        "brand": "Terasaki",
+        "quantity": 4,
+        "unit": "Pcs"
+      },
+      {
+        "itemId": "item-614-3",
+        "itemName": "2 Inch PVC Heavy Electrical Conduit Pipe",
+        "brand": "Conduit & Accessories",
+        "quantity": 100,
+        "unit": "Lengths"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7714",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1SxZQJoT6ifuapw-9JSOyiqIJUGG-hum3=w1200",
+    "biltyNumber": "7714",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid",
+    "driverName": "Muhammad Imtiaz",
+    "vehicleNumber": "LES-4812 (Star Truck)"
+  },
+  {
+    "id": "dc-jad-0615",
+    "dcNumber": "DC 615",
+    "invoiceNumber": "DC 615",
+    "prNumber": "PR-JAD-0615",
+    "prId": "pr-jad-0615",
+    "date": "2026-08-24",
+    "siteName": "Feed Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000615000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0615-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1yhIpyf0uSkHB2RQlTZmjC5i9YP2bW9ti=w1200"
+  },
+  {
+    "id": "dc-jad-0616",
+    "dcNumber": "DC 616",
+    "invoiceNumber": "DC 616",
+    "prNumber": "PR-JAD-0616",
+    "prId": "pr-jad-0616",
+    "date": "2026-08-24",
+    "siteName": "Chicks Hatchery Sheikhupura",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000616000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0616-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Sheikhupura)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7716",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1E1kZ_vhmUrmncZuBTitQxGH7Dpi7Jm9v=w1200",
+    "biltyNumber": "7716",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0617",
+    "dcNumber": "DC 617",
+    "invoiceNumber": "DC 617",
+    "prNumber": "PR-JAD-0617",
+    "prId": "pr-jad-0617",
+    "date": "2026-08-25",
+    "siteName": "Chicks Hatchery Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000617000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0617-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7717",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1alOtcbSxC41DSUwSejBH2cSJP_xEYoRY=w1200",
+    "biltyNumber": "7717",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0618",
+    "dcNumber": "DC 618",
+    "invoiceNumber": "DC 618",
+    "prNumber": "PR-JAD-0618",
+    "prId": "pr-jad-0618",
+    "date": "2026-08-25",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000618000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0618-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1JfdHhGm3kOIYlejoMroIx5dSwuTOJrlV=w1200"
+  },
+  {
+    "id": "dc-jad-0619",
+    "dcNumber": "DC 619",
+    "invoiceNumber": "DC 619",
+    "prNumber": "PR-JAD-0619",
+    "prId": "pr-jad-0619",
+    "date": "2026-08-25",
+    "siteName": "Balkasar Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000619000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0619-1",
+        "itemName": "Electrical Supplies & Consumables (Balkasar Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7719",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1z4HKbgtyXGAOCtyEuOEHGOp3AGNlw_05=w1200",
+    "biltyNumber": "7719",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0620",
+    "dcNumber": "DC 620",
+    "invoiceNumber": "DC 620",
+    "prNumber": "PR-JAD-0620",
+    "prId": "pr-jad-0620",
+    "date": "2026-08-26",
+    "siteName": "Hatchery Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000620000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0620-1",
+        "itemName": "Electrical Supplies & Consumables (Hatchery Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7720",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1sNd-1Vodvljk9CPgETubRWc5ZazS0oe1=w1200",
+    "biltyNumber": "7720",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0621",
+    "dcNumber": "DC 621",
+    "invoiceNumber": "DC 621",
+    "prNumber": "PR-JAD-0621",
+    "prId": "pr-jad-0621",
+    "date": "2026-08-26",
+    "siteName": "Head Office Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000621000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0621-1",
+        "itemName": "Electrical Supplies & Consumables (Head Office Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/18mheadrzWcQox_lLVC3RD-X8OZfqJ72N=w1200"
+  },
+  {
+    "id": "dc-jad-0622",
+    "dcNumber": "DC 622",
+    "invoiceNumber": "DC 622",
+    "prNumber": "PR-JAD-0622",
+    "prId": "pr-jad-0622",
+    "date": "2026-08-27",
+    "siteName": "Agri Farm Mankera",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000622000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0622-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7722",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1x5wDEM2ClRiX2VpiOYM4N6Zb1-e3aG0o=w1200",
+    "biltyNumber": "7722",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0623",
+    "dcNumber": "DC 623",
+    "invoiceNumber": "DC 623",
+    "prNumber": "PR-JAD-0623",
+    "prId": "pr-jad-0623",
+    "date": "2026-08-27",
+    "siteName": "Jadeed Feed Mil Shahcoat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000623000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0623-1",
+        "itemName": "Electrical Supplies & Consumables (Jadeed Feed Mil Shahcoat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7723",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1Y2zyAnzmggEGrmy_qMrTHZRcFsWtTIrv=w1200",
+    "biltyNumber": "7723",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0624",
+    "dcNumber": "DC 624",
+    "invoiceNumber": "DC 624",
+    "prNumber": "PR-JAD-0624",
+    "prId": "pr-jad-0624",
+    "date": "2026-08-28",
+    "siteName": "Warehouse Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000624000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0624-1",
+        "itemName": "Electrical Supplies & Consumables (Warehouse Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1NhJTFlZGFUYaIAm2XfOgOWbhN9emvoJl=w1200"
+  },
+  {
+    "id": "dc-jad-0625",
+    "dcNumber": "DC 625",
+    "invoiceNumber": "DC 625",
+    "prNumber": "PR-JAD-0625",
+    "prId": "pr-jad-0625",
+    "date": "2026-08-28",
+    "siteName": "Agri Farm Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000625000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0625-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7725",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1D3H43wE94UexFBFXMsncxkWbauzEjWj4=w1200",
+    "biltyNumber": "7725",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0626",
+    "dcNumber": "DC 626",
+    "invoiceNumber": "DC 626",
+    "prNumber": "PR-JAD-0626",
+    "prId": "pr-jad-0626",
+    "date": "2026-08-29",
+    "siteName": "Oil Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000626000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0626-1",
+        "itemName": "Electrical Supplies & Consumables (Oil Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7726",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1GQe6jubjmmYsjJWU23YYX_vALbThq4nw=w1200",
+    "biltyNumber": "7726",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0627",
+    "dcNumber": "DC 627",
+    "invoiceNumber": "DC 627",
+    "prNumber": "PR-JAD-0627",
+    "prId": "pr-jad-0627",
+    "date": "2026-08-29",
+    "siteName": "P.D Khan Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000627000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0627-1",
+        "itemName": "Electrical Supplies & Consumables (P.D Khan Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1Ii2ObGCFmbkEmc6EkYjJPcL7g3x4zRkC=w1200"
+  },
+  {
+    "id": "dc-jad-0628",
+    "dcNumber": "DC 628",
+    "invoiceNumber": "DC 628",
+    "prNumber": "PR-JAD-0628",
+    "prId": "pr-jad-0628",
+    "date": "2026-08-29",
+    "siteName": "Feed Mill Bhawalpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000628000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0628-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Bhawalpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7728",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1jWswN_4kQSCTjQdauDtgxGU19gNlUcTp=w1200",
+    "biltyNumber": "7728",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0629",
+    "dcNumber": "DC 629",
+    "invoiceNumber": "DC 629",
+    "prNumber": "PR-JAD-0629",
+    "prId": "pr-jad-0629",
+    "date": "2026-08-30",
+    "siteName": "Ware House Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000629000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0629-1",
+        "itemName": "Electrical Supplies & Consumables (Ware House Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7729",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1SZTVyRkYrM87faoSoLqWVUMUWDMpFGET=w1200",
+    "biltyNumber": "7729",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0630",
+    "dcNumber": "DC 630",
+    "invoiceNumber": "DC 630",
+    "prNumber": "PR-JAD-0630",
+    "prId": "pr-jad-0630",
+    "date": "2026-08-30",
+    "siteName": "Jadeed Farm Pirowal 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000630000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0630-1",
+        "itemName": "Electrical Supplies & Consumables (Jadeed Farm Pirowal 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0631",
+    "dcNumber": "DC 631",
+    "invoiceNumber": "DC 631",
+    "prNumber": "PR-JAD-0631",
+    "prId": "pr-jad-0631",
+    "date": "2026-08-31",
+    "siteName": "Bahter Farm 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000631000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0631-1",
+        "itemName": "Electrical Supplies & Consumables (Bahter Farm 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7731",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1dPOjmCxND3fBv85Ol98zUV1iIbNZGn20=w1200",
+    "biltyNumber": "7731",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0632",
+    "dcNumber": "DC 632",
+    "invoiceNumber": "DC 632",
+    "prNumber": "PR-JAD-0632",
+    "prId": "pr-jad-0632",
+    "date": "2026-08-31",
+    "siteName": "Feed Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000632000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0632-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7732",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1bZvd5w1PCwj2twV7hekLxOFtDpIQlZA-=w1200",
+    "biltyNumber": "7732",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0633",
+    "dcNumber": "DC 633",
+    "invoiceNumber": "DC 633",
+    "prNumber": "PR-JAD-0633",
+    "prId": "pr-jad-0633",
+    "date": "2026-09-01",
+    "siteName": "Chicks Hatchery Sheikhupura",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000633000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0633-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Sheikhupura)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1JA-_ePDtQ9zGhie_nWajuU6DvbvxD0ua=w1200"
+  },
+  {
+    "id": "dc-jad-0634",
+    "dcNumber": "DC 634",
+    "invoiceNumber": "DC 634",
+    "prNumber": "PR-JAD-0634",
+    "prId": "pr-jad-0634",
+    "date": "2026-09-01",
+    "siteName": "Chicks Hatchery Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000634000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0634-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7734",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ch6u1-YKLAkA6O6X2rDUnQzX1qtaeCnP=w1200",
+    "biltyNumber": "7734",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0635",
+    "dcNumber": "DC 635",
+    "invoiceNumber": "DC 635",
+    "prNumber": "PR-JAD-0635",
+    "prId": "pr-jad-0635",
+    "date": "2026-09-01",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000635000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0635-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7735",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1Fdkc_kzRoMgVk9OtEtAxXJtzZo7h6DuT=w1200",
+    "biltyNumber": "7735",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0636",
+    "dcNumber": "DC 636",
+    "invoiceNumber": "DC 636",
+    "prNumber": "PR-JAD-0636",
+    "prId": "pr-jad-0636",
+    "date": "2026-09-02",
+    "siteName": "Balkasar Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000636000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0636-1",
+        "itemName": "Electrical Supplies & Consumables (Balkasar Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1YafJbPQAuWj6cIC8maDUjFkLMDC-LtXe=w1200"
+  },
+  {
+    "id": "dc-jad-0637",
+    "dcNumber": "DC 637",
+    "invoiceNumber": "DC 637",
+    "prNumber": "PR-JAD-0637",
+    "prId": "pr-jad-0637",
+    "date": "2026-09-02",
+    "siteName": "Hatchery Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000637000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0637-1",
+        "itemName": "Electrical Supplies & Consumables (Hatchery Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7737",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1mi87GAWNDQsiM5idppYFJAF6wbUc4_m-=w1200",
+    "biltyNumber": "7737",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0638",
+    "dcNumber": "DC 638",
+    "invoiceNumber": "DC 638",
+    "prNumber": "PR-JAD-0638",
+    "prId": "pr-jad-0638",
+    "date": "2026-09-03",
+    "siteName": "Head Office Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000638000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0638-1",
+        "itemName": "Electrical Supplies & Consumables (Head Office Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7738",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1HEZNFUoRtd4CPk7PpmhHUZFNPaaBUvA9=w1200",
+    "biltyNumber": "7738",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0639",
+    "dcNumber": "DC 639",
+    "invoiceNumber": "DC 639",
+    "prNumber": "PR-JAD-0639",
+    "prId": "pr-jad-0639",
+    "date": "2026-09-03",
+    "siteName": "Agri Farm Mankera",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000639000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0639-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0640",
+    "dcNumber": "DC 640",
+    "invoiceNumber": "DC 640",
+    "prNumber": "PR-JAD-0640",
+    "prId": "pr-jad-0640",
+    "date": "2026-09-04",
+    "siteName": "Jadeed Feed Mil Shahcoat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000640000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0640-1",
+        "itemName": "Electrical Supplies & Consumables (Jadeed Feed Mil Shahcoat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7740",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1riPM3kTyAeJZEG7Dop-PWoinB_4NMTo8=w1200",
+    "biltyNumber": "7740",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0641",
+    "dcNumber": "DC 641",
+    "invoiceNumber": "DC 641",
+    "prNumber": "PR-JAD-0641",
+    "prId": "pr-jad-0641",
+    "date": "2026-09-04",
+    "siteName": "Warehouse Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000641000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0641-1",
+        "itemName": "Electrical Supplies & Consumables (Warehouse Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7741",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ec_zBjHh7CwHp4flOafP_XX80xtQ7Kth=w1200",
+    "biltyNumber": "7741",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0642",
+    "dcNumber": "DC 642",
+    "invoiceNumber": "DC 642",
+    "prNumber": "PR-JAD-0642",
+    "prId": "pr-jad-0642",
+    "date": "2026-09-05",
+    "siteName": "Agri Farm Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000642000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0642-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1M2kXSMuHXOIl4FccMIllX3ccDOJzNm18=w1200"
+  },
+  {
+    "id": "dc-jad-0643",
+    "dcNumber": "DC 643",
+    "invoiceNumber": "DC 643",
+    "prNumber": "PR-JAD-0643",
+    "prId": "pr-jad-0643",
+    "date": "2026-09-05",
+    "siteName": "Oil Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000643000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0643-1",
+        "itemName": "Electrical Supplies & Consumables (Oil Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7743",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/127v-WnSpPDcrGvsGcEH5fspBxqytpQ_W=w1200",
+    "biltyNumber": "7743",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0644",
+    "dcNumber": "DC 644",
+    "invoiceNumber": "DC 644",
+    "prNumber": "PR-JAD-0644",
+    "prId": "pr-jad-0644",
+    "date": "2026-09-05",
+    "siteName": "P.D Khan Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000644000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0644-1",
+        "itemName": "Electrical Supplies & Consumables (P.D Khan Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7744",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1Wc8DFLAuXjr925VQvnXsmygd9ZQSsLm5=w1200",
+    "biltyNumber": "7744",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0645",
+    "dcNumber": "DC 645",
+    "invoiceNumber": "DC 645",
+    "prNumber": "PR-JAD-0645",
+    "prId": "pr-jad-0645",
+    "date": "2026-09-06",
+    "siteName": "Feed Mill Bhawalpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000645000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0645-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Bhawalpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1XODGAvsyP84usHRE8NmcebMpV3ljJdX7=w1200"
+  },
+  {
+    "id": "dc-jad-0646",
+    "dcNumber": "DC 646",
+    "invoiceNumber": "DC 646",
+    "prNumber": "PR-JAD-0646",
+    "prId": "pr-jad-0646",
+    "date": "2026-09-06",
+    "siteName": "Ware House Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000646000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0646-1",
+        "itemName": "Electrical Supplies & Consumables (Ware House Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7746",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1lyK419n8Q_OH5hL3YzCuCxCN3BSnHhlA=w1200",
+    "biltyNumber": "7746",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0647",
+    "dcNumber": "DC 647",
+    "invoiceNumber": "DC 647",
+    "prNumber": "PR-JAD-0647",
+    "prId": "pr-jad-0647",
+    "date": "2026-09-07",
+    "siteName": "Jadeed Farm Pirowal 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000647000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0647-1",
+        "itemName": "Electrical Supplies & Consumables (Jadeed Farm Pirowal 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7747",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/15i9fhpAnjNjxz3rOfPNqoQpVwSkBThjt=w1200",
+    "biltyNumber": "7747",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0648",
+    "dcNumber": "DC 648",
+    "invoiceNumber": "DC 648",
+    "prNumber": "PR-JAD-0648",
+    "prId": "pr-jad-0648",
+    "date": "2026-09-07",
+    "siteName": "Bahter Farm 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000648000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0648-1",
+        "itemName": "Electrical Supplies & Consumables (Bahter Farm 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1FKaM47sXWR893FQu0j8DsewWJdoig8J9=w1200"
+  },
+  {
+    "id": "dc-jad-0649",
+    "dcNumber": "DC 649",
+    "invoiceNumber": "DC 649",
+    "prNumber": "PR-JAD-0649",
+    "prId": "pr-jad-0649",
+    "date": "2026-09-08",
+    "siteName": "Feed Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000649000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0649-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7749",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1muSg84-P5OuvSntHgLHTa5iUCCbEC4QR=w1200",
+    "biltyNumber": "7749",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0650",
+    "dcNumber": "DC 650",
+    "invoiceNumber": "DC 650",
+    "prNumber": "PR-JAD-0650",
+    "prId": "pr-jad-0650",
+    "date": "2026-09-08",
+    "siteName": "Chicks Hatchery Sheikhupura",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000650000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0650-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Sheikhupura)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7750",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1GfQFAmr1sdR0br4KYyz_nYoJ-DgIXA6N=w1200",
+    "biltyNumber": "7750",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0651",
+    "dcNumber": "DC 651",
+    "invoiceNumber": "DC 651",
+    "prNumber": "PR-JAD-0651",
+    "prId": "pr-jad-0651",
+    "date": "2026-09-09",
+    "siteName": "Chicks Hatchery Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000651000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0651-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1fMeWjVX_xfNgGdMyJcBe0F8RIilWQuFP=w1200"
+  },
+  {
+    "id": "dc-jad-0652",
+    "dcNumber": "DC 652",
+    "invoiceNumber": "DC 652",
+    "prNumber": "PR-JAD-0652",
+    "prId": "pr-jad-0652",
+    "date": "2026-09-09",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000652000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0652-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7752",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1LaP42R6NWjrDghhJ9fR327x1GLqvrLdl=w1200",
+    "biltyNumber": "7752",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0653",
+    "dcNumber": "DC 653",
+    "invoiceNumber": "DC 653",
+    "prNumber": "PR-JAD-0653",
+    "prId": "pr-jad-0653",
+    "date": "2026-09-09",
+    "siteName": "Balkasar Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000653000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0653-1",
+        "itemName": "Electrical Supplies & Consumables (Balkasar Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7753",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7753",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0654",
+    "dcNumber": "DC 654",
+    "invoiceNumber": "DC 654",
+    "prNumber": "PR-JAD-0654",
+    "prId": "pr-jad-0654",
+    "date": "2026-09-10",
+    "siteName": "Hatchery Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000654000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0654-1",
+        "itemName": "Electrical Supplies & Consumables (Hatchery Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0655",
+    "dcNumber": "DC 655",
+    "invoiceNumber": "DC 655",
+    "prNumber": "PR-JAD-0655",
+    "prId": "pr-jad-0655",
+    "date": "2026-09-11",
+    "siteName": "Ware House Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000655000,
+    "itemsShipped": [
+      {
+        "itemId": "item-655-1",
+        "itemName": "Electrical Supplies & Switchgear Consumables",
+        "brand": "Schneider Electric",
+        "quantity": 12,
+        "unit": "Numbers"
+      },
+      {
+        "itemId": "item-655-2",
+        "itemName": "Flexible Copper Wire 2.5mm Single Core",
+        "brand": "Pakistan Cables",
+        "quantity": 300,
+        "unit": "Meters"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Dispatched to Ware House Rawat for Central Distribution",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7755",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay",
+    "driverName": "Shahid Mehmood",
+    "vehicleNumber": "LES-4812"
+  },
+  {
+    "id": "dc-jad-0656",
+    "dcNumber": "DC 656",
+    "invoiceNumber": "DC 656",
+    "prNumber": "PR-JAD-0656",
+    "prId": "pr-jad-0656",
+    "date": "2026-09-11",
+    "siteName": "Agri Farm Mankera",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000656000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0656-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Mankera)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7756",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7756",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0657",
+    "dcNumber": "DC 657",
+    "invoiceNumber": "DC 657",
+    "prNumber": "PR-JAD-0657",
+    "prId": "pr-jad-0657",
+    "date": "2026-09-11",
+    "siteName": "Jadeed Feed Mil Shahcoat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000657000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0657-1",
+        "itemName": "Electrical Supplies & Consumables (Jadeed Feed Mil Shahcoat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0658",
+    "dcNumber": "DC 658",
+    "invoiceNumber": "DC 658",
+    "prNumber": "PR-JAD-0658",
+    "prId": "pr-jad-0658",
+    "date": "2026-09-12",
+    "siteName": "Warehouse Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000658000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0658-1",
+        "itemName": "Electrical Supplies & Consumables (Warehouse Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7758",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7758",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0659",
+    "dcNumber": "DC 659",
+    "invoiceNumber": "DC 659",
+    "prNumber": "PR-JAD-0659",
+    "prId": "pr-jad-0659",
+    "date": "2026-09-12",
+    "siteName": "Agri Farm Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000659000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0659-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7759",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7759",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0660",
+    "dcNumber": "DC 660",
+    "invoiceNumber": "DC 660",
+    "prNumber": "PR-JAD-0660",
+    "prId": "pr-jad-0660",
+    "date": "2026-09-12",
+    "siteName": "Oil Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000660000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0660-1",
+        "itemName": "Electrical Supplies & Consumables (Oil Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0661",
+    "dcNumber": "DC 661",
+    "invoiceNumber": "DC 661",
+    "prNumber": "PR-JAD-0661",
+    "prId": "pr-jad-0661",
+    "date": "2026-09-13",
+    "siteName": "P.D Khan Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000661000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0661-1",
+        "itemName": "Electrical Supplies & Consumables (P.D Khan Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7761",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7761",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0662",
+    "dcNumber": "DC 662",
+    "invoiceNumber": "DC 662",
+    "prNumber": "PR-JAD-0662",
+    "prId": "pr-jad-0662",
+    "date": "2026-09-13",
+    "siteName": "Feed Mill Bhawalpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000662000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0662-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Bhawalpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7762",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7762",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0663",
+    "dcNumber": "DC 663",
+    "invoiceNumber": "DC 663",
+    "prNumber": "PR-JAD-0663",
+    "prId": "pr-jad-0663",
+    "date": "2026-09-14",
+    "siteName": "Ware House Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000663000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0663-1",
+        "itemName": "Electrical Supplies & Consumables (Ware House Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0664",
+    "dcNumber": "DC 664",
+    "invoiceNumber": "DC 664",
+    "prNumber": "PR-JAD-0664",
+    "prId": "pr-jad-0664",
+    "date": "2026-09-14",
+    "siteName": "Jadeed Farm Pirowal 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000664000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0664-1",
+        "itemName": "Electrical Supplies & Consumables (Jadeed Farm Pirowal 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7764",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7764",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0665",
+    "dcNumber": "DC 665",
+    "invoiceNumber": "DC 665",
+    "prNumber": "PR-JAD-0665",
+    "prId": "pr-jad-0665",
+    "date": "2026-09-15",
+    "siteName": "Bahter Farm 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000665000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0665-1",
+        "itemName": "Electrical Supplies & Consumables (Bahter Farm 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7765",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7765",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0666",
+    "dcNumber": "DC 666",
+    "invoiceNumber": "DC 666",
+    "prNumber": "PR-666",
+    "prId": "pr-jad-0666",
+    "date": "2026-09-17",
+    "siteName": "Feed Mill Khanewal via Ware House Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000666000,
+    "itemsShipped": [
+      {
+        "itemId": "item-666-1",
+        "itemName": "4mm 4-core Std. PVC/PVC Pakistan Cable",
+        "brand": "Pakistan Cables",
+        "quantity": 77,
+        "unit": "Meters"
+      },
+      {
+        "itemId": "item-666-2",
+        "itemName": "6mm 4-core Std. PVC/PVC Pakistan Cable",
+        "brand": "Pakistan Cables",
+        "quantity": 77,
+        "unit": "Meters"
+      },
+      {
+        "itemId": "item-666-3",
+        "itemName": "16mm 4-core Std. PVC/PVC Pakistan Cable",
+        "brand": "Pakistan Cables",
+        "quantity": 77,
+        "unit": "Meters"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0667",
+    "dcNumber": "DC 667",
+    "invoiceNumber": "DC 667",
+    "prNumber": "PR-58",
+    "prId": "pr-jad-0667",
+    "date": "2026-09-17",
+    "siteName": "Mankera via Ware House Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000667000,
+    "itemsShipped": [
+      {
+        "itemId": "item-58-1",
+        "itemName": "MCCB 630Amp 36kA Adjustable High Breaking Terasaki Japan model E-630NE",
+        "brand": "Terasaki",
+        "quantity": 1,
+        "unit": "Numbers"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7767",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7767",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0668",
+    "dcNumber": "DC 668",
+    "invoiceNumber": "DC 668",
+    "prNumber": "PR-151",
+    "prId": "pr-jad-0668",
+    "date": "2026-09-17",
+    "siteName": "Agri Farm Mankera I via Ware House Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000668000,
+    "itemsShipped": [
+      {
+        "itemId": "item-151-1",
+        "itemName": "Vintage Wall Light Imported",
+        "brand": "Philips / Pak Lighting",
+        "quantity": 24,
+        "unit": "Numbers"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7768",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7768",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0669",
+    "dcNumber": "DC 669",
+    "invoiceNumber": "DC 669",
+    "prNumber": "PR-JAD-0669",
+    "prId": "pr-jad-0669",
+    "date": "2026-09-16",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000669000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0669-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0670",
+    "dcNumber": "DC 670",
+    "invoiceNumber": "DC 670",
+    "prNumber": "PR-JAD-0670",
+    "prId": "pr-jad-0670",
+    "date": "2026-09-17",
+    "siteName": "Balkasar Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000670000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0670-1",
+        "itemName": "Electrical Supplies & Consumables (Balkasar Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7770",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7770",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0671",
+    "dcNumber": "DC 671",
+    "invoiceNumber": "DC 671",
+    "prNumber": "PR-JAD-0671",
+    "prId": "pr-jad-0671",
+    "date": "2026-09-17",
+    "siteName": "Hatchery Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000671000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0671-1",
+        "itemName": "Electrical Supplies & Consumables (Hatchery Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7771",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7771",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0672",
+    "dcNumber": "DC 672",
+    "invoiceNumber": "DC 672",
+    "prNumber": "PR-JAD-0672",
+    "prId": "pr-jad-0672",
+    "date": "2026-09-18",
+    "siteName": "Head Office Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000672000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0672-1",
+        "itemName": "Electrical Supplies & Consumables (Head Office Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0673",
+    "dcNumber": "DC 673",
+    "invoiceNumber": "DC 673",
+    "prNumber": "PR-673",
+    "prId": "pr-jad-0673",
+    "date": "2026-09-18",
+    "siteName": "Oil Extraction Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000673000,
+    "itemsShipped": [
+      {
+        "itemId": "item-673-1",
+        "itemName": "Cable Flexible 6mm 4-core PVC/PVC Sheathed Pakistan Cables",
+        "brand": "Pakistan Cables",
+        "quantity": 300,
+        "unit": "Meters"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7773",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7773",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0674",
+    "dcNumber": "DC 674",
+    "invoiceNumber": "DC 674",
+    "prNumber": "PR-674",
+    "prId": "pr-jad-0674",
+    "date": "2026-09-18",
+    "siteName": "Oil Extraction Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000674000,
+    "itemsShipped": [
+      {
+        "itemId": "item-674-1",
+        "itemName": "Cable Flexible 16mm 4-core PVC/PVC Sheathed Pakistan Cables",
+        "brand": "Pakistan Cables",
+        "quantity": 200,
+        "unit": "Meters"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7774",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7774",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0675",
+    "dcNumber": "DC 675",
+    "invoiceNumber": "DC 675",
+    "prNumber": "PR-JAD-0675",
+    "prId": "pr-jad-0675",
+    "date": "2026-09-19",
+    "siteName": "Warehouse Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000675000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0675-1",
+        "itemName": "Electrical Supplies & Consumables (Warehouse Rawalpindi)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0676",
+    "dcNumber": "DC 676",
+    "invoiceNumber": "DC 676",
+    "prNumber": "PR-JAD-0676",
+    "prId": "pr-jad-0676",
+    "date": "2026-09-20",
+    "siteName": "Agri Farm Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000676000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0676-1",
+        "itemName": "Electrical Supplies & Consumables (Agri Farm Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7776",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7776",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0677",
+    "dcNumber": "DC 677",
+    "invoiceNumber": "DC 677",
+    "prNumber": "PR-JAD-0677",
+    "prId": "pr-jad-0677",
+    "date": "2026-09-20",
+    "siteName": "Oil Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000677000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0677-1",
+        "itemName": "Electrical Supplies & Consumables (Oil Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7777",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7777",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0678",
+    "dcNumber": "DC 678",
+    "invoiceNumber": "DC 678",
+    "prNumber": "PR-JAD-0678",
+    "prId": "pr-jad-0678",
+    "date": "2026-09-20",
+    "siteName": "P.D Khan Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000678000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0678-1",
+        "itemName": "Electrical Supplies & Consumables (P.D Khan Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0679",
+    "dcNumber": "DC 679",
+    "invoiceNumber": "DC 679",
+    "prNumber": "PR-JAD-0679",
+    "prId": "pr-jad-0679",
+    "date": "2026-09-21",
+    "siteName": "Feed Mill Bhawalpur",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000679000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0679-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Bhawalpur)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7779",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7779",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0680",
+    "dcNumber": "DC 680",
+    "invoiceNumber": "DC 680",
+    "prNumber": "PR-JAD-0680",
+    "prId": "pr-jad-0680",
+    "date": "2026-09-21",
+    "siteName": "Ware House Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000680000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0680-1",
+        "itemName": "Electrical Supplies & Consumables (Ware House Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7780",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7780",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0681",
+    "dcNumber": "DC 681",
+    "invoiceNumber": "DC 681",
+    "prNumber": "PR-JAD-0681",
+    "prId": "pr-jad-0681",
+    "date": "2026-09-22",
+    "siteName": "Jadeed Farm Pirowal 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000681000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0681-1",
+        "itemName": "Electrical Supplies & Consumables (Jadeed Farm Pirowal 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0682",
+    "dcNumber": "DC 682",
+    "invoiceNumber": "DC 682",
+    "prNumber": "PR-JAD-0682",
+    "prId": "pr-jad-0682",
+    "date": "2026-09-22",
+    "siteName": "Bahter Farm 1",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000682000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0682-1",
+        "itemName": "Electrical Supplies & Consumables (Bahter Farm 1)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7782",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7782",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0683",
+    "dcNumber": "DC 683",
+    "invoiceNumber": "DC 683",
+    "prNumber": "PR-JAD-0683",
+    "prId": "pr-jad-0683",
+    "date": "2026-09-23",
+    "siteName": "Feed Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000683000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0683-1",
+        "itemName": "Electrical Supplies & Consumables (Feed Mill Khanewal)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7783",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7783",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0684",
+    "dcNumber": "DC 684",
+    "invoiceNumber": "DC 684",
+    "prNumber": "PR-JAD-0684",
+    "prId": "pr-jad-0684",
+    "date": "2026-09-23",
+    "siteName": "Chicks Hatchery Sheikhupura",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000684000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0684-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Sheikhupura)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Delivered to Farm / Site",
+    "isBuiltyAttached": false,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200"
+  },
+  {
+    "id": "dc-jad-0685",
+    "dcNumber": "DC 685",
+    "invoiceNumber": "DC 685",
+    "prNumber": "PR-JAD-0685",
+    "prId": "pr-jad-0685",
+    "date": "2026-09-23",
+    "siteName": "Chicks Hatchery Rawat",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000685000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0685-1",
+        "itemName": "Electrical Supplies & Consumables (Chicks Hatchery Rawat)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7785",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7785",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "To Pay"
+  },
+  {
+    "id": "dc-jad-0686",
+    "dcNumber": "DC 686",
+    "invoiceNumber": "DC 686",
+    "prNumber": "PR-JAD-0686",
+    "prId": "pr-jad-0686",
+    "date": "2026-09-24",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000686000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0686-1",
+        "itemName": "Electrical Supplies & Consumables (Mankera 2 Farm)",
+        "brand": "General Electrical",
+        "quantity": 1,
+        "unit": "lot"
+      }
+    ],
+    "transportType": "Adda / Goods Transport",
+    "remarks": "Goods Transport via Adda | Bilty #7786",
+    "isBuiltyAttached": true,
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW=w1200",
+    "biltyNumber": "7786",
+    "addaName": "Goods Transport (General)",
+    "freightStatus": "Paid"
+  }
+]

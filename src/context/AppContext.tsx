@@ -1,13 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { FirebaseError } from 'firebase/app';
-import {
-  browserLocalPersistence,
-  browserSessionPersistence,
-  onAuthStateChanged,
-  setPersistence,
-  signInWithEmailAndPassword,
-  signOut
-} from 'firebase/auth';
 import type { PRRecord, DCRecord, GeminiExtractionResult, SiteLocation, LineItem, NavigationTab, GeminiBuiltyExtractionResult, BuiltyPreviewInfo } from '../types';
 import { 
   getPRs, 
@@ -58,7 +49,6 @@ import {
   deletePRFromCloud,
   deleteDCFromCloud
 } from '../lib/firestoreService';
-import { getFirebaseAuth, isFirebaseConfigured } from '../lib/firebase';
 
 interface AppContextType {
   prs: PRRecord[];
@@ -112,7 +102,6 @@ interface AppContextType {
   // Authentication & Remote Mobile Access
   isAuthenticated: boolean;
   isAuthLoading: boolean;
-  authError: string | null;
   currentUser: { username: string; role: string; displayName: string } | null;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
@@ -264,10 +253,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedBuiltyPreview, setSelectedBuiltyPreview] = useState<BuiltyPreviewInfo | null>(null);
 
   // Authentication & Remote Access state
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<{ username: string; role: string; displayName: string } | null>({
+  const [isAuthenticated] = useState(true);
+  const [isAuthLoading] = useState(false);
+  const [currentUser] = useState<{ username: string; role: string; displayName: string } | null>({
     username: 'public-user',
     role: 'Authorized user',
     displayName: 'Public Portal User'
@@ -306,40 +294,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const login = async (email: string, password: string, rememberMe: boolean = true): Promise<{ success: boolean; error?: string }> => {
-    const auth = getFirebaseAuth();
-    if (!auth) {
-      const error = 'Secure sign-in is not configured. Contact the portal administrator.';
-      setAuthError(error);
-      return { success: false, error };
-    }
-
-    try {
-      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-      setAuthError(null);
-      return { success: true };
-    } catch (error) {
-      const code = error instanceof FirebaseError ? error.code : '';
-      const message = code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password'
-        ? 'Email or password is incorrect.'
-        : code === 'auth/operation-not-allowed'
-          ? 'Email and password sign-in is disabled for this Firebase project.'
-          : error instanceof Error
-            ? error.message
-            : 'Sign-in failed. Please try again.';
-      setAuthError(message);
-      return { success: false, error: message };
-    }
+  const login = async (_email: string, _password: string, _rememberMe: boolean = true): Promise<{ success: boolean; error?: string }> => {
+    return { success: true };
   };
 
   const logout = () => {
-    const auth = getFirebaseAuth();
-    if (!auth) return;
-    void signOut(auth).catch(error => {
-      console.error('[Auth] Sign-out failed:', error);
-      setAuthError('Could not sign out. Please try again.');
-    });
+    // No-op
   };
 
   // Active selections
@@ -966,7 +926,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         pushAllToCloud,
         isAuthenticated,
         isAuthLoading,
-        authError,
         currentUser,
         login,
         logout,
