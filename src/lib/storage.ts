@@ -1,39 +1,21 @@
 import type { PRRecord, DCRecord, DriveVerifiedDCUpdate, DriveVerifiedPRFulfillmentUpdate, FulfillmentLog, LineItem, BrandCategory, GeminiBuiltyExtractionResult } from '../types';
-import { computeItemStatus, computePRStatus, cleanApiKey, normalizePRNumber, hasPRNumber, normalizeSiteName } from './utils';
-// Jadeed seed data removed from the bundle (kept in scratch/jadeed-data, to be imported into Firestore).
-// Seeding below only ran in dev (seedImportsEnabled); these empty stubs keep it compiling.
-const JADEED_HISTORY_DCS: any[] = [];
-const JADEED_FARM_SITES: any[] = [];
-const JADEED_DRIVE_BULTIES: any[] = [];
-const JADEED_DRIVE_DC_LEDGER: any[] = [];
-const JADEED_DRIVE_DC_SCANS: any[] = [];
-const JADEED_DRIVE_SCAN_PR_VERIFICATIONS: any[] = [];
+import { computeItemStatus, computePRStatus, cleanApiKey, normalizePRNumber, hasPRNumber, normalizeSiteName, normalizeDateToISO } from './utils';
+import { JADEED_HISTORY_DCS, JADEED_FARM_SITES } from '../data/jadeedHistoryData';
+import { JADEED_DRIVE_BULTIES, JADEED_DRIVE_DC_LEDGER, JADEED_DRIVE_DC_SCANS, JADEED_DRIVE_SCAN_PR_VERIFICATIONS } from '../data/jadeedDriveImport';
 import { 
   saveImageToMemory, 
   removeImageFromMemory,
   getImageFromMemorySync, 
   normalizeImageKey
 } from './imageStorage';
-import { DEFAULT_SCAN_QUALITY, normalizeScanQuality, type ScanQuality } from './scanQuality';
 
 const STORAGE_KEY_PRS = 'STAR_ELECTRIC_PRS_V2';
 const STORAGE_KEY_DCS = 'STAR_ELECTRIC_DCS_V2';
 const STORAGE_KEY_API_KEY = 'STAR_ELECTRIC_GEMINI_KEY';
-const STORAGE_KEY_OLLAMA_SETTINGS = 'STAR_ELECTRIC_OLLAMA_SETTINGS';
-// Keys from the removed OpenAI / Claude / AgentRouter integrations; purged from every browser on load.
-const LEGACY_PROVIDER_KEYS = [
-  'STAR_ELECTRIC_OPENAI_KEY',
-  'STAR_ELECTRIC_CLAUDE_KEY',
-  'STAR_ELECTRIC_AGENTROUTER_KEY',
-  'STAR_ELECTRIC_AGENTROUTER_MODEL'
-];
-if (typeof window !== 'undefined') {
-  try {
-    LEGACY_PROVIDER_KEYS.forEach(key => localStorage.removeItem(key));
-  } catch {
-    // Storage unavailable (private mode); nothing to purge.
-  }
-}
+const STORAGE_KEY_OPENAI_API_KEY = 'STAR_ELECTRIC_OPENAI_KEY';
+const STORAGE_KEY_CLAUDE_API_KEY = 'STAR_ELECTRIC_CLAUDE_KEY';
+const STORAGE_KEY_AGENTROUTER_API_KEY = 'STAR_ELECTRIC_AGENTROUTER_KEY';
+const STORAGE_KEY_AGENTROUTER_MODEL = 'STAR_ELECTRIC_AGENTROUTER_MODEL';
 const STORAGE_KEY_DRIVE_IMPORT_VERSION = 'STAR_ELECTRIC_DRIVE_IMPORT_VERSION';
 const STORAGE_KEY_PR_EVIDENCE_VERSION = 'STAR_ELECTRIC_PR_EVIDENCE_VERSION';
 export const DRIVE_IMPORT_VERSION = 'jadeed-ledger-686-scans-v3-confirmed-pr-links-only';
@@ -58,7 +40,7 @@ const normalizePRReference = (value: string): string =>
   value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
 const verifiedScanPRKeys = new Set(
-  verifiedScanPRs.map(entry => `${normalizePRReference(entry.prNumber)}:${entry.date}`)
+  verifiedScanPRs.map(entry => `${normalizePRReference(entry.prNumber)}:${normalizeDateToISO(entry.date)}`)
 );
 
 export function getVerifiedDriveDCUpdates(dcs: DCRecord[]): DriveVerifiedDCUpdate[] {
@@ -93,7 +75,7 @@ export function getVerifiedDriveDCUpdates(dcs: DCRecord[]): DriveVerifiedDCUpdat
 
 export function getDriveVerifiedPRFulfillmentUpdates(prs: PRRecord[]): DriveVerifiedPRFulfillmentUpdate[] {
   return prs.flatMap(pr => {
-    const key = `${normalizePRReference(pr.prNumber)}:${pr.date}`;
+    const key = `${normalizePRReference(pr.prNumber)}:${normalizeDateToISO(pr.date)}`;
     return verifiedScanPRKeys.has(key)
       ? [{
           id: pr.id,
@@ -134,7 +116,7 @@ export function getLinkedDCNumbersForPR(pr: PRRecord, dcs: DCRecord[]): string[]
   verifiedScanPRs
     .filter(entry =>
       normalizePRReference(entry.prNumber) === normalizedPRNumber &&
-      entry.date === pr.date
+      normalizeDateToISO(entry.date) === normalizeDateToISO(pr.date)
     )
     .forEach(entry => {
       const verifiedDC = dcs.find(dc => dcSequenceNumber(dc.dcNumber) === entry.dcNumber);
@@ -289,11 +271,11 @@ export function getPRs(): PRRecord[] {
     cleaned = cleaned.map(pr => {
       const verification = verifiedScanPRs.find(entry =>
         normalizePRReference(entry.prNumber) === normalizePRReference(pr.prNumber) &&
-        entry.date === pr.date
+        normalizeDateToISO(entry.date) === normalizeDateToISO(pr.date)
       );
       if (!verification) return pr;
 
-      const confirmedItemNames = new Set(verification.matchedPRItemNames.map((name: string) =>
+      const confirmedItemNames = new Set(verification.matchedPRItemNames.map(name =>
         name.toLowerCase().replace(/[^a-z0-9]/g, '')
       ));
       const retainedLogs = (pr.fulfillmentLogs || []).filter(log => {
@@ -631,13 +613,13 @@ export function getDCs(): DCRecord[] {
         entry.dcNumber === sequenceNumber &&
         prs.some(pr =>
           normalizePRReference(pr.prNumber) === normalizePRReference(entry.prNumber) &&
-          pr.date === entry.date
+          normalizeDateToISO(pr.date) === normalizeDateToISO(entry.date)
         )
       );
       const matchedPR = verification
         ? prs.find(pr =>
             normalizePRReference(pr.prNumber) === normalizePRReference(verification.prNumber) &&
-            pr.date === verification.date
+            normalizeDateToISO(pr.date) === normalizeDateToISO(verification.date)
           )
         : prs.find(pr =>
             normalizePRReference(pr.prNumber) === normalizePRReference(dc.prNumber)
@@ -1954,50 +1936,64 @@ export function saveGeminiApiKey(key: string): void {
   (window as any).__GEMINI_API_KEY__ = clean;
 }
 
-export interface OllamaSettings {
-  enabled: boolean;
-  baseUrl: string;
-  visionModel: string;
-  timeoutSeconds: number;
-  /** Image detail sent to the model: fast (896 px) / balanced (1152 px) / accurate (1536 px). */
-  scanQuality: ScanQuality;
+export function getOpenAIApiKey(): string {
+  if (typeof window === 'undefined') return '';
+  return cleanApiKey(localStorage.getItem(STORAGE_KEY_OPENAI_API_KEY));
 }
 
-export const DEFAULT_OLLAMA_SETTINGS: OllamaSettings = {
-  enabled: false,
-  baseUrl: 'http://127.0.0.1:11434',
-  visionModel: 'qwen2.5vl:3b',
-  timeoutSeconds: 300,
-  scanQuality: DEFAULT_SCAN_QUALITY
-};
-
-export function getOllamaSettings(): OllamaSettings {
-  if (typeof window === 'undefined') return { ...DEFAULT_OLLAMA_SETTINGS };
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_OLLAMA_SETTINGS);
-    if (!raw) return { ...DEFAULT_OLLAMA_SETTINGS };
-    const parsed = JSON.parse(raw) as Partial<OllamaSettings>;
-    return {
-      enabled: Boolean(parsed.enabled),
-      baseUrl: (parsed.baseUrl || DEFAULT_OLLAMA_SETTINGS.baseUrl).trim().replace(/\/+$/, ''),
-      visionModel: (parsed.visionModel || DEFAULT_OLLAMA_SETTINGS.visionModel).trim(),
-      timeoutSeconds: Number.isFinite(parsed.timeoutSeconds) && Number(parsed.timeoutSeconds) >= 30
-        ? Number(parsed.timeoutSeconds)
-        : DEFAULT_OLLAMA_SETTINGS.timeoutSeconds,
-      scanQuality: normalizeScanQuality(parsed.scanQuality)
-    };
-  } catch {
-    return { ...DEFAULT_OLLAMA_SETTINGS };
+export function saveOpenAIApiKey(key: string): void {
+  if (typeof window === 'undefined') return;
+  const clean = cleanApiKey(key);
+  if (clean) {
+    localStorage.setItem(STORAGE_KEY_OPENAI_API_KEY, clean);
+  } else {
+    localStorage.removeItem(STORAGE_KEY_OPENAI_API_KEY);
   }
 }
 
-export function saveOllamaSettings(settings: OllamaSettings): void {
+export function getClaudeApiKey(): string {
+  if (typeof window === 'undefined') return '';
+  return cleanApiKey(localStorage.getItem(STORAGE_KEY_CLAUDE_API_KEY));
+}
+
+export function saveClaudeApiKey(key: string): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY_OLLAMA_SETTINGS, JSON.stringify({
-    ...settings,
-    baseUrl: settings.baseUrl.trim().replace(/\/+$/, ''),
-    visionModel: settings.visionModel.trim()
-  }));
+  const clean = cleanApiKey(key);
+  if (clean) {
+    localStorage.setItem(STORAGE_KEY_CLAUDE_API_KEY, clean);
+  } else {
+    localStorage.removeItem(STORAGE_KEY_CLAUDE_API_KEY);
+  }
+}
+
+export function getAgentRouterApiKey(): string {
+  if (typeof window === 'undefined') return '';
+  return cleanApiKey(localStorage.getItem(STORAGE_KEY_AGENTROUTER_API_KEY));
+}
+
+export function saveAgentRouterApiKey(key: string): void {
+  if (typeof window === 'undefined') return;
+  const clean = cleanApiKey(key);
+  if (clean) {
+    localStorage.setItem(STORAGE_KEY_AGENTROUTER_API_KEY, clean);
+  } else {
+    localStorage.removeItem(STORAGE_KEY_AGENTROUTER_API_KEY);
+  }
+}
+
+export function getAgentRouterModel(): string {
+  if (typeof window === 'undefined') return '';
+  return (localStorage.getItem(STORAGE_KEY_AGENTROUTER_MODEL) || '').trim();
+}
+
+export function saveAgentRouterModel(model: string): void {
+  if (typeof window === 'undefined') return;
+  const clean = model.trim();
+  if (clean) {
+    localStorage.setItem(STORAGE_KEY_AGENTROUTER_MODEL, clean);
+  } else {
+    localStorage.removeItem(STORAGE_KEY_AGENTROUTER_MODEL);
+  }
 }
 
 // Security protected Master Reset (Wipes database to 100% empty slate)

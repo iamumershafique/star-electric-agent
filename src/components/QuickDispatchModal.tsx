@@ -91,7 +91,7 @@ export const QuickDispatchModal: React.FC = () => {
     const cleanDC = dcNumber.trim().toUpperCase();
     const parsedFreight = isFreightFree ? 0 : (parseFloat(freightCharges) || 0);
 
-    const result = recordDeliveryChallan(
+    recordDeliveryChallan(
       {
         dcNumber: cleanDC,
         invoiceNumber: cleanDC,
@@ -111,11 +111,6 @@ export const QuickDispatchModal: React.FC = () => {
       },
       shippedMap
     );
-
-    if (!result.success) {
-      setErrorMsg(result.error || `Delivery Challan ${cleanDC} could not be recorded.`);
-      return;
-    }
 
     setIsQuickDispatchOpen(false);
   };

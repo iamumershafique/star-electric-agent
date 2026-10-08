@@ -1,72 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { X, Download, Package, Truck, MapPin, DollarSign, Calendar } from 'lucide-react';
-import { getImageFromMemory, resolveScanReference } from '../lib/imageStorage';
-import type { BuiltyPreviewInfo } from '../types';
-
-/** Works out which stored scan belongs to this preview, for records whose image link is missing or dead. */
-function fallbackScan(preview: BuiltyPreviewInfo): { type: 'pr' | 'dc' | 'builty'; ref: string } | null {
-  if (preview.scanType && preview.scanRef) return { type: preview.scanType, ref: preview.scanRef };
-  const title = preview.title || '';
-  if (/builty|bilty/i.test(title) && preview.dcNumber) return { type: 'builty', ref: preview.dcNumber };
-  if (/requisition|\bPR\b/i.test(title)) {
-    const ref = preview.prNumber || title.match(/\(([^)]+)\)/)?.[1];
-    return ref ? { type: 'pr', ref } : null;
-  }
-  if (preview.dcNumber) return { type: 'dc', ref: preview.dcNumber };
-  return null;
-}
+import { getImageFromMemory } from '../lib/imageStorage';
 
 export const BuiltyPreviewModal: React.FC = () => {
   const { selectedBuiltyPreview, setSelectedBuiltyPreview } = useApp();
   const [resolvedImage, setResolvedImage] = useState<string | null>(null);
   const [imageUnavailable, setImageUnavailable] = useState(false);
 
-  const [triedFallback, setTriedFallback] = useState(false);
-
-  const loadFallback = React.useCallback(async (isCancelled: () => boolean) => {
-    if (!selectedBuiltyPreview) return;
-    const target = fallbackScan(selectedBuiltyPreview);
-    const image = target ? await getImageFromMemory(target.type, target.ref) : undefined;
-    if (isCancelled()) return;
-    if (image && image !== selectedBuiltyPreview.url) {
-      setResolvedImage(image);
-      setImageUnavailable(false);
-    } else {
-      setImageUnavailable(true);
-    }
-  }, [selectedBuiltyPreview]);
-
   useEffect(() => {
     let cancelled = false;
-    const isCancelled = () => cancelled;
     setResolvedImage(null);
     setImageUnavailable(false);
-    setTriedFallback(false);
-    if (!selectedBuiltyPreview) return () => { cancelled = true; };
 
-    resolveScanReference(selectedBuiltyPreview.url).then(image => {
+    const reference = selectedBuiltyPreview?.url;
+    if (!reference) return () => { cancelled = true; };
+
+    if (!reference.startsWith('indexeddb:')) {
+      setResolvedImage(reference);
+      return () => { cancelled = true; };
+    }
+
+    const imageKey = reference.slice('indexeddb:'.length);
+    const imageType = imageKey.startsWith('pr_')
+      ? 'pr'
+      : imageKey.startsWith('dc_')
+        ? 'dc'
+        : 'builty';
+
+    getImageFromMemory(imageType, imageKey).then(image => {
       if (cancelled) return;
-      if (image) {
-        setResolvedImage(image);
-      } else {
-        setTriedFallback(true);
-        loadFallback(isCancelled);
-      }
+      if (image) setResolvedImage(image);
+      else setImageUnavailable(true);
     }).catch(error => {
       console.error('[ImagePreview] Failed to load stored scan:', error);
-      if (!cancelled) { setTriedFallback(true); loadFallback(isCancelled); }
+      if (!cancelled) setImageUnavailable(true);
     });
 
     return () => { cancelled = true; };
-  }, [selectedBuiltyPreview, loadFallback]);
-
-  const handleImageError = () => {
-    if (triedFallback) { setImageUnavailable(true); return; }
-    setTriedFallback(true);
-    setResolvedImage(null);
-    loadFallback(() => false);
-  };
+  }, [selectedBuiltyPreview?.url]);
 
   if (!selectedBuiltyPreview) return null;
 
@@ -164,7 +136,7 @@ export const BuiltyPreviewModal: React.FC = () => {
             <img
               src={resolvedImage}
               alt="Delivery document scan"
-              onError={handleImageError}
+              onError={() => setImageUnavailable(true)}
               className="max-h-[55vh] sm:max-h-[65vh] w-auto max-w-full object-contain rounded-xl shadow-md border border-slate-200"
             />
           ) : (

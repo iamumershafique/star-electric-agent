@@ -19,6 +19,32 @@ export function formatDate(dateString: string): string {
   });
 }
 
+/**
+ * Normalize any date string to ISO YYYY-MM-DD for reliable comparison/matching.
+ * Handles DD-MM-YYYY, DD/MM/YYYY, YYYY-MM-DD, and other parseable formats.
+ * Returns the trimmed original string if it cannot be parsed.
+ */
+export function normalizeDateToISO(dateString: string): string {
+  if (!dateString) return '';
+  const s = dateString.trim();
+  // Already ISO
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // DD-MM-YYYY or DD/MM/YYYY (day-first, common on PK documents)
+  const dmy = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
+  if (dmy) {
+    const [, d, m, y] = dmy;
+    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+  const parsed = new Date(s);
+  if (!isNaN(parsed.getTime())) {
+    const y = parsed.getFullYear();
+    const m = String(parsed.getMonth() + 1).padStart(2, '0');
+    const d = String(parsed.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return s;
+}
+
 export function generateId(prefix: string = 'ID'): string {
   return `${prefix}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 }
@@ -51,10 +77,8 @@ export function normalizeBrand(inputStr: string): BrandCategory {
   const str = inputStr.toLowerCase();
   if (str.includes('pakistan cable') || str.includes('pk cable')) return 'Pakistan Cables';
   if (str.includes('amer cable') || str.includes('amer')) return 'Amer Cables';
-  // Brand names are checked before generic component types: "MCCB 630Amp ... Terasaki"
-  // used to be tagged Schneider Electric because "mccb" was tested first.
-  if (str.includes('terasaki')) return 'Terasaki';
   if (str.includes('schneider') || str.includes('mcb') || str.includes('mccb')) return 'Schneider Electric';
+  if (str.includes('terasaki')) return 'Terasaki';
   if (str.includes('philips') || str.includes('led') || str.includes('light') || str.includes('floodlight')) return 'Philips / Pak Lighting';
   if (str.includes('conduit') || str.includes('pvc') || str.includes('pipe') || str.includes('flex')) return 'Conduit & Accessories';
   if (str.includes('switch') || str.includes('socket') || str.includes('gang')) return 'Switches & Sockets';

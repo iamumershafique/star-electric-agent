@@ -4,78 +4,13 @@ import {
   setDoc,
   deleteDoc,
   onSnapshot,
-  getDoc,
-  writeBatch,
   type Unsubscribe
 } from 'firebase/firestore';
 import { getFirestoreDb, isFirestoreConfigured } from './firebase';
 import type { PRRecord, DCRecord, DriveVerifiedDCUpdate, DriveVerifiedPRFulfillmentUpdate } from '../types';
-import { normalizeImageKey, type ScanType } from './scanKeys';
 
 const PRS_COLLECTION = 'star_prs';
 const DCS_COLLECTION = 'star_dcs';
-const SCANS_COLLECTION = 'star_scans';
-
-/**
- * Image fields never go into PR/DC documents as base64 (1 MiB document limit).
- * Embedded images become an "indexeddb:<key>" reference; the image itself lives in star_scans/<key>.
- */
-function toScanReference(value: unknown, type: ScanType, identifier: string): unknown {
-  if (typeof value !== 'string' || !value) return value;
-  if (value.startsWith('data:')) return `indexeddb:${normalizeImageKey(type, identifier)}`;
-  return value;
-}
-
-export function recordDocId(record: { id?: string; prNumber?: string; dcNumber?: string }): string {
-  return String(record.id || record.prNumber || record.dcNumber || '').replace(/\//g, '_');
-}
-
-export interface CloudScan {
-  type: ScanType;
-  referenceNumber: string;
-  dataUrl: string;
-  fileName?: string;
-  updatedAt: number;
-}
-
-export async function saveScanToCloud(key: string, scan: CloudScan): Promise<boolean> {
-  const db = getFirestoreDb();
-  if (!db || !isFirestoreConfigured()) return false;
-  await setDoc(doc(db, SCANS_COLLECTION, key), scan);
-  return true;
-}
-
-export async function getScanFromCloud(key: string): Promise<string | undefined> {
-  const db = getFirestoreDb();
-  if (!db || !isFirestoreConfigured() || !key) return undefined;
-  try {
-    const snapshot = await getDoc(doc(db, SCANS_COLLECTION, key));
-    const dataUrl = snapshot.exists() ? snapshot.data().dataUrl : undefined;
-    return typeof dataUrl === 'string' && dataUrl.startsWith('data:') ? dataUrl : undefined;
-  } catch (error) {
-    console.warn('[Firestore] Could not load scan', key, error);
-    return undefined;
-  }
-}
-
-/** Points PR/DC documents at their uploaded scans without rewriting the rest of the record. */
-export async function setScanReferencesInCloud(
-  updates: { kind: 'pr' | 'dc'; docId: string; field: 'documentImage' | 'builtyImage' | 'prDocumentImage'; reference: string }[]
-): Promise<void> {
-  const db = getFirestoreDb();
-  if (!db || !isFirestoreConfigured()) throw new Error('Firestore is not configured.');
-  for (let start = 0; start < updates.length; start += 200) {
-    const batch = writeBatch(db);
-    updates.slice(start, start + 200).forEach(update => {
-      batch.set(
-        doc(db, update.kind === 'pr' ? PRS_COLLECTION : DCS_COLLECTION, update.docId),
-        { [update.field]: update.reference },
-        { merge: true }
-      );
-    });
-    await batch.commit();
-  }
-}
 
 /**
  * Subscribe to real-time changes in PR collection
@@ -204,9 +139,8 @@ export async function savePRToCloud(pr: PRRecord): Promise<void> {
   if (!db || !isFirestoreConfigured()) return;
 
   const docId = String(pr.id || pr.prNumber).replace(/\//g, '_');
-  // Replace heavy base64 with a reference; the scan itself is stored in star_scans
-  const cleanPR = { ...pr, documentImage: toScanReference(pr.documentImage, 'pr', pr.prNumber || pr.id) };
-  if (cleanPR.documentImage === undefined) delete cleanPR.documentImage;
+  // Strip heavy base64 to preserve database storage limits
+  const { documentImage, ...cleanPR } = pr;
 
   const docRef = doc(db, PRS_COLLECTION, docId);
   await setDoc(docRef, cleanPR, { merge: true });
@@ -220,15 +154,7 @@ export async function saveDCToCloud(dc: DCRecord): Promise<void> {
   if (!db || !isFirestoreConfigured()) return;
 
   const docId = String(dc.id || dc.dcNumber).replace(/\//g, '_');
-  const cleanDC = {
-    ...dc,
-    documentImage: toScanReference(dc.documentImage, 'dc', dc.dcNumber || dc.id),
-    builtyImage: toScanReference(dc.builtyImage, 'builty', dc.dcNumber || dc.id),
-    prDocumentImage: toScanReference(dc.prDocumentImage, 'pr', dc.prNumber || dc.id)
-  };
-  (['documentImage', 'builtyImage', 'prDocumentImage'] as const).forEach(field => {
-    if (cleanDC[field] === undefined) delete cleanDC[field];
-  });
+  const { documentImage, ...cleanDC } = dc;
 
   const docRef = doc(db, DCS_COLLECTION, docId);
   await setDoc(docRef, cleanDC, { merge: true });

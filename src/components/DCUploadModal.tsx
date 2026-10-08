@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { DocumentClassificationError, fileToBase64 } from '../lib/gemini';
-import { getActiveOCRProvider, getOCREngineLabel, getLocalScanQualityNote, preloadLocalOCRModel, processDCWithAI } from '../lib/aiOcr';
-import { buildKnownPRMemory } from '../lib/dcLayout';
-import { findBestItemMatch, normalizeMatchText } from '../lib/itemMatch';
+import { getActiveOCRProvider, processDCWithAI } from '../lib/aiOcr';
 import type { BrandCategory, PRRecord, TransportType } from '../types';
 import { 
   X, 
@@ -58,8 +56,7 @@ interface ScannedDCDraft {
   prDocumentImage?: string;
 }
 
-  const normalizeReference = normalizeMatchText;
-  const MATCH_THRESHOLD = 0.8;
+const normalizeReference = (value: string) => value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
 const createDefaultDraft = (targetPR?: PRRecord | null): ScannedDCDraft => {
   const today = new Date().toISOString().split('T')[0];
@@ -124,7 +121,6 @@ export const DCUploadModal: React.FC = () => {
     setIsDCUploadOpen, 
     setIsPRUploadOpen,
     prs, 
-    dcs,
     targetDC_PR, 
     recordDeliveryChallan,
     recordMultipleDeliveryChallans,
@@ -150,7 +146,6 @@ export const DCUploadModal: React.FC = () => {
   const [newItemQty, setNewItemQty] = useState<number>(1);
   const [newItemUnit, setNewItemUnit] = useState<string>('Numbers');
   const activeOCRProvider = getActiveOCRProvider(geminiApiKey);
-  const ocrEngine = getOCREngineLabel(activeOCRProvider);
 
   // Initialize draft when modal opens
   useEffect(() => {
@@ -233,10 +228,6 @@ export const DCUploadModal: React.FC = () => {
     setScanAnalysisNote(null);
 
     try {
-      // Load the local model while the files are being read, so the first scan does not
-      // wait for the 10-60 s model load on a CPU-only PC.
-      void preloadLocalOCRModel();
-
       const filePayloads = await Promise.all(
         filesList.map(async f => ({
           base64: await fileToBase64(f),
@@ -244,8 +235,10 @@ export const DCUploadModal: React.FC = () => {
         }))
       );
 
-      // Compact PR register: the model only needs it to confirm a handwritten PR number.
-      const prSummaryMemory = buildKnownPRMemory(prs);
+      // Provide active PR memory to Gemini so it can accurately recognize handwritten PR numbers and sites
+      const prSummaryMemory = prs.slice(0, 50).map(p => 
+        `- PR Number: ${p.prNumber} | Site: "${p.siteName}" | Items: ${p.items.map(it => `${it.name} (${it.requestedQty} ${it.unit})`).join(', ')}`
+      ).join('\n');
 
       const results = await processDCWithAI(
         filePayloads, 
@@ -266,19 +259,6 @@ export const DCUploadModal: React.FC = () => {
         throw new Error('No delivery challan data extracted.');
       }
 
-      // Duplicate check for extracted DCs
-      const duplicateDCs = results.filter(res => {
-        const dcNum = res.dcNumber?.trim().toUpperCase();
-        const digitsOnly = (value: string) => value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
-        return dcNum && dcs.some(existing => existing.dcNumber.toUpperCase() === dcNum ||
-          (digitsOnly(existing.dcNumber) !== '' && digitsOnly(existing.dcNumber) === digitsOnly(dcNum)));
-      });
-
-      if (duplicateDCs.length > 0) {
-        const dupNumbers = duplicateDCs.map(d => d.dcNumber).join(', ');
-        setScanAnalysisNote(`⚠️ Warning: The following DC(s) already exist in the system: ${dupNumbers}. They will be added as drafts for your review, but you may want to edit them.`);
-      }
-
       // Convert each extracted DC into a ScannedDCDraft
       const newDrafts: ScannedDCDraft[] = results.map((res, index) => {
         const rawDcNum = res.dcNumber?.trim() || '';
@@ -291,11 +271,9 @@ export const DCUploadModal: React.FC = () => {
           : undefined;
         const scannedItems = res.shippedItems || [];
         const draftItems: DraftItem[] = scannedItems.map((shipped, itemIndex) => {
-          // Line the scanned row up with the requisition row it fulfils; that link is what
-          // carries the shipped quantity back into the PR.
-          const matchedItem = matchedPR
-            ? findBestItemMatch(shipped.itemName, matchedPR.items, item => item.name, MATCH_THRESHOLD)?.item
-            : undefined;
+          const matchedItem = matchedPR?.items.find(item =>
+            normalizeReference(item.name) === normalizeReference(shipped.itemName)
+          );
           const remaining = matchedItem
             ? Math.max(0, matchedItem.requestedQty - matchedItem.fulfilledQty)
             : shipped.quantityShipped;
@@ -311,9 +289,7 @@ export const DCUploadModal: React.FC = () => {
           };
         });
 
-        // The page this challan was actually read from (a single page can hold several
-        // challans, so the upload index is not a reliable match).
-        const dcImg = res.documentImage || filePayloads[index]?.base64 || filePayloads[0]?.base64 || '';
+        const dcImg = filePayloads[index]?.base64 || '';
         const prImg = matchedPR?.documentImage || '';
 
         return {
@@ -374,11 +350,10 @@ export const DCUploadModal: React.FC = () => {
     }
 
     updateCurrentDraft(prev => {
-      const scannedRows = prev.items;
       const mappedItems: DraftItem[] = selected.items.map(item => {
-        // Carry over a quantity only when the scanned row is really the same item.
-        const scanned = findBestItemMatch(item.name, scannedRows, row => row.name, MATCH_THRESHOLD)?.item;
-
+        const scanned = prev.items.find(draftItem =>
+          normalizeReference(draftItem.name) === normalizeReference(item.name)
+        );
         return {
           id: item.id,
           name: item.name,
@@ -390,10 +365,9 @@ export const DCUploadModal: React.FC = () => {
           maxRemaining: Math.max(0, item.requestedQty - item.fulfilledQty)
         };
       });
-      // Scanned rows that are not on the requisition are kept so nothing read from the
-      // challan photo is silently dropped.
-      const unverifiedScannedItems = scannedRows.filter(item =>
-        !findBestItemMatch(item.name, selected.items, prItem => prItem.name, MATCH_THRESHOLD)
+      const matchedDraftNames = new Set(selected.items.map(item => normalizeReference(item.name)));
+      const unverifiedScannedItems = prev.items.filter(item =>
+        !matchedDraftNames.has(normalizeReference(item.name))
       );
 
       return {
@@ -472,22 +446,13 @@ export const DCUploadModal: React.FC = () => {
       return;
     }
 
-    // Validation: Check if any shipped quantity exceeds the remaining requested quantity
-    const overshippedItems = currentDraft.items.filter(it => it.shippedQty > it.maxRemaining && currentDraft.selectedPrId !== '');
-    if (overshippedItems.length > 0) {
-      const itemNames = overshippedItems.map(it => it.name).join(', ');
-      if (!window.confirm(`Warning: The following items exceed the remaining requested quantity: ${itemNames}. Do you want to proceed anyway?`)) {
-        return;
-      }
-    }
-
     const cleanDC = currentDraft.dcNumber.trim().toUpperCase();
     const fulfillmentMap: Record<string, number> = {};
     currentDraft.items.forEach(it => {
       if (it.shippedQty > 0) fulfillmentMap[it.id] = it.shippedQty;
     });
 
-    const result = recordDeliveryChallan(
+    recordDeliveryChallan(
       {
         dcNumber: cleanDC,
         invoiceNumber: cleanDC,
@@ -515,12 +480,6 @@ export const DCUploadModal: React.FC = () => {
       },
       fulfillmentMap
     );
-
-    // A saved DC that already exists must not close the window and throw the draft away.
-    if (!result.success) {
-      setErrorMsg(result.error || `Delivery Challan ${cleanDC} could not be recorded.`);
-      return;
-    }
 
     if (drafts.length > 1) {
       const remaining = drafts.filter((_, i) => i !== activeDraftIndex);
@@ -553,32 +512,7 @@ export const DCUploadModal: React.FC = () => {
       }
     }
 
-    // DC numbers already recorded (or repeated inside this batch) are left out instead of
-    // being written twice; they stay in the window so nothing the user typed is lost.
-    const digitsOf = (value: string) => value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '');
-    const existingNumbers = new Set(
-      dcs.flatMap(dc => [dc.dcNumber.trim().toUpperCase(), digitsOf(dc.dcNumber)])
-    );
-    const duplicateIndexes = new Set<number>();
-    const seenInBatch = new Set<string>();
-    drafts.forEach((draft, index) => {
-      const clean = draft.dcNumber.trim().toUpperCase();
-      const digits = digitsOf(clean);
-      if (existingNumbers.has(clean) || (digits !== '' && existingNumbers.has(digits)) || seenInBatch.has(clean)) {
-        duplicateIndexes.add(index);
-        return;
-      }
-      seenInBatch.add(clean);
-    });
-
-    const draftsToSave = drafts.filter((_, index) => !duplicateIndexes.has(index));
-    if (draftsToSave.length === 0) {
-      setErrorMsg(`None of the ${drafts.length} Delivery Challan(s) could be recorded: their DC numbers already exist in the ledger.`);
-      setActiveDraftIndex(duplicateIndexes.values().next().value ?? 0);
-      return;
-    }
-
-    const batchList = draftsToSave.map(d => {
+    const batchList = drafts.map(d => {
       const cleanDC = d.dcNumber.trim().toUpperCase();
       const fulfillmentMap: Record<string, number> = {};
       d.items.forEach(it => {
@@ -616,17 +550,6 @@ export const DCUploadModal: React.FC = () => {
     });
 
     recordMultipleDeliveryChallans(batchList);
-
-    if (duplicateIndexes.size > 0) {
-      const skipped = drafts.filter((_, index) => duplicateIndexes.has(index));
-      setDrafts(skipped);
-      setActiveDraftIndex(0);
-      setScanAnalysisNote(
-        `✓ Recorded ${batchList.length} DC(s). Skipped ${skipped.length} already-recorded DC(s): ${skipped.map(d => d.dcNumber).join(', ')}. Review or discard them below.`
-      );
-      return;
-    }
-
     setIsDCUploadOpen(false);
     setActiveTab('deliveries');
   };
@@ -702,7 +625,7 @@ export const DCUploadModal: React.FC = () => {
               }`}
             >
               <Sparkles className="w-4 h-4 text-amber-700" />
-              Scan DC Image(s) via {ocrEngine}
+              Scan DC Image(s) via Gemini AI
             </button>
 
             <input
@@ -865,11 +788,11 @@ export const DCUploadModal: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 font-bold">
                   <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
-                  <span>Processing Delivery Challans via {ocrEngine}...</span>
+                  <span>Processing Delivery Challans via Gemini AI Vision...</span>
                 </div>
                 {scanProgress && (
                   <span className="font-mono font-extrabold text-amber-800 bg-amber-200/70 px-2 py-0.5 rounded-md text-[11px]">
-                    {Math.min(scanProgress.current, scanProgress.total)} / {scanProgress.total} ({scanProgress.percent}%)
+                    {scanProgress.current} / {scanProgress.total} ({scanProgress.percent}%)
                   </span>
                 )}
               </div>
@@ -885,7 +808,6 @@ export const DCUploadModal: React.FC = () => {
                   <p className="text-[11px] text-amber-800 font-medium truncate">
                     {scanProgress.status || `Processing: ${scanProgress.fileName}`}
                   </p>
-                  <p className="text-[10px] text-amber-700/80 font-medium">{getLocalScanQualityNote()}</p>
                 </>
               )}
             </div>
@@ -924,28 +846,20 @@ export const DCUploadModal: React.FC = () => {
               </div>
 
               {/* Invoice # */}
-                <div>
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1 mb-1">
-                    <FileCheck className="w-3.5 h-3.5 text-blue-600" /> Invoice # (Manual Entry)
-                  </label>
-                  <input
-                    type="text"
-                    value={currentDraft.invoiceNumber}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      updateCurrentDraft(prev => ({
-                        ...prev,
-                        invoiceNumber: val
-                      }));
-                    }}
-                    placeholder="e.g. INV-123"
-                    className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 font-mono font-bold text-sm focus:outline-none focus:border-emerald-500 shadow-2xs"
-                  />
-                  <span className="text-[10px] text-slate-500 font-medium mt-1 block">
-                    Commonly matches DC #, but can be edited manually.
-                  </span>
-                </div>
-
+              <div>
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1 mb-1">
+                  <FileCheck className="w-3.5 h-3.5 text-blue-600" /> Invoice # (Auto-Matched)
+                </label>
+                <input
+                  type="text"
+                  value={currentDraft.dcNumber}
+                  disabled
+                  className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 font-mono font-bold text-sm cursor-not-allowed"
+                />
+                <span className="text-[10px] text-emerald-700 font-bold mt-1 block">
+                  ✓ Unified Rule: Invoice # matches DC # strictly
+                </span>
+              </div>
             </div>
 
             {/* Target PR Selection */}

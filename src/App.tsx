@@ -16,12 +16,10 @@ import { QuickDispatchModal } from './components/QuickDispatchModal';
 import { SearchAuditView } from './components/SearchAuditView';
 import { PREditModal } from './components/PREditModal';
 import { DCEditModal } from './components/DCEditModal';
-import { ExportReportModal } from './components/ExportReportModal';
 import { BuiltyUploadModal } from './components/BuiltyUploadModal';
 import { BuiltyPreviewModal } from './components/BuiltyPreviewModal';
 import { MobileAccessModal } from './components/MobileAccessModal';
 import { GeminiDiagnosticsView } from './components/GeminiDiagnosticsView';
-import { SystemAuditView } from './components/SystemAuditView';
 import { LoginView } from './components/LoginView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -36,13 +34,12 @@ const MainContent: React.FC = () => {
       {activeTab === 'deliveries' && <DeliveriesView />}
       {activeTab === 'brands' && <BrandAnalytics />}
       {activeTab === 'gemini-audit' && <GeminiDiagnosticsView />}
-      {activeTab === 'system-audit' && <SystemAuditView />}
     </main>
   );
 };
 
 const MainPortalLayout: React.FC = () => {
-  const { isAuthenticated, isAuthLoading, isExportOpen, setIsExportOpen } = useApp();
+  const { isAuthenticated, isAuthLoading } = useApp();
 
   if (isAuthLoading) {
     return (
@@ -84,10 +81,6 @@ const MainPortalLayout: React.FC = () => {
       <BuiltyUploadModal />
       <BuiltyPreviewModal />
       <MobileAccessModal />
-      <ExportReportModal 
-        isOpen={isExportOpen}
-        onClose={() => setIsExportOpen(false)} 
-      />
     </div>
   );
 };

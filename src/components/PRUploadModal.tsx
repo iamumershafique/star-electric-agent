@@ -1,14 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { DocumentClassificationError, fileToBase64 } from '../lib/gemini';
-import {
-  getActiveOCRProvider,
-  getLocalScanQualityNote,
-  getLocalScanWarning,
-  getOCREngineLabel,
-  preloadLocalOCRModel,
-  processDocumentWithAI
-} from '../lib/aiOcr';
+import { getActiveOCRProvider, processDocumentWithAI } from '../lib/aiOcr';
 import { 
   X, 
   UploadCloud, 
@@ -56,15 +49,6 @@ export const PRUploadModal: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeOCRProvider = getActiveOCRProvider(geminiApiKey);
-  const ocrEngine = getOCREngineLabel(activeOCRProvider);
-  const localScanWarning = getLocalScanWarning(activeOCRProvider, files.length);
-
-  // Load the local model as soon as the upload window opens, so the first document does not
-  // wait for the model to load (10-60 s on a CPU-only PC).
-  useEffect(() => {
-    if (!isPRUploadOpen) return;
-    void preloadLocalOCRModel();
-  }, [isPRUploadOpen]);
 
   if (!isPRUploadOpen) return null;
 
@@ -77,33 +61,26 @@ export const PRUploadModal: React.FC = () => {
 
   const addFiles = async (newFiles: File[]) => {
     setErrorMsg(null);
-    // Read the files in parallel; a single unreadable file must not silently disappear
-    // from the batch.
-    const read = await Promise.all(newFiles.map(async file => {
+    const newItems: FilePreviewItem[] = [];
+
+    for (const file of newFiles) {
       try {
-        return { file, base64: await fileToBase64(file) };
+        const base64 = await fileToBase64(file);
+        const sizeFormatted = file.size > 1024 * 1024 
+          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+          : `${Math.round(file.size / 1024)} KB`;
+        
+        newItems.push({
+          id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          file,
+          name: file.name,
+          size: sizeFormatted,
+          base64
+        });
       } catch (err) {
         console.error('Error reading file:', file.name, err);
-        return { file, base64: null };
       }
-    }));
-
-    const unreadable = read.filter(entry => entry.base64 === null).map(entry => entry.file.name);
-    if (unreadable.length > 0) {
-      setErrorMsg(`Could not read ${unreadable.join(', ')}. Re-select the file(s) and try again.`);
     }
-
-    const newItems: FilePreviewItem[] = read
-      .filter((entry): entry is { file: File; base64: string } => entry.base64 !== null)
-      .map(({ file, base64 }) => ({
-        id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        file,
-        name: file.name,
-        size: file.size > 1024 * 1024
-          ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
-          : `${Math.round(file.size / 1024)} KB`,
-        base64
-      }));
 
     setFiles(prev => [...prev, ...newItems]);
   };
@@ -151,9 +128,7 @@ export const PRUploadModal: React.FC = () => {
         throw new Error('No requisitions could be extracted from the uploaded file(s).');
       }
 
-      // Attach the page each requisition was read from. The OCR layer already reports it,
-      // because one page can hold several PR numbers - indexing by upload position used to
-      // hand PRs the wrong scan.
+      // Attach original document images into each extracted PR item
       resultList.forEach((res, i) => {
         if (!res.documentImage) {
           res.documentImage = files[i]?.base64 || files[0]?.base64 || '';
@@ -286,8 +261,8 @@ export const PRUploadModal: React.FC = () => {
                 <div className="flex flex-col items-center gap-3 py-4">
                   <Loader2 className="w-10 h-10 text-amber-600 animate-spin" />
                   <div>
-                    <p className="text-sm font-bold text-amber-900">{ocrEngine} Scanning Document(s)...</p>
-                    <p className="text-xs text-slate-500 font-medium mt-1">{scanProgress ? `File ${scanProgress.current} of ${scanProgress.total}: ${scanProgress.fileName}` : 'Extracting PR details across all uploaded pages'}</p>
+                    <p className="text-sm font-bold text-amber-900">Google Gemini AI Scanning Document(s)...</p>
+                    <p className="text-xs text-slate-500 font-medium mt-1">Extracting PR details across all uploaded pages</p>
                   </div>
                 </div>
               ) : (
@@ -370,7 +345,7 @@ export const PRUploadModal: React.FC = () => {
               <div className="flex items-center justify-between text-xs font-bold text-amber-900">
                 <span className="flex items-center gap-1.5">
                   <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
-                  Scanned {Math.min(scanProgress.current, scanProgress.total)} of {scanProgress.total} file(s)...
+                  Scanning Requisition {scanProgress.current} of {scanProgress.total}...
                 </span>
                 <span className="font-mono text-amber-800 font-extrabold">{scanProgress.percent}%</span>
               </div>
@@ -384,16 +359,6 @@ export const PRUploadModal: React.FC = () => {
                 Active scan: {scanProgress.fileName}
               </p>
             </div>
-          )}
-
-          {localScanWarning && !isProcessing && (
-            <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold">
-              {localScanWarning}
-            </div>
-          )}
-
-          {activeOCRProvider.startsWith('Ollama') && !isProcessing && (
-            <p className="text-[10px] text-slate-500 font-medium">{getLocalScanQualityNote()}</p>
           )}
 
           {errorMsg && (
@@ -428,7 +393,7 @@ export const PRUploadModal: React.FC = () => {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-slate-950" />
-                  Scan {files.length} {files.length === 1 ? 'File' : 'Files'} with {ocrEngine}
+                  Scan {files.length} {files.length === 1 ? 'File' : 'Files'} with Gemini AI
                 </>
               )}
             </button>

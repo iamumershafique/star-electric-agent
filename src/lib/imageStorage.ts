@@ -53,35 +53,9 @@ function getDB(): Promise<IDBDatabase> {
   return dbPromise;
 }
 
-import { normalizeImageKey, scanKeyFromReference, scanTypeFromKey, type ScanType } from './scanKeys';
-import { getScanFromCloud, saveScanToCloud } from './firestoreService';
-import { compressScanForCloud } from './scanCompression';
-
-export { normalizeImageKey, scanKeyFromReference };
-
-// Uploads already sent this session (key -> fingerprint), so repeated local saves don't re-upload.
-const uploadedThisSession = new Map<string, string>();
-// Scans already written to IndexedDB this session. saveAllPRs/saveAllDCs run on every save and
-// re-hydrate every record from storage, so without this guard each save re-wrote every scan of
-// the ledger into IndexedDB again.
-const persistedThisSession = new Map<string, string>();
-const fingerprint = (dataUrl: string) => `${dataUrl.length}:${dataUrl.slice(-64)}`;
-
-/** Copies a scan to Firestore (star_scans) so every logged-in browser can open it. */
-export async function uploadScanToCloud(
-  key: string,
-  type: ScanType,
-  referenceNumber: string,
-  dataUrl: string,
-  fileName?: string
-): Promise<boolean> {
-  if (!dataUrl.startsWith('data:')) return false;
-  const print = fingerprint(dataUrl);
-  if (uploadedThisSession.get(key) === print) return true;
-  const compressed = await compressScanForCloud(dataUrl);
-  const saved = await saveScanToCloud(key, { type, referenceNumber, dataUrl: compressed, fileName: fileName || '', updatedAt: Date.now() });
-  if (saved) uploadedThisSession.set(key, print);
-  return saved;
+export function normalizeImageKey(type: 'pr' | 'dc' | 'builty', idOrNumber: string): string {
+  const clean = (idOrNumber || '').trim().replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+  return `${type}_${clean}`;
 }
 
 /**
@@ -100,8 +74,6 @@ export async function initImageMemory(): Promise<number> {
         list.forEach(item => {
           if (item && item.id && item.dataUrl) {
             inMemoryCache.set(item.id, item.dataUrl);
-            // Already on disk: a later ledger save does not have to write it again.
-            persistedThisSession.set(item.id, fingerprint(item.dataUrl));
             // Also index by normalized reference number for dual-lookup
             if (item.referenceNumber) {
               const refKey = normalizeImageKey(item.type, item.referenceNumber);
@@ -148,28 +120,16 @@ export async function saveImageToMemory(
   type: 'pr' | 'dc' | 'builty',
   identifier: string,
   dataUrl: string,
-  meta?: { referenceNumber?: string; siteName?: string; fileName?: string; skipCloud?: boolean }
+  meta?: { referenceNumber?: string; siteName?: string; fileName?: string }
 ): Promise<void> {
   if (!identifier || !dataUrl) return;
 
   const primaryKey = normalizeImageKey(type, identifier);
-  const refNum = meta?.referenceNumber || identifier;
-  const refKey = normalizeImageKey(type, refNum);
-  // Same scan + same metadata = nothing new to persist; only the content changes matter.
-  const writeFingerprint = `${fingerprint(dataUrl)}|${refNum}|${meta?.fileName || ''}|${meta?.siteName || ''}`;
-  const alreadyPersisted = persistedThisSession.get(primaryKey) === writeFingerprint;
   inMemoryCache.set(primaryKey, dataUrl);
 
-  if (!meta?.skipCloud && dataUrl.startsWith('data:')) {
-    uploadScanToCloud(primaryKey, type, meta?.referenceNumber || identifier, dataUrl, meta?.fileName)
-      .catch(error => console.warn('[ImageMemory] Cloud upload failed for', primaryKey, error));
-  }
-
+  const refNum = meta?.referenceNumber || identifier;
+  const refKey = normalizeImageKey(type, refNum);
   inMemoryCache.set(refKey, dataUrl);
-
-  // The exact same scan is already on disk under this key - writing it again would just
-  // re-encode nothing but still cost a transaction per record on every ledger save.
-  if (alreadyPersisted) return;
 
   try {
     const db = await getDB();
@@ -188,10 +148,7 @@ export async function saveImageToMemory(
       const store = tx.objectStore(STORE_NAME);
       const req = store.put(record);
 
-      req.onsuccess = () => {
-        persistedThisSession.set(primaryKey, writeFingerprint);
-        resolve();
-      };
+      req.onsuccess = () => resolve();
       req.onerror = () => reject(req.error);
     });
   } catch (err) {
@@ -207,10 +164,7 @@ export async function removeImageFromMemory(
   if (!referenceNumber || !dataUrl) return;
 
   inMemoryCache.forEach((cachedUrl, key) => {
-    if (key.startsWith(`${type}_`) && cachedUrl === dataUrl) {
-      inMemoryCache.delete(key);
-      persistedThisSession.delete(key);
-    }
+    if (key.startsWith(`${type}_`) && cachedUrl === dataUrl) inMemoryCache.delete(key);
   });
 
   const db = await getDB();
@@ -247,46 +201,34 @@ export async function getImageFromMemory(
   identifier: string
 ): Promise<string | undefined> {
   if (!identifier) return undefined;
-  return getImageByKey(normalizeImageKey(type, identifier));
-}
 
-/**
- * Looks up an already-normalized key (e.g. "dc_dc_685"): memory, then this browser's IndexedDB,
- * then Firestore. A scan fetched from Firestore is cached locally for next time.
- */
-export async function getImageByKey(key: string): Promise<string | undefined> {
-  if (!key) return undefined;
-  if (inMemoryCache.has(key)) return inMemoryCache.get(key);
-
-  const local = await readLocal(key);
-  if (local) {
-    inMemoryCache.set(key, local);
-    return local;
+  const primaryKey = normalizeImageKey(type, identifier);
+  if (inMemoryCache.has(primaryKey)) {
+    return inMemoryCache.get(primaryKey);
   }
 
-  const cloud = await getScanFromCloud(key);
-  if (cloud) {
-    const type = scanTypeFromKey(key);
-    await saveImageToMemory(type, key.slice(type.length + 1), cloud, { skipCloud: true });
-    inMemoryCache.set(key, cloud);
+  const refKey = normalizeImageKey(type, identifier);
+  if (inMemoryCache.has(refKey)) {
+    return inMemoryCache.get(refKey);
   }
-  return cloud;
-}
 
-/** Resolves any stored image value: data:/http(s) are returned as-is, indexeddb:/cloud: references are looked up. */
-export async function resolveScanReference(reference: string | undefined): Promise<string | undefined> {
-  if (!reference) return undefined;
-  const key = scanKeyFromReference(reference);
-  return key ? getImageByKey(key) : reference;
-}
-
-async function readLocal(key: string): Promise<string | undefined> {
   try {
     const db = await getDB();
-    return await new Promise(resolve => {
+    return new Promise((resolve) => {
       const tx = db.transaction(STORE_NAME, 'readonly');
-      const req = tx.objectStore(STORE_NAME).get(key);
-      req.onsuccess = () => resolve((req.result as StoredImageRecord | undefined)?.dataUrl || undefined);
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.get(primaryKey);
+
+      req.onsuccess = () => {
+        const item = req.result as StoredImageRecord | undefined;
+        if (item?.dataUrl) {
+          inMemoryCache.set(primaryKey, item.dataUrl);
+          resolve(item.dataUrl);
+        } else {
+          resolve(undefined);
+        }
+      };
+
       req.onerror = () => resolve(undefined);
     });
   } catch {

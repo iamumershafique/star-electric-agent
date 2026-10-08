@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { fileToBase64 } from '../lib/gemini';
-import { getActiveOCRProvider, getOCREngineLabel, preloadLocalOCRModel, processBuiltyWithAI } from '../lib/aiOcr';
+import { getActiveOCRProvider, processBuiltyWithAI } from '../lib/aiOcr';
 import type { GeminiBuiltyExtractionResult } from '../types';
 import { 
   X, 
@@ -54,18 +54,10 @@ export const BuiltyUploadModal: React.FC = () => {
   const [activeDraftIndex, setActiveDraftIndex] = useState<number>(0);
   
   const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [scanProgress, setScanProgress] = useState<{ current: number; total: number; fileName: string; status: string } | null>(null);
   const [statusNote, setStatusNote] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeOCRProvider = getActiveOCRProvider(geminiApiKey);
-  const ocrEngine = getOCREngineLabel(activeOCRProvider);
-
-  // Warm the local model up while the user is still choosing files.
-  useEffect(() => {
-    if (!isBuiltyUploadOpen) return;
-    void preloadLocalOCRModel();
-  }, [isBuiltyUploadOpen]);
 
   // Initialize draft when modal opens
   useEffect(() => {
@@ -123,7 +115,6 @@ export const BuiltyUploadModal: React.FC = () => {
     setIsScanning(true);
     setErrorMsg(null);
     setStatusNote(null);
-    setScanProgress({ current: 0, total: filesList.length, fileName: '', status: `Preparing ${filesList.length} builty file(s)...` });
 
     try {
       const filePayloads = await Promise.all(
@@ -133,14 +124,7 @@ export const BuiltyUploadModal: React.FC = () => {
         }))
       );
 
-      const results = await processBuiltyWithAI(filePayloads, geminiApiKey, progress => {
-        setScanProgress({
-          current: progress.current,
-          total: progress.total,
-          fileName: progress.fileName,
-          status: progress.status
-        });
-      });
+      const results = await processBuiltyWithAI(filePayloads, geminiApiKey);
 
       if (!results || results.length === 0) {
         throw new Error('No builty details extracted from document.');
@@ -183,14 +167,13 @@ export const BuiltyUploadModal: React.FC = () => {
       setDrafts(newDrafts);
       setActiveDraftIndex(0);
       setActiveMode('manual');
-      setStatusNote(`✓ Successfully scanned ${newDrafts.length} Builty receipt(s) via ${ocrEngine}. DC numbers and Adda details automatically identified below.`);
+      setStatusNote(`✓ Successfully scanned ${newDrafts.length} Builty receipt(s) via Gemini AI Vision. DC numbers and Adda details automatically identified below.`);
     } catch (err: any) {
       console.error('Builty OCR Scanning error:', err);
-      setErrorMsg(`Failed to process builty image via ${ocrEngine}. Switched to manual entry mode.`);
+      setErrorMsg('Failed to process builty image via Gemini AI. Switched to manual entry mode.');
       setActiveMode('manual');
     } finally {
       setIsScanning(false);
-      setScanProgress(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -334,7 +317,7 @@ export const BuiltyUploadModal: React.FC = () => {
               }`}
             >
               <Sparkles className="w-4 h-4 text-amber-800" />
-              Scan Builty Picture(s) via {ocrEngine}
+              Scan Builty Picture(s) via Gemini AI
             </button>
 
             <button
@@ -464,7 +447,7 @@ export const BuiltyUploadModal: React.FC = () => {
                 </h4>
                 <p className="text-xs text-slate-600 font-medium max-w-lg mx-auto mt-1">
                   Upload photos from your <strong className="text-slate-900 font-bold">Builty Scan</strong> folder (e.g. Tariq Goods, Rawalpindi Adda, Faisal Movers).
-                  {ocrEngine} will read the <strong className="text-amber-800 font-extrabold">DC Number always written on the builty</strong>, extract consignment details, and link it directly to the matching DC and PR!
+                  Gemini AI will read the <strong className="text-amber-800 font-extrabold">DC Number always written on the builty</strong>, extract consignment details, and link it directly to the matching DC and PR!
                 </p>
               </div>
 
@@ -487,17 +470,12 @@ export const BuiltyUploadModal: React.FC = () => {
           )}
 
           {isScanning && (
-            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-start gap-3">
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-3">
               <Loader2 className="w-5 h-5 text-amber-600 animate-spin flex-shrink-0" />
-              <div className="space-y-1 min-w-0 flex-1">
-                <p className="font-bold">
-                  {ocrEngine} Scanning Builty Receipt(s)
-                  {scanProgress && scanProgress.total > 0
-                    ? ` — ${Math.min(scanProgress.current, scanProgress.total)} of ${scanProgress.total} done`
-                    : '...'}
-                </p>
-                <p className="text-[11px] text-amber-800 font-medium truncate">
-                  {scanProgress?.status || 'Locating handwritten DC Number, Consignment #, Goods Transport Company, Destination & Freight charges...'}
+              <div>
+                <p className="font-bold">Gemini AI Document Vision Scanning Builty Receipt(s)...</p>
+                <p className="text-[11px] text-amber-800 font-medium">
+                  Locating handwritten DC Number, Consignment #, Goods Transport Company, Destination & Freight charges...
                 </p>
               </div>
             </div>

@@ -20,19 +20,24 @@ import {
   QrCode,
   Copy,
   Check,
-  ShieldAlert
+  ShieldAlert,
+  Cloud
 } from 'lucide-react';
 import {
+  getAgentRouterApiKey,
+  getAgentRouterModel,
+  getClaudeApiKey,
   getGeminiApiKey,
-  getOllamaSettings,
-  saveOllamaSettings,
-  DEFAULT_OLLAMA_SETTINGS,
-  type OllamaSettings
+  getOpenAIApiKey,
+  saveAgentRouterApiKey,
+  saveAgentRouterModel,
+  saveClaudeApiKey,
+  saveOpenAIApiKey
 } from '../lib/storage';
 import { validateGeminiApiKey } from '../lib/gemini';
-import { testOllamaConnection, warmUpOllama } from '../lib/ollama';
+import { validateOpenAIApiKey } from '../lib/openai';
+import { validateAgentRouterApiKey, validateClaudeApiKey } from '../lib/claude';
 import { cleanApiKey } from '../lib/utils';
-import { SCAN_QUALITY_HELP, SCAN_QUALITY_LABEL, SCAN_QUALITY_ORDER, normalizeScanQuality } from '../lib/scanQuality';
 
 export const SettingsModal: React.FC = () => {
   const { 
@@ -44,25 +49,44 @@ export const SettingsModal: React.FC = () => {
     importBackupJSON,
     setIsMasterResetOpen,
     setIsMobileAccessOpen,
-    publicUrl
+    publicUrl,
+    pushAllToCloud
   } = useApp();
 
   const [inputKey, setInputKey] = useState(geminiApiKey || '');
-  const [ollamaSettings, setOllamaSettings] = useState<OllamaSettings>(() => getOllamaSettings());
-  const [ollamaModels, setOllamaModels] = useState<string[]>([]);
-  const [isTestingOllama, setIsTestingOllama] = useState(false);
-  const [showOllamaSetup, setShowOllamaSetup] = useState(false);
-  const [ollamaTestResult, setOllamaTestResult] = useState<{
-    status: 'idle' | 'success' | 'error';
-    message: string;
-  }>({ status: 'idle', message: '' });
+  const [inputOpenAIKey, setInputOpenAIKey] = useState('');
+  const [savedOpenAIKey, setSavedOpenAIKey] = useState(() => getOpenAIApiKey());
+  const [inputClaudeKey, setInputClaudeKey] = useState('');
+  const [savedClaudeKey, setSavedClaudeKey] = useState(() => getClaudeApiKey());
+  const [inputAgentRouterKey, setInputAgentRouterKey] = useState('');
+  const [savedAgentRouterKey, setSavedAgentRouterKey] = useState(() => getAgentRouterApiKey());
+  const [agentRouterModel, setAgentRouterModel] = useState(() => getAgentRouterModel());
   const [showKey, setShowKey] = useState(false);
+  const [showOpenAIKey, setShowOpenAIKey] = useState(false);
+  const [showClaudeKey, setShowClaudeKey] = useState(false);
+  const [showAgentRouterKey, setShowAgentRouterKey] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [isTestingOpenAI, setIsTestingOpenAI] = useState(false);
+  const [isTestingClaude, setIsTestingClaude] = useState(false);
+  const [isPushingData, setIsPushingData] = useState(false);
+  const [isTestingAgentRouter, setIsTestingAgentRouter] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [testResult, setTestResult] = useState<{
     status: 'idle' | 'success' | 'error';
     message: string;
     model?: string;
+  }>({ status: 'idle', message: '' });
+  const [openAITestResult, setOpenAITestResult] = useState<{
+    status: 'idle' | 'success' | 'error';
+    message: string;
+  }>({ status: 'idle', message: '' });
+  const [claudeTestResult, setClaudeTestResult] = useState<{
+    status: 'idle' | 'success' | 'error';
+    message: string;
+  }>({ status: 'idle', message: '' });
+  const [agentRouterTestResult, setAgentRouterTestResult] = useState<{
+    status: 'idle' | 'success' | 'error';
+    message: string;
   }>({ status: 'idle', message: '' });
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
@@ -72,9 +96,20 @@ export const SettingsModal: React.FC = () => {
   useEffect(() => {
     if (isSettingsOpen) {
       setInputKey('');
-      setOllamaSettings(getOllamaSettings());
+      const activeOpenAIKey = getOpenAIApiKey();
+      setInputOpenAIKey('');
+      setSavedOpenAIKey(activeOpenAIKey);
+      const activeClaudeKey = getClaudeApiKey();
+      setInputClaudeKey('');
+      setSavedClaudeKey(activeClaudeKey);
+      const activeAgentRouterKey = getAgentRouterApiKey();
+      setInputAgentRouterKey('');
+      setSavedAgentRouterKey(activeAgentRouterKey);
+      setAgentRouterModel(getAgentRouterModel());
       setTestResult({ status: 'idle', message: '' });
-      setOllamaTestResult({ status: 'idle', message: '' });
+      setOpenAITestResult({ status: 'idle', message: '' });
+      setClaudeTestResult({ status: 'idle', message: '' });
+      setAgentRouterTestResult({ status: 'idle', message: '' });
       setImportStatus(null);
     }
   }, [isSettingsOpen, geminiApiKey]);
@@ -163,48 +198,187 @@ export const SettingsModal: React.FC = () => {
     setInputKey('');
     setTestResult({
       status: 'idle',
-      message: 'Gemini API key disconnected. Ollama remains active if enabled.'
+      message: 'Gemini API key disconnected. OpenAI remains active if its key is saved.'
     });
   };
 
-  const updateOllama = (patch: Partial<OllamaSettings>) => {
-    setOllamaSettings(current => ({ ...current, ...patch }));
-    setOllamaTestResult({ status: 'idle', message: '' });
-  };
-
-  const handleSaveAndTestOllama = async () => {
-    const next: OllamaSettings = {
-      ...ollamaSettings,
-      baseUrl: ollamaSettings.baseUrl.trim().replace(/\/+$/, '') || DEFAULT_OLLAMA_SETTINGS.baseUrl,
-      visionModel: ollamaSettings.visionModel.trim() || DEFAULT_OLLAMA_SETTINGS.visionModel,
-      timeoutSeconds: Math.max(30, Math.round(ollamaSettings.timeoutSeconds) || DEFAULT_OLLAMA_SETTINGS.timeoutSeconds)
-    };
-    setIsTestingOllama(true);
-    setOllamaTestResult({ status: 'idle', message: '' });
-    const result = await testOllamaConnection(next);
-    setOllamaModels(result.models || []);
-    saveOllamaSettings({ ...next, enabled: next.enabled && result.valid });
-    setOllamaSettings({ ...next, enabled: next.enabled && result.valid });
-    if (result.valid) {
-      // Start loading the model now so the next scan does not pay for the model load.
-      void warmUpOllama(next);
+  const handleSaveAndTestOpenAI = async () => {
+    const cleaned = cleanApiKey(inputOpenAIKey);
+    if (!cleaned) {
+      setOpenAITestResult({ status: 'error', message: 'Please enter an OpenAI API key first.' });
+      return;
     }
-    setOllamaTestResult(result.valid
-      ? {
+
+    setIsTestingOpenAI(true);
+    setOpenAITestResult({ status: 'idle', message: '' });
+
+    try {
+      const result = await validateOpenAIApiKey(cleaned);
+      if (result.valid) {
+        saveOpenAIApiKey(cleaned);
+        setSavedOpenAIKey(cleaned);
+        setInputOpenAIKey('');
+        setOpenAITestResult({
           status: 'success',
-          message: next.enabled
-            ? `Connected to Ollama ${result.version || ''}. PR, DC and builty OCR will use ${next.visionModel} at ${SCAN_QUALITY_LABEL[next.scanQuality]}${hasLinkedKey ? ', with Gemini as fallback' : ''}.`
-            : `Connected to Ollama ${result.version || ''} and ${next.visionModel} is installed. Tick "Use Ollama" to switch OCR to it.`
-        }
-      : { status: 'error', message: result.error || 'Ollama connection failed.' });
-    setIsTestingOllama(false);
+          message: `OpenAI access verified for ${result.model}. OCR will use OpenAI instead of Gemini.`
+        });
+      } else {
+        setOpenAITestResult({ status: 'error', message: result.error || 'OpenAI key verification failed.' });
+      }
+    } catch (error) {
+      setOpenAITestResult({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unable to reach OpenAI API.'
+      });
+    } finally {
+      setIsTestingOpenAI(false);
+    }
   };
 
-  const handleDisableOllama = () => {
-    const next = { ...ollamaSettings, enabled: false };
-    saveOllamaSettings(next);
-    setOllamaSettings(next);
-    setOllamaTestResult({ status: 'idle', message: 'Ollama disabled. OCR uses Gemini if its key is saved.' });
+  const handleTestOpenAIOnly = async () => {
+    const key = cleanApiKey(inputOpenAIKey) || savedOpenAIKey || getOpenAIApiKey();
+    if (!key) {
+      setOpenAITestResult({ status: 'error', message: 'Enter an OpenAI API key to test.' });
+      return;
+    }
+
+    setIsTestingOpenAI(true);
+    setOpenAITestResult({ status: 'idle', message: '' });
+    try {
+      const result = await validateOpenAIApiKey(key);
+      setOpenAITestResult(result.valid
+        ? {
+            status: 'success',
+            message: `OpenAI access verified for ${result.model}. API usage and quota are checked during OCR.`
+          }
+        : { status: 'error', message: result.error || 'OpenAI key verification failed.' });
+    } catch (error) {
+      setOpenAITestResult({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unable to reach OpenAI API.'
+      });
+    } finally {
+      setIsTestingOpenAI(false);
+    }
+  };
+
+  const handleClearOpenAIKey = () => {
+    saveOpenAIApiKey('');
+    setSavedOpenAIKey('');
+    setInputOpenAIKey('');
+    setOpenAITestResult({
+      status: 'idle',
+      message: 'OpenAI key disconnected. Gemini will be used if its key is configured.'
+    });
+  };
+
+  const handleSaveAndTestClaude = async () => {
+    const cleaned = cleanApiKey(inputClaudeKey);
+    if (!cleaned) {
+      setClaudeTestResult({ status: 'error', message: 'Please enter an Anthropic API key first.' });
+      return;
+    }
+    setIsTestingClaude(true);
+    setClaudeTestResult({ status: 'idle', message: '' });
+    try {
+      const result = await validateClaudeApiKey(cleaned);
+      if (result.valid) {
+        saveClaudeApiKey(cleaned);
+        setSavedClaudeKey(cleaned);
+        setInputClaudeKey('');
+        setClaudeTestResult({
+          status: 'success',
+          message: `Claude API access verified. Document audit will use ${result.model}.`
+        });
+      } else {
+        setClaudeTestResult({ status: 'error', message: result.error || 'Claude API key verification failed.' });
+      }
+    } catch (error) {
+      setClaudeTestResult({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unable to reach Anthropic Claude API.'
+      });
+    } finally {
+      setIsTestingClaude(false);
+    }
+  };
+
+  const handleTestClaudeOnly = async () => {
+    const key = cleanApiKey(inputClaudeKey) || savedClaudeKey || getClaudeApiKey();
+    if (!key) {
+      setClaudeTestResult({ status: 'error', message: 'Enter a Claude API key to test.' });
+      return;
+    }
+    setIsTestingClaude(true);
+    setClaudeTestResult({ status: 'idle', message: '' });
+    try {
+      const result = await validateClaudeApiKey(key);
+      setClaudeTestResult(result.valid
+        ? { status: 'success', message: `Anthropic API access verified. Audit model: ${result.model}.` }
+        : { status: 'error', message: result.error || 'Claude API key verification failed.' });
+    } catch (error) {
+      setClaudeTestResult({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unable to reach Anthropic Claude API.'
+      });
+    } finally {
+      setIsTestingClaude(false);
+    }
+  };
+
+  const handleClearClaudeKey = () => {
+    saveClaudeApiKey('');
+    setSavedClaudeKey('');
+    setInputClaudeKey('');
+    setClaudeTestResult({ status: 'idle', message: 'Claude API key disconnected.' });
+  };
+
+  const handleSaveAndTestAgentRouter = async () => {
+    const key = cleanApiKey(inputAgentRouterKey);
+    const model = agentRouterModel.trim();
+    if (!key && !savedAgentRouterKey) {
+      setAgentRouterTestResult({ status: 'error', message: 'Enter an AgentRouter API token first.' });
+      return;
+    }
+    if (!model) {
+      setAgentRouterTestResult({ status: 'error', message: 'Enter the exact vision-capable Claude model ID shown by AgentRouter.' });
+      return;
+    }
+    setIsTestingAgentRouter(true);
+    setAgentRouterTestResult({ status: 'idle', message: '' });
+    try {
+      const result = await validateAgentRouterApiKey(key || savedAgentRouterKey, model);
+      if (result.valid) {
+        if (key) {
+          saveAgentRouterApiKey(key);
+          setSavedAgentRouterKey(key);
+          setInputAgentRouterKey('');
+        }
+        saveAgentRouterModel(model);
+        setAgentRouterTestResult({
+          status: 'success',
+          message: 'AgentRouter connection verified. Claude audit requests will use this model and AgentRouter balance.'
+        });
+      } else {
+        setAgentRouterTestResult({ status: 'error', message: result.error || 'AgentRouter verification failed.' });
+      }
+    } catch (error) {
+      setAgentRouterTestResult({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unable to reach AgentRouter API.'
+      });
+    } finally {
+      setIsTestingAgentRouter(false);
+    }
+  };
+
+  const handleClearAgentRouterKey = () => {
+    saveAgentRouterApiKey('');
+    saveAgentRouterModel('');
+    setSavedAgentRouterKey('');
+    setInputAgentRouterKey('');
+    setAgentRouterModel('');
+    setAgentRouterTestResult({ status: 'idle', message: 'AgentRouter disconnected. The direct Claude key, if configured, can be used instead.' });
   };
 
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,10 +399,21 @@ export const SettingsModal: React.FC = () => {
   };
 
   const hasLinkedKey = Boolean(geminiApiKey && geminiApiKey.trim());
+  const hasLinkedOpenAIKey = Boolean(savedOpenAIKey);
+  const hasLinkedClaudeKey = Boolean(savedClaudeKey);
+  const hasLinkedAgentRouterKey = Boolean(savedAgentRouterKey);
   const maskedKey = hasLinkedKey 
     ? `${geminiApiKey.substring(0, 6)}••••••••••••${geminiApiKey.slice(-4)}`
     : '';
-  const ollamaActive = ollamaSettings.enabled;
+  const maskedOpenAIKey = hasLinkedOpenAIKey
+    ? `${savedOpenAIKey.substring(0, 6)}••••••••••••${savedOpenAIKey.slice(-4)}`
+    : '';
+  const maskedClaudeKey = hasLinkedClaudeKey
+    ? `${savedClaudeKey.substring(0, 6)}••••••••••••${savedClaudeKey.slice(-4)}`
+    : '';
+  const maskedAgentRouterKey = hasLinkedAgentRouterKey
+    ? `${savedAgentRouterKey.substring(0, 6)}••••••••••••${savedAgentRouterKey.slice(-4)}`
+    : '';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
@@ -267,11 +452,11 @@ export const SettingsModal: React.FC = () => {
             {hasLinkedKey ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                {ollamaActive ? 'Linked (fallback to Ollama)' : 'Linked & Active'}
+                {hasLinkedOpenAIKey ? 'Linked (OpenAI is active)' : 'Linked & Active'}
               </span>
-            ) : ollamaActive ? (
+            ) : hasLinkedOpenAIKey ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
-                Ollama OCR Active
+                OpenAI OCR Active
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-300">
@@ -281,7 +466,7 @@ export const SettingsModal: React.FC = () => {
           </div>
 
           <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-            Gemini is the cloud fallback. When Ollama is enabled it reads documents first, and Gemini is only used if Ollama is off, times out, or cannot read a scan.
+            Paste a Gemini API key as an alternative OCR provider. OpenAI takes precedence whenever its key is saved.
           </p>
 
           {/* Current saved status banner */}
@@ -403,148 +588,327 @@ export const SettingsModal: React.FC = () => {
           </div>
         </div>
 
-        {/* Local Ollama (OCR + document audit) */}
-        <div className="space-y-4 bg-emerald-50/50 p-4 rounded-xl border border-emerald-200">
+        <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-300">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-700" />
-              Local Ollama (this PC)
+              <Sparkles className="w-4 h-4 text-slate-700" />
+              OpenAI API Key
+            </label>
+            {hasLinkedOpenAIKey ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                OpenAI OCR Active
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-300">
+                Gemini remains active
+              </span>
+            )}
+          </div>
+
+          <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+            Saving an OpenAI key routes PR, DC, and builty OCR to OpenAI instead of Gemini. ChatGPT Plus does not include API credits; OpenAI API usage is billed separately.
+          </p>
+          <p className="text-[10px] text-slate-500 leading-relaxed">
+            The key is stored in this browser’s local storage and sent directly to OpenAI for OCR. Do not save it on shared devices or paste it into chat.
+          </p>
+
+          {hasLinkedOpenAIKey && (
+            <div className="p-2.5 rounded-lg bg-white border border-slate-200 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-slate-800 font-medium font-mono text-[11px]">
+                <Key className="w-3.5 h-3.5 text-slate-600" />
+                <span>{maskedOpenAIKey}</span>
+              </div>
+              <button
+                onClick={handleClearOpenAIKey}
+                className="text-[11px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 hover:underline"
+                title="Disconnect OpenAI API Key"
+              >
+                <Trash2 className="w-3 h-3" /> Disconnect
+              </button>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <div className="relative flex items-center">
+              <Key className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
+              <input
+                type={showOpenAIKey ? 'text' : 'password'}
+                value={inputOpenAIKey}
+                onChange={(event) => {
+                  setInputOpenAIKey(event.target.value);
+                  setOpenAITestResult({ status: 'idle', message: '' });
+                }}
+                placeholder={hasLinkedOpenAIKey ? 'Saved key available; paste to replace' : 'sk-...'}
+                autoComplete="off"
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-mono font-medium focus:outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500/20"
+              />
+              <button
+                type="button"
+                onClick={() => setShowOpenAIKey(!showOpenAIKey)}
+                className="absolute right-3 text-slate-400 hover:text-slate-600 p-1"
+                title={showOpenAIKey ? 'Hide Key' : 'Show Key'}
+              >
+                {showOpenAIKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSaveAndTestOpenAI}
+                disabled={isTestingOpenAI || !inputOpenAIKey.trim()}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                {isTestingOpenAI ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                Save &amp; Use OpenAI
+              </button>
+              <button
+                onClick={handleTestOpenAIOnly}
+                disabled={isTestingOpenAI || (!inputOpenAIKey.trim() && !hasLinkedOpenAIKey)}
+                className="py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold text-xs flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              >
+                {isTestingOpenAI ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                Test
+              </button>
+            </div>
+          </div>
+
+          {openAITestResult.status !== 'idle' && (
+            <div className={`p-3 rounded-xl border text-xs font-medium ${
+              openAITestResult.status === 'success'
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                : 'bg-rose-50 border-rose-300 text-rose-900'
+            }`}>
+              <div className="font-bold">
+                {openAITestResult.status === 'success' ? 'OpenAI API key verified' : 'OpenAI API connection issue'}
+              </div>
+              <p className="text-[11px] mt-1">{openAITestResult.message}</p>
+            </div>
+          )}
+
+          <div className="pt-1 border-t border-slate-200 flex items-center justify-between text-[11px]">
+            <span className="text-slate-500 font-medium">Need an OpenAI API key?</span>
+            <a
+              href="https://platform.openai.com/api-keys"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-800 font-bold hover:text-black flex items-center gap-1 hover:underline"
+            >
+              OpenAI Platform <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        </div>
+
+        {/* AgentRouter Claude Provider */}
+        <div className="space-y-4 bg-indigo-50/60 p-4 rounded-xl border border-indigo-200">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-slate-900 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-700" />
+              AgentRouter Claude API
             </label>
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
-              ollamaActive
+              hasLinkedAgentRouterKey
                 ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                 : 'bg-slate-100 text-slate-600 border-slate-300'
             }`}>
-              {ollamaActive && <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />}
-              {ollamaActive ? 'Primary OCR & audit' : 'Disabled'}
+              {hasLinkedAgentRouterKey ? 'Preferred audit provider' : 'Not connected'}
+            </span>
+          </div>
+
+          <p className="text-[11px] text-slate-600 leading-relaxed">
+            Add your AgentRouter token and the exact Claude vision model ID from its Model Status/API page. When connected, audit requests use AgentRouter before the direct Anthropic key.
+          </p>
+          <p className="text-[10px] text-indigo-950 leading-relaxed">
+            Audit records and scans are sent to AgentRouter and may be forwarded to the selected model provider. API costs use your AgentRouter balance. The endpoint is https://agentrouter.org/v1/chat/completions. Token is stored in this browser only.
+          </p>
+
+          {hasLinkedAgentRouterKey && (
+            <div className="p-2.5 rounded-lg bg-white border border-indigo-200 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-slate-800 font-medium font-mono text-[11px]">
+                <Key className="w-3.5 h-3.5 text-indigo-600" />
+                <span>{maskedAgentRouterKey}</span>
+              </div>
+              <button
+                onClick={handleClearAgentRouterKey}
+                className="text-[11px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 hover:underline"
+                title="Disconnect AgentRouter API Token"
+              >
+                <Trash2 className="w-3 h-3" /> Disconnect
+              </button>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <div className="relative flex items-center">
+              <Key className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
+              <input
+                type={showAgentRouterKey ? 'text' : 'password'}
+                value={inputAgentRouterKey}
+                onChange={event => {
+                  setInputAgentRouterKey(event.target.value);
+                  setAgentRouterTestResult({ status: 'idle', message: '' });
+                }}
+                placeholder={hasLinkedAgentRouterKey ? 'Saved token available; paste to replace' : 'AgentRouter API token'}
+                autoComplete="off"
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-mono font-medium focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+              />
+              <button
+                type="button"
+                onClick={() => setShowAgentRouterKey(!showAgentRouterKey)}
+                className="absolute right-3 text-slate-400 hover:text-slate-600 p-1"
+                title={showAgentRouterKey ? 'Hide Token' : 'Show Token'}
+              >
+                {showAgentRouterKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <input
+              type="text"
+              value={agentRouterModel}
+              onChange={event => {
+                setAgentRouterModel(event.target.value);
+                setAgentRouterTestResult({ status: 'idle', message: '' });
+              }}
+              placeholder="Exact vision-capable Claude model ID"
+              autoComplete="off"
+              className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-mono font-medium focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+            />
+            <button
+              onClick={handleSaveAndTestAgentRouter}
+              disabled={isTestingAgentRouter || (!inputAgentRouterKey.trim() && !hasLinkedAgentRouterKey) || !agentRouterModel.trim()}
+              className="w-full py-2.5 px-4 rounded-xl bg-indigo-700 hover:bg-indigo-800 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              {isTestingAgentRouter ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+              Save &amp; Verify AgentRouter
+            </button>
+          </div>
+
+          {agentRouterTestResult.status !== 'idle' && (
+            <div role="status" className={`p-3 rounded-xl border text-xs font-medium ${
+              agentRouterTestResult.status === 'success'
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                : 'bg-rose-50 border-rose-300 text-rose-900'
+            }`}>
+              <div className="font-bold">
+                {agentRouterTestResult.status === 'success' ? 'AgentRouter API verified' : 'AgentRouter API connection issue'}
+              </div>
+              <p className="text-[11px] mt-1">{agentRouterTestResult.message}</p>
+            </div>
+          )}
+
+          <a
+            href="https://agentrouter.org/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-indigo-800 font-bold text-[11px] hover:underline inline-flex items-center gap-1"
+          >
+            Open AgentRouter <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+
+        {/* Claude Database Audit Key */}
+        <div className="space-y-4 bg-orange-50/60 p-4 rounded-xl border border-orange-200">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-slate-900 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-orange-700" />
+              Anthropic Claude API Key
+            </label>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+              hasLinkedClaudeKey
+                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                : 'bg-slate-100 text-slate-600 border-slate-300'
+            }`}>
+              {hasLinkedClaudeKey ? 'Ready for database audit' : 'Not connected'}
             </span>
           </div>
 
           <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-            Reads PR, DC and builty scans and runs the PR/DC document audit with a vision model on this computer. Documents never leave the PC. On a CPU-only machine expect roughly 40–90 seconds per scan.
+            Claude audits saved PR and DC entries and attached scans in AI Diagnostics. It proposes exact printed PR-number matches; no link is changed until you approve it.
+          </p>
+          <p className="text-[10px] text-orange-900 leading-relaxed">
+            Audit content and attached documents are sent directly to Anthropic, and API usage may incur charges. The key is stored in this browser’s local storage; avoid shared devices.
           </p>
 
-          <label className="flex items-center gap-2 text-xs font-bold text-slate-800">
-            <input
-              type="checkbox"
-              checked={ollamaSettings.enabled}
-              onChange={event => updateOllama({ enabled: event.target.checked })}
-              className="accent-emerald-600"
-            />
-            Use Ollama for OCR and audit
-          </label>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <label className="text-[11px] font-bold text-slate-700 space-y-1">
-              <span>Ollama URL</span>
-              <input
-                type="url"
-                value={ollamaSettings.baseUrl}
-                onChange={event => updateOllama({ baseUrl: event.target.value })}
-                placeholder={DEFAULT_OLLAMA_SETTINGS.baseUrl}
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-[11px] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </label>
-            <label className="text-[11px] font-bold text-slate-700 space-y-1">
-              <span>Vision model</span>
-              <input
-                list="ollama-models"
-                value={ollamaSettings.visionModel}
-                onChange={event => updateOllama({ visionModel: event.target.value })}
-                placeholder={DEFAULT_OLLAMA_SETTINGS.visionModel}
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-[11px] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-              <datalist id="ollama-models">
-                {ollamaModels.map(model => <option key={model} value={model} />)}
-              </datalist>
-            </label>
-            <label className="text-[11px] font-bold text-slate-700 space-y-1">
-              <span>Timeout per scan (seconds)</span>
-              <input
-                type="number"
-                min={30}
-                step={30}
-                value={ollamaSettings.timeoutSeconds}
-                onChange={event => updateOllama({ timeoutSeconds: Number(event.target.value) })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-[11px] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </label>
-            <label className="text-[11px] font-bold text-slate-700 space-y-1">
-              <span>Scan read quality (speed)</span>
-              <select
-                value={ollamaSettings.scanQuality}
-                onChange={event => updateOllama({ scanQuality: normalizeScanQuality(event.target.value) })}
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-[11px] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              >
-                {SCAN_QUALITY_ORDER.map(quality => (
-                  <option key={quality} value={quality}>{SCAN_QUALITY_LABEL[quality]}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <p className="text-[10px] text-slate-600 leading-relaxed font-medium">
-            {SCAN_QUALITY_HELP[ollamaSettings.scanQuality]}
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-2">
-            <button
-              onClick={handleSaveAndTestOllama}
-              disabled={isTestingOllama}
-              className="flex-1 px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
-            >
-              {isTestingOllama ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-              Save &amp; Test Connection
-            </button>
-            {ollamaActive && (
+          {hasLinkedClaudeKey && (
+            <div className="p-2.5 rounded-lg bg-white border border-orange-200 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-slate-800 font-medium font-mono text-[11px]">
+                <Key className="w-3.5 h-3.5 text-orange-600" />
+                <span>{maskedClaudeKey}</span>
+              </div>
               <button
-                onClick={handleDisableOllama}
-                className="px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs"
+                onClick={handleClearClaudeKey}
+                className="text-[11px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 hover:underline"
+                title="Disconnect Claude API Key"
               >
-                Disable
+                <Trash2 className="w-3 h-3" /> Disconnect
               </button>
-            )}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <div className="relative flex items-center">
+              <Key className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
+              <input
+                type={showClaudeKey ? 'text' : 'password'}
+                value={inputClaudeKey}
+                onChange={(event) => {
+                  setInputClaudeKey(event.target.value);
+                  setClaudeTestResult({ status: 'idle', message: '' });
+                }}
+                placeholder={hasLinkedClaudeKey ? 'Saved key available; paste to replace' : 'sk-ant-...'}
+                autoComplete="off"
+                className="w-full pl-9 pr-10 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-mono font-medium focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+              />
+              <button
+                type="button"
+                onClick={() => setShowClaudeKey(!showClaudeKey)}
+                className="absolute right-3 text-slate-400 hover:text-slate-600 p-1"
+                title={showClaudeKey ? 'Hide Key' : 'Show Key'}
+              >
+                {showClaudeKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSaveAndTestClaude}
+                disabled={isTestingClaude || !inputClaudeKey.trim()}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                {isTestingClaude ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                Save &amp; Verify Claude
+              </button>
+              <button
+                onClick={handleTestClaudeOnly}
+                disabled={isTestingClaude || (!inputClaudeKey.trim() && !hasLinkedClaudeKey)}
+                className="py-2.5 px-3 rounded-xl bg-white hover:bg-orange-50 border border-slate-300 text-slate-700 font-bold text-xs flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              >
+                {isTestingClaude ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-orange-600" />}
+                Test
+              </button>
+            </div>
           </div>
 
-          {ollamaTestResult.status !== 'idle' && (
-            <div className={`p-3 rounded-lg border text-xs ${
-              ollamaTestResult.status === 'success'
+          {claudeTestResult.status !== 'idle' && (
+            <div className={`p-3 rounded-xl border text-xs font-medium ${
+              claudeTestResult.status === 'success'
                 ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
                 : 'bg-rose-50 border-rose-300 text-rose-900'
             }`}>
-              <div className="font-bold flex items-center gap-1.5">
-                {ollamaTestResult.status === 'success' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
-                {ollamaTestResult.status === 'success' ? 'Ollama connected' : 'Ollama connection issue'}
+              <div className="font-bold">
+                {claudeTestResult.status === 'success' ? 'Claude API key verified' : 'Claude API connection issue'}
               </div>
-              <p className="text-[11px] mt-1">{ollamaTestResult.message}</p>
+              <p className="text-[11px] mt-1">{claudeTestResult.message}</p>
             </div>
           )}
-          {ollamaTestResult.status === 'idle' && ollamaTestResult.message && (
-            <p className="text-[11px] text-slate-600">{ollamaTestResult.message}</p>
-          )}
 
-          <div className="pt-1 border-t border-emerald-200">
-            <button
-              onClick={() => setShowOllamaSetup(!showOllamaSetup)}
-              className="text-[11px] font-bold text-emerald-800 hover:underline"
+          <div className="pt-1 border-t border-orange-200 flex items-center justify-between text-[11px]">
+            <span className="text-slate-500 font-medium">Need an Anthropic API key?</span>
+            <a
+              href="https://console.anthropic.com/settings/keys"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-800 font-bold hover:text-orange-950 flex items-center gap-1 hover:underline"
             >
-              {showOllamaSetup ? 'Hide setup steps' : 'First-time setup on this PC'}
-            </button>
-            {showOllamaSetup && (
-              <ol className="mt-2 list-decimal pl-4 space-y-1.5 text-[11px] text-slate-700">
-                <li>Install Ollama for Windows from ollama.com and let it start.</li>
-                <li>
-                  In PowerShell, download the vision model:
-                  <code className="block mt-1 p-1.5 rounded bg-slate-900 text-emerald-200 font-mono select-all">ollama pull {ollamaSettings.visionModel || DEFAULT_OLLAMA_SETTINGS.visionModel}</code>
-                </li>
-                <li>
-                  Allow this portal to call Ollama, then quit Ollama from the tray and start it again:
-                  <code className="block mt-1 p-1.5 rounded bg-slate-900 text-emerald-200 font-mono select-all break-all">setx OLLAMA_ORIGINS "{currentPortalUrl},http://localhost:5173"</code>
-                </li>
-                <li>If Chrome asks to allow access to devices on your local network, click Allow.</li>
-                <li>Tick "Use Ollama", then Save &amp; Test Connection.</li>
-              </ol>
-            )}
+              Anthropic Console <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
         </div>
 
@@ -601,6 +965,44 @@ export const SettingsModal: React.FC = () => {
             <QrCode className="w-4 h-4" />
             <span>Open Mobile QR Code &amp; Scanner Screen</span>
             <ExternalLink className="w-3.5 h-3.5 ml-auto opacity-70" />
+          </button>
+        </div>
+
+        {/* Cloud Migration Section */}
+        <div className="space-y-3 bg-purple-50 p-4 rounded-xl border border-purple-200">
+          <label className="text-xs font-bold text-slate-900 flex items-center gap-2">
+            <Cloud className="w-4 h-4 text-purple-700" />
+            Cloud Synchronization
+          </label>
+          <p className="text-[11px] text-slate-600 font-medium">
+            Push all locally stored PRs and Delivery Challans to Firebase. Use this if your records are missing on other devices.
+          </p>
+          <button
+            onClick={async () => {
+              setIsPushingData(true);
+              try {
+                await pushAllToCloud();
+                alert('Successfully pushed all local data to Firebase!');
+              } catch (e) {
+                alert('Error pushing data to Firebase. Make sure you are logged in.');
+              } finally {
+                setIsPushingData(false);
+              }
+            }}
+            disabled={isPushingData}
+            className="w-full py-2 px-3 rounded-lg bg-purple-600 hover:bg-purple-700 active:bg-purple-800 disabled:opacity-50 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-2xs cursor-pointer"
+          >
+            {isPushingData ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Syncing to Firebase...</span>
+              </>
+            ) : (
+              <>
+                <Cloud className="w-4 h-4" />
+                <span>Push All Data to Firebase</span>
+              </>
+            )}
           </button>
         </div>
 

@@ -145,6 +145,7 @@ export const LoginView: React.FC = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3.5 top-3.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
                   tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -169,7 +170,7 @@ export const LoginView: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 px-4 rounded-2xl bg-[#fd2729] hover:bg-[#e0191b] text-white font-black text-sm tracking-wide shadow-lg shadow-red-500/25 flex items-center justify-center gap-2 transition-all transform active:scale-[0.98] cursor-pointer disabled:opacity-70 mt-2 border border-red-400/30"
+              className="w-full py-3.5 px-4 rounded-2xl bg-red-700 hover:bg-red-800 text-white font-black text-sm tracking-wide shadow-lg shadow-red-500/25 flex items-center justify-center gap-2 transition-all transform active:scale-[0.98] cursor-pointer disabled:opacity-70 mt-2 border border-red-400/30"
             >
               {isLoading ? (
                 <span>Authenticating...</span>
