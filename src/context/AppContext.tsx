@@ -221,7 +221,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
         const t = params.get('tab');
-        if (t === 'deliveries' || t === 'ledger' || t === 'brands' || t === 'search' || t === 'gemini-audit') {
+        if (t === 'deliveries' || t === 'ledger' || t === 'search' || t === 'gemini-audit') {
           return t;
         }
       }
