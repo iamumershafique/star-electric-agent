@@ -47,11 +47,40 @@ export const PRDetailModal: React.FC = () => {
   const pendingDCs = dcs
     .filter(dc => isDCPRMissing(dc, prs))
     .sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.dcNumber.localeCompare(a.dcNumber, undefined, { numeric: true }));
-  const linkDCToPR = (dcId: string) => {
+  // A DC means the goods were delivered, so linking it marks the chosen items (or all open items) as shipped on it
+  const applyDCToPR = (dcId: string) => {
     const dc = dcs.find(d => d.id === dcId);
     if (!dc) return;
-    updateDC({ ...dc, prId: selectedPR.id, prNumber: selectedPR.prNumber, noPrRequired: false });
+    const open = selectedPR.items.filter(i => i.status !== 'Cancelled' && i.requestedQty - i.fulfilledQty > 0);
+    let targets = open.filter(i => selectedItemIds.includes(i.id));
+    if (targets.length === 0) {
+      if (open.length > 0 && !window.confirm(`Mark all ${open.length} open items of ${selectedPR.prNumber} as delivered on ${dc.dcNumber}?\n\nCancel to tick specific items first.`)) return;
+      targets = open;
+    }
+    const shipped = [
+      ...dc.itemsShipped.filter(s => !targets.some(i => i.id === s.itemId)),
+      ...targets.map(i => ({
+        itemId: i.id,
+        itemName: i.name,
+        brand: i.brand || '',
+        quantity: i.requestedQty - i.fulfilledQty,
+        unit: i.unit
+      }))
+    ];
+    updateDC({
+      ...dc,
+      prId: selectedPR.id,
+      prNumber: selectedPR.prNumber,
+      noPrRequired: false,
+      itemsShipped: shipped,
+      deliveryStatus: dc.deliveryStatus || 'Delivered'
+    });
+    setSelectedItemIds([]);
   };
+  const linkDCToPR = applyDCToPR;
+  const unverifiedLinkedDCs = dcs.filter(dc =>
+    linkedPRDCNumbers.includes(dc.dcNumber) && dc.itemsShipped.length === 0
+  );
 
   const handlePrint = () => {
     window.print();
@@ -224,7 +253,7 @@ export const PRDetailModal: React.FC = () => {
             <div className="no-print rounded-xl border border-slate-300 bg-white p-4 space-y-2">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">Link a pending DC to {selectedPR.prNumber}</h4>
-                <span className="text-[11px] text-slate-500">{pendingDCs.length} DCs have no PR. Click one to link it.</span>
+                <span className="text-[11px] text-slate-500">{pendingDCs.length} DCs have no PR. Tick items first to link only those, otherwise all open items. Click a DC to link it.</span>
               </div>
               <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
                 {pendingDCs.map(dc => (
@@ -236,6 +265,25 @@ export const PRDetailModal: React.FC = () => {
                     className="cursor-pointer rounded-md border border-dashed border-slate-400 bg-white px-2 py-1 font-mono text-[11px] font-semibold text-slate-800 transition-colors hover:border-slate-900 hover:bg-slate-50"
                   >
                     + {dc.dcNumber}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {unverifiedLinkedDCs.length > 0 && selectedPR.items.some(i => i.status !== 'Cancelled' && i.fulfilledQty < i.requestedQty) && (
+            <div className="no-print rounded-xl border border-amber-300 bg-amber-50 p-4 space-y-2">
+              <p className="text-xs font-semibold text-amber-900">
+                These DCs are linked but their items are not marked delivered. Tick items below (or none for all open items), then confirm.
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {unverifiedLinkedDCs.map(dc => (
+                  <button
+                    key={dc.id}
+                    type="button"
+                    onClick={() => applyDCToPR(dc.id)}
+                    className="cursor-pointer rounded-md border border-amber-400 bg-white px-2 py-1 font-mono text-[11px] font-semibold text-amber-900 hover:bg-amber-100"
+                  >
+                    Mark delivered on {dc.dcNumber}
                   </button>
                 ))}
               </div>
