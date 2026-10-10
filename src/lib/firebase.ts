@@ -1,4 +1,5 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
+import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
@@ -11,6 +12,7 @@ const firebaseConfig = {
   storageBucket: "star-agent-jpf.firebasestorage.app",
   messagingSenderId: "531307346524",
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-BS2QDMZC9Z',
 };
 
 let app: FirebaseApp | null = null;
@@ -44,6 +46,17 @@ export function getFirestoreDb(): Firestore | null {
     return db;
   } catch (err) {
     console.warn('[Firestore] Database initialization skipped or failed:', err);
+    return null;
+  }
+}
+
+export async function getFirebaseAnalytics(): Promise<Analytics | null> {
+  const currentApp = getFirebaseApp();
+  if (!currentApp || !firebaseConfig.measurementId) return null;
+  try {
+    return (await isSupported()) ? getAnalytics(currentApp) : null;
+  } catch (err) {
+    console.warn('[Analytics] Initialization skipped or failed:', err);
     return null;
   }
 }
