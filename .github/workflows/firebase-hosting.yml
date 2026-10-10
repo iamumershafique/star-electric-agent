@@ -1,0 +1,56 @@
+name: Deploy Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-hosting-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify production release approval
+        env:
+          PORTAL_DATA_RELEASE_APPROVED: ${{ vars.PORTAL_DATA_RELEASE_APPROVED }}
+        run: |
+          if [ "$PORTAL_DATA_RELEASE_APPROVED" != "true" ]; then
+            echo "::error::Set the PORTAL_DATA_RELEASE_APPROVED repository variable to true only after verifying production data."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build portal
+        run: npm run build
+
+      - name: Deploy hosting
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::error::Add the FIREBASE_SERVICE_ACCOUNT repository secret before deploying."
+            exit 1
+          fi
+          trap 'rm -f "$RUNNER_TEMP/firebase-service-account.json"' EXIT
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
+          chmod 600 "$RUNNER_TEMP/firebase-service-account.json"
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-service-account.json" \
+            npx --yes firebase-tools@15 deploy --only firestore:rules,hosting --project star-agent-jpf --non-interactive
