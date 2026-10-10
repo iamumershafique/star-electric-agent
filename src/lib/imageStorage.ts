@@ -1,3 +1,13 @@
+import { getScanUrlFromCloud, uploadScanToCloud } from './cloudImages';
+
+async function fetchCloudImage(keys: string[]): Promise<string | undefined> {
+  for (const key of keys) {
+    const url = await getScanUrlFromCloud(key);
+    if (url) return url;
+  }
+  return undefined;
+}
+
 // Persistent Image Memory Storage using browser IndexedDB and in-memory cache
 // Ensures Star Electric Portal maintains full memory of PR images and DC images
 // without exceeding browser localStorage 5MB quota.
@@ -127,6 +137,8 @@ export async function saveImageToMemory(
   const primaryKey = normalizeImageKey(type, identifier);
   inMemoryCache.set(primaryKey, dataUrl);
 
+  void uploadScanToCloud(primaryKey, dataUrl);
+
   const refNum = meta?.referenceNumber || identifier;
   const refKey = normalizeImageKey(type, refNum);
   inMemoryCache.set(refKey, dataUrl);
@@ -202,35 +214,37 @@ export async function getImageFromMemory(
 ): Promise<string | undefined> {
   if (!identifier) return undefined;
 
-  const primaryKey = normalizeImageKey(type, identifier);
-  if (inMemoryCache.has(primaryKey)) {
-    return inMemoryCache.get(primaryKey);
-  }
-
-  const refKey = normalizeImageKey(type, identifier);
-  if (inMemoryCache.has(refKey)) {
-    return inMemoryCache.get(refKey);
+  // Stored references already carry the type prefix (e.g. "dc_dc_696"), so try the raw key too
+  const candidateKeys = Array.from(new Set([normalizeImageKey(type, identifier), identifier]));
+  for (const key of candidateKeys) {
+    if (inMemoryCache.has(key)) return inMemoryCache.get(key);
   }
 
   try {
     const db = await getDB();
-    return new Promise((resolve) => {
+    const local = await new Promise<string | undefined>((resolve) => {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const store = tx.objectStore(STORE_NAME);
-      const req = store.get(primaryKey);
-
-      req.onsuccess = () => {
-        const item = req.result as StoredImageRecord | undefined;
-        if (item?.dataUrl) {
-          inMemoryCache.set(primaryKey, item.dataUrl);
-          resolve(item.dataUrl);
-        } else {
-          resolve(undefined);
-        }
+      let index = 0;
+      const next = () => {
+        if (index >= candidateKeys.length) { resolve(undefined); return; }
+        const key = candidateKeys[index++];
+        const req = store.get(key);
+        req.onsuccess = () => {
+          const item = req.result as StoredImageRecord | undefined;
+          if (item?.dataUrl) {
+            inMemoryCache.set(key, item.dataUrl);
+            resolve(item.dataUrl);
+          } else {
+            next();
+          }
+        };
+        req.onerror = () => resolve(undefined);
       };
-
-      req.onerror = () => resolve(undefined);
+      next();
     });
+    if (local) return local;
+    return await fetchCloudImage(candidateKeys);
   } catch {
     return undefined;
   }
