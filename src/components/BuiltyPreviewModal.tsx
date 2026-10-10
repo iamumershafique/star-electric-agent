@@ -4,7 +4,20 @@ import { X, Download, Package, Truck, MapPin, DollarSign, Calendar } from 'lucid
 import { getImageFromMemory } from '../lib/imageStorage';
 
 export const BuiltyPreviewModal: React.FC = () => {
-  const { selectedBuiltyPreview, setSelectedBuiltyPreview } = useApp();
+  const { selectedBuiltyPreview, setSelectedBuiltyPreview, dcs, updateDC } = useApp();
+  const attachScan = (file?: File) => {
+    if (!file || !selectedBuiltyPreview?.dcNumber) return;
+    const dc = dcs.find(d => d.dcNumber === selectedBuiltyPreview.dcNumber);
+    if (!dc) return;
+    const isBuilty = !!selectedBuiltyPreview.title?.startsWith('Builty');
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result);
+      updateDC(isBuilty ? { ...dc, builtyImage: dataUrl } : { ...dc, documentImage: dataUrl });
+      setSelectedBuiltyPreview({ ...selectedBuiltyPreview, url: dataUrl });
+    };
+    reader.readAsDataURL(file);
+  };
   const [resolvedImage, setResolvedImage] = useState<string | null>(null);
   const [imageUnavailable, setImageUnavailable] = useState(false);
 
@@ -149,6 +162,12 @@ export const BuiltyPreviewModal: React.FC = () => {
                 <p className="text-xs text-slate-500 mt-1">
                   The stored image may be missing or its source link may have expired. Reattach the scan to restore the preview.
                 </p>
+              )}
+              {imageUnavailable && selectedBuiltyPreview.dcNumber && (
+                <label className="inline-block mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold cursor-pointer hover:bg-slate-800">
+                  Attach scan
+                  <input type="file" accept="image/*" className="hidden" onChange={e => attachScan(e.target.files?.[0])} />
+                </label>
               )}
             </div>
           )}
