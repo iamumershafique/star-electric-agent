@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Open or reuse a pull request into main
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.AUTO_PR_TOKEN || secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
         run: |
@@ -23,5 +23,6 @@ jobs:
           if [ -z "$existing" ]; then
             gh pr create --head "$BRANCH" --base main \
               --title "$BRANCH" \
-              --body "Opened automatically for UI and feature changes. Merging this PR deploys Hosting and Firestore rules to Firebase."
+              --body "Opened automatically for UI and feature changes. Merging this PR deploys Hosting and Firestore rules to Firebase." \
+              || echo "::warning::Could not create PR. Enable 'Allow GitHub Actions to create and approve pull requests' in repo Settings > Actions > General, or set an AUTO_PR_TOKEN secret."
           fi
