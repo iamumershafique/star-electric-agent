@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { DocumentClassificationError, fileToBase64 } from '../lib/gemini';
-import { getActiveOCRProvider, processDocumentWithAI } from '../lib/aiOcr';
+import { getActiveOCRProvider, getOCRProviderLabel, processDocumentWithAI } from '../lib/aiOcr';
 import { 
   X, 
   UploadCloud, 
@@ -261,7 +261,7 @@ export const PRUploadModal: React.FC = () => {
                 <div className="flex flex-col items-center gap-3 py-4">
                   <Loader2 className="w-10 h-10 text-amber-600 animate-spin" />
                   <div>
-                    <p className="text-sm font-bold text-amber-900">Google Gemini AI Scanning Document(s)...</p>
+                    <p className="text-sm font-bold text-amber-900">{getOCRProviderLabel(activeOCRProvider)} Scanning Document(s)...</p>
                     <p className="text-xs text-slate-500 font-medium mt-1">Extracting PR details across all uploaded pages</p>
                   </div>
                 </div>
@@ -393,7 +393,7 @@ export const PRUploadModal: React.FC = () => {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-slate-950" />
-                  Scan {files.length} {files.length === 1 ? 'File' : 'Files'} with Gemini AI
+                  Scan {files.length} {files.length === 1 ? 'File' : 'Files'} with {getOCRProviderLabel(activeOCRProvider)}
                 </>
               )}
             </button>

@@ -16,6 +16,9 @@ const STORAGE_KEY_OPENAI_API_KEY = 'STAR_ELECTRIC_OPENAI_KEY';
 const STORAGE_KEY_CLAUDE_API_KEY = 'STAR_ELECTRIC_CLAUDE_KEY';
 const STORAGE_KEY_AGENTROUTER_API_KEY = 'STAR_ELECTRIC_AGENTROUTER_KEY';
 const STORAGE_KEY_AGENTROUTER_MODEL = 'STAR_ELECTRIC_AGENTROUTER_MODEL';
+const STORAGE_KEY_OLLAMA_ENDPOINT = 'STAR_ELECTRIC_OLLAMA_ENDPOINT';
+const STORAGE_KEY_OLLAMA_MODEL = 'STAR_ELECTRIC_OLLAMA_MODEL';
+const STORAGE_KEY_PREFERRED_OCR_PROVIDER = 'STAR_ELECTRIC_PREFERRED_OCR_PROVIDER';
 const STORAGE_KEY_DRIVE_IMPORT_VERSION = 'STAR_ELECTRIC_DRIVE_IMPORT_VERSION';
 const STORAGE_KEY_PR_EVIDENCE_VERSION = 'STAR_ELECTRIC_PR_EVIDENCE_VERSION';
 export const DRIVE_IMPORT_VERSION = 'jadeed-ledger-686-scans-v3-confirmed-pr-links-only';
@@ -1993,6 +1996,52 @@ export function saveAgentRouterModel(model: string): void {
     localStorage.setItem(STORAGE_KEY_AGENTROUTER_MODEL, clean);
   } else {
     localStorage.removeItem(STORAGE_KEY_AGENTROUTER_MODEL);
+  }
+}
+
+export type PreferredOCRProvider = 'auto' | 'gemini' | 'ollama' | 'claude' | 'openai';
+
+export function getPreferredOCRProvider(): PreferredOCRProvider {
+  if (typeof window === 'undefined') return 'auto';
+  const val = localStorage.getItem(STORAGE_KEY_PREFERRED_OCR_PROVIDER) as PreferredOCRProvider;
+  if (val && ['auto', 'gemini', 'ollama', 'claude', 'openai'].includes(val)) return val;
+  return 'auto';
+}
+
+export function savePreferredOCRProvider(provider: PreferredOCRProvider): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(STORAGE_KEY_PREFERRED_OCR_PROVIDER, provider);
+}
+
+export function getOllamaEndpoint(): string {
+  if (typeof window === 'undefined') return '';
+  const val = localStorage.getItem(STORAGE_KEY_OLLAMA_ENDPOINT);
+  if (!val || val === 'DISABLED') return '';
+  return val.trim();
+}
+
+export function saveOllamaEndpoint(endpoint: string): void {
+  if (typeof window === 'undefined') return;
+  const clean = endpoint.trim().replace(/\/+$/, '');
+  if (clean) {
+    localStorage.setItem(STORAGE_KEY_OLLAMA_ENDPOINT, clean);
+  } else {
+    localStorage.setItem(STORAGE_KEY_OLLAMA_ENDPOINT, 'DISABLED');
+  }
+}
+
+export function getOllamaModel(): string {
+  if (typeof window === 'undefined') return 'minicpm-v';
+  return (localStorage.getItem(STORAGE_KEY_OLLAMA_MODEL) || 'minicpm-v').trim();
+}
+
+export function saveOllamaModel(model: string): void {
+  if (typeof window === 'undefined') return;
+  const clean = model.trim();
+  if (clean) {
+    localStorage.setItem(STORAGE_KEY_OLLAMA_MODEL, clean);
+  } else {
+    localStorage.removeItem(STORAGE_KEY_OLLAMA_MODEL);
   }
 }
 

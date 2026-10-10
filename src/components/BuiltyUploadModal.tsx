@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { fileToBase64 } from '../lib/gemini';
-import { getActiveOCRProvider, processBuiltyWithAI } from '../lib/aiOcr';
+import { getActiveOCRProvider, getOCRProviderLabel, processBuiltyWithAI } from '../lib/aiOcr';
 import type { GeminiBuiltyExtractionResult } from '../types';
 import { 
   X, 
@@ -167,10 +167,10 @@ export const BuiltyUploadModal: React.FC = () => {
       setDrafts(newDrafts);
       setActiveDraftIndex(0);
       setActiveMode('manual');
-      setStatusNote(`✓ Successfully scanned ${newDrafts.length} Builty receipt(s) via Gemini AI Vision. DC numbers and Adda details automatically identified below.`);
+      setStatusNote(`✓ Successfully scanned ${newDrafts.length} Builty receipt(s) via ${getOCRProviderLabel(activeOCRProvider)}. DC numbers and Adda details automatically identified below.`);
     } catch (err: any) {
       console.error('Builty OCR Scanning error:', err);
-      setErrorMsg('Failed to process builty image via Gemini AI. Switched to manual entry mode.');
+      setErrorMsg(`Failed to process builty image via ${getOCRProviderLabel(activeOCRProvider)}. Switched to manual entry mode.`);
       setActiveMode('manual');
     } finally {
       setIsScanning(false);
@@ -317,7 +317,7 @@ export const BuiltyUploadModal: React.FC = () => {
               }`}
             >
               <Sparkles className="w-4 h-4 text-amber-800" />
-              Scan Builty Picture(s) via Gemini AI
+              Scan Builty Picture(s) via {getOCRProviderLabel(activeOCRProvider)}
             </button>
 
             <button
@@ -473,7 +473,7 @@ export const BuiltyUploadModal: React.FC = () => {
             <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-3">
               <Loader2 className="w-5 h-5 text-amber-600 animate-spin flex-shrink-0" />
               <div>
-                <p className="font-bold">Gemini AI Document Vision Scanning Builty Receipt(s)...</p>
+                <p className="font-bold">{getOCRProviderLabel(activeOCRProvider)} Scanning Builty Receipt(s)...</p>
                 <p className="text-[11px] text-amber-800 font-medium">
                   Locating handwritten DC Number, Consignment #, Goods Transport Company, Destination & Freight charges...
                 </p>
