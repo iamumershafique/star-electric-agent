@@ -184,6 +184,47 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+async function syncCloudCollectionChanges<T extends { id: string }>(
+  collectionName: string,
+  previousRecords: T[],
+  nextRecords: T[],
+  saveRecord: (record: T) => Promise<void>,
+  deleteRecord: (id: string) => Promise<void>
+): Promise<void> {
+  const previousById = new Map(previousRecords.map(record => [record.id, record]));
+  const nextById = new Map(nextRecords.map(record => [record.id, record]));
+  const operations: Promise<void>[] = [];
+
+  nextById.forEach((record, id) => {
+    const previous = previousById.get(id);
+    if (!previous || JSON.stringify(previous) !== JSON.stringify(record)) {
+      operations.push(saveRecord(record));
+    }
+  });
+  previousById.forEach((_, id) => {
+    if (!nextById.has(id)) operations.push(deleteRecord(id));
+  });
+
+  const results = await Promise.allSettled(operations);
+  results.forEach(result => {
+    if (result.status === 'rejected') {
+      console.error(`[Firestore] Failed to sync ${collectionName} changes:`, result.reason);
+    }
+  });
+}
+
+function syncCloudRecordChanges(
+  previousPRs: PRRecord[],
+  nextPRs: PRRecord[],
+  previousDCs: DCRecord[],
+  nextDCs: DCRecord[]
+): Promise<void> {
+  return Promise.all([
+    syncCloudCollectionChanges('PR', previousPRs, nextPRs, savePRToCloud, deletePRFromCloud),
+    syncCloudCollectionChanges('DC', previousDCs, nextDCs, saveDCToCloud, deleteDCFromCloud)
+  ]).then(() => undefined);
+}
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [prs, setPRs] = useState<PRRecord[]>(() => {
     try {
@@ -589,6 +630,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (res.success) {
       setPRs(res.updatedPRs);
       setDCs(res.updatedDCs);
+      void syncCloudRecordChanges(prs, res.updatedPRs, dcs, res.updatedDCs);
       if (selectedPR && selectedPR.id === prId) {
         const refreshed = res.updatedPRs.find(p => p.id === prId);
         if (refreshed) setSelectedPR(refreshed);
@@ -602,6 +644,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (res.linkedCount > 0) {
       setPRs(res.updatedPRs);
       setDCs(res.updatedDCs);
+      void syncCloudRecordChanges(prs, res.updatedPRs, dcs, res.updatedDCs);
       if (selectedPR) {
         const refreshed = res.updatedPRs.find(p => p.id === selectedPR.id);
         if (refreshed) setSelectedPR(refreshed);
@@ -681,6 +724,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (res.success) {
       setDCs(res.updatedDCs);
       setPRs(res.updatedPRs);
+      void syncCloudRecordChanges(prs, res.updatedPRs, dcs, res.updatedDCs);
       if (selectedPR && res.linkedPR && selectedPR.id === res.linkedPR.id) {
         setSelectedPR(res.linkedPR);
       }
@@ -692,6 +736,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const res = attachMultipleBuiltysInStorage(builtys);
     setDCs(res.updatedDCs);
     setPRs(res.updatedPRs);
+    void syncCloudRecordChanges(prs, res.updatedPRs, dcs, res.updatedDCs);
     if (selectedPR) {
       const refreshed = res.updatedPRs.find(p => p.id === selectedPR.id);
       if (refreshed) setSelectedPR(refreshed);
@@ -704,6 +749,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (res.success) {
       setPRs(res.prs);
       setDCs(res.dcs);
+      void syncCloudRecordChanges(prs, res.prs, dcs, res.dcs);
     }
     return { success: res.success, error: res.error };
   };
@@ -783,6 +829,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { prs: newPRs, dcs: newDCs } = resetToSeedData();
     setPRs(newPRs);
     setDCs(newDCs);
+    void syncCloudRecordChanges(prs, newPRs, dcs, newDCs);
   };
 
   const exportBackupJSON = () => {
@@ -818,13 +865,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const importBackupJSON = (jsonStr: string): boolean => {
     try {
       const parsed = JSON.parse(jsonStr);
-      if (parsed.prs && Array.isArray(parsed.prs)) {
-        setPRs(parsed.prs);
-        localStorage.setItem('STAR_ELECTRIC_PRS_V2', JSON.stringify(parsed.prs));
+      const importedPRs = Array.isArray(parsed.prs) ? parsed.prs as PRRecord[] : prs;
+      const importedDCs = Array.isArray(parsed.dcs) ? parsed.dcs as DCRecord[] : dcs;
+      if (Array.isArray(parsed.prs)) {
+        saveAllPRs(importedPRs);
+        setPRs(importedPRs);
       }
-      if (parsed.dcs && Array.isArray(parsed.dcs)) {
-        setDCs(parsed.dcs);
-        localStorage.setItem('STAR_ELECTRIC_DCS_V2', JSON.stringify(parsed.dcs));
+      if (Array.isArray(parsed.dcs)) {
+        saveAllDCs(importedDCs);
+        setDCs(importedDCs);
+      }
+      if (Array.isArray(parsed.prs) || Array.isArray(parsed.dcs)) {
+        void syncCloudRecordChanges(prs, importedPRs, dcs, importedDCs);
       }
       return true;
     } catch (e) {
