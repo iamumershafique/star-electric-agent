@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useApp } from '../context/AppContext';
 import type { NavigationTab } from '../types';
 import { Plus, Settings, LogOut } from 'lucide-react';
@@ -18,7 +18,7 @@ export const Navbar: React.FC = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-300 bg-white">
       <div className="mx-auto flex w-full max-w-[1920px] flex-col gap-2 px-4 py-2 sm:px-6 lg:px-10 xl:h-14 xl:flex-row xl:items-center xl:justify-between xl:py-0">
         <div className="flex shrink-0 items-center gap-3">
           <img
@@ -27,7 +27,7 @@ export const Navbar: React.FC = () => {
             className="h-8 w-auto cursor-pointer object-contain"
             onClick={() => setActiveTab('dashboard')}
           />
-          <span className="hidden border-l border-slate-200 pl-3 text-sm font-semibold text-slate-700 sm:inline">Jadeed Group Portal</span>
+          <span className="hidden border-l border-slate-300 pl-3 text-sm font-semibold text-slate-700 sm:inline">Jadeed Group Portal</span>
         </div>
 
         <nav aria-label="Main navigation" className="no-scrollbar flex min-w-0 items-center gap-1 overflow-x-auto">

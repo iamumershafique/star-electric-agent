@@ -318,9 +318,9 @@ export const DeliveriesView: React.FC = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="missing-pr-menu-title"
-            className="bg-white border border-slate-200 rounded-xl w-full max-w-3xl max-h-[90dvh] flex flex-col text-slate-900"
+            className="bg-white border border-slate-300 rounded-xl w-full max-w-3xl max-h-[90dvh] flex flex-col text-slate-900"
           >
-            <header className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-200">
+            <header className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-300">
               <div className="min-w-0">
                 <h3 id="missing-pr-menu-title" className="text-base sm:text-lg font-semibold flex items-center gap-2">
                   <ListChecks className="w-5 h-5 text-amber-600 shrink-0" />
@@ -345,7 +345,7 @@ export const DeliveriesView: React.FC = () => {
                   All delivery challans have a PR link or are marked No PR Required.
                 </div>
               ) : missingPRDCs.map(dc => (
-                <div key={dc.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50">
+                <div key={dc.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl border border-slate-300 bg-slate-50">
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-slate-900">{dc.dcNumber} <span className="text-slate-400 font-normal">· {dc.date}</span></p>
                     <p className="text-xs text-slate-600 truncate">{dc.siteName}</p>
@@ -382,7 +382,7 @@ export const DeliveriesView: React.FC = () => {
             </div>
 
             {missingPRDCs.length > 0 && (
-              <footer className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 sm:p-4 border-t border-slate-200 bg-white rounded-b-2xl">
+              <footer className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 sm:p-4 border-t border-slate-300 bg-white rounded-b-2xl">
                 <p className="text-[11px] text-slate-500">Bulk option sets every currently listed challan to “No PR Required.”</p>
                 <button
                   type="button"
@@ -414,7 +414,7 @@ export const DeliveriesView: React.FC = () => {
       </div>
 
       {/* Search & Filter Controls */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+      <div className="bg-white border border-slate-300 rounded-xl p-4 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           
           {/* Search Box */}
@@ -518,12 +518,12 @@ export const DeliveriesView: React.FC = () => {
         </div>
 
         {/* Interactive Sort Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-200 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
               <ArrowDownUp className="w-3.5 h-3.5 text-slate-400" /> Sort By:
             </span>
-            <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
+            <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-300">
               <button
                 onClick={() => { setSortBy('dc'); setCurrentPage(1); }}
                 className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${sortBy === 'dc' ? 'bg-white text-slate-900 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}
@@ -553,7 +553,7 @@ export const DeliveriesView: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold text-slate-500">Order:</span>
-            <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
+            <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-300">
               <button
                 onClick={() => { setSortOrder('desc'); setCurrentPage(1); }}
                 className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${sortOrder === 'desc' ? 'bg-white text-slate-950' : 'text-slate-600 hover:text-slate-900'}`}
@@ -576,7 +576,7 @@ export const DeliveriesView: React.FC = () => {
       {/* DCs List Grid */}
       <div className="space-y-3">
         {filteredDCs.length === 0 ? (
-          <div className="p-12 text-center bg-white border border-slate-200 rounded-xl text-slate-500 text-xs font-semibold space-y-2">
+          <div className="p-12 text-center bg-white border border-slate-300 rounded-xl text-slate-500 text-xs font-semibold space-y-2">
             <p className="text-sm font-bold text-slate-700">No matching delivery challans found</p>
             <p className="text-slate-500">Try adjusting your search terms or filters.</p>
           </div>
@@ -597,9 +597,9 @@ export const DeliveriesView: React.FC = () => {
             return (
               <div
                 key={dc.id}
-                className={`bg-white border rounded-xl p-4 space-y-3 hover:border-slate-300 transition-colors ${isMissingPR ? 'border-amber-300' : 'border-slate-200'}`}
+                className={`bg-white border rounded-xl p-4 space-y-3 hover:border-slate-300 transition-colors ${isMissingPR ? 'border-amber-300' : 'border-slate-300'}`}
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
                   <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-xl border flex items-center justify-center font-semibold font-mono text-xs ${isMissingPage ? 'bg-rose-50 text-rose-800 border-rose-200' : isMissingPR ? 'bg-amber-100 border-amber-300 text-amber-900' : 'bg-emerald-100 border-emerald-300 text-emerald-800'}`}>
                       DC
@@ -715,7 +715,7 @@ export const DeliveriesView: React.FC = () => {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                     {dc.itemsShipped.map((item, idx) => (
-                      <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                      <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-300 flex items-center justify-between text-xs">
                         <div className="pr-2 truncate">
                           <p className="font-bold text-slate-900 truncate">{item.itemName}</p>
                           <span className="text-[10px] text-slate-500 font-semibold">{item.brand}</span>
@@ -729,7 +729,7 @@ export const DeliveriesView: React.FC = () => {
                 </div>
 
                 {/* Delivery & Builty Footer Bar */}
-                <div className="text-xs text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 font-semibold">
+                <div className="text-xs text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-300 flex flex-col md:flex-row md:items-center justify-between gap-3 font-semibold">
                   <div className="flex flex-wrap items-center gap-2">
                     {hasBuilty ? (
                       <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950 font-semibold border border-amber-300 flex items-center gap-1.5">
@@ -810,7 +810,7 @@ export const DeliveriesView: React.FC = () => {
                       }
                       return (
                         <span
-                          className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 text-xs font-medium flex items-center gap-1"
+                          className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-300 text-xs font-medium flex items-center gap-1"
                           title="Physical scan not present in physical delivery book"
                         >
                           <FileText className="w-3.5 h-3.5 text-slate-400" />
@@ -864,7 +864,7 @@ export const DeliveriesView: React.FC = () => {
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="bg-white border border-slate-300 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="text-slate-600 font-semibold">
             Page <span className="font-semibold text-slate-900">{clampedPage}</span> of <span className="font-semibold text-slate-900">{totalPages}</span> ({filteredDCs.length} total deliveries)
           </div>
@@ -890,7 +890,7 @@ export const DeliveriesView: React.FC = () => {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`w-8 h-8 rounded-xl font-bold text-xs transition-all cursor-pointer ${pageNum === clampedPage ? 'bg-white text-slate-950' : 'bg-slate-50 text-slate-700 hover:bg-slate-200 border border-slate-200'}`}
+                    className={`w-8 h-8 rounded-xl font-bold text-xs transition-all cursor-pointer ${pageNum === clampedPage ? 'bg-white text-slate-950' : 'bg-slate-50 text-slate-700 hover:bg-slate-200 border border-slate-300'}`}
                   >
                     {pageNum}
                   </button>
@@ -912,8 +912,8 @@ export const DeliveriesView: React.FC = () => {
       {/* MANUAL PR LINK DIALOG */}
       {manualPRModalDC && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white border border-slate-200 rounded-xl max-w-lg w-full p-6 space-y-4 text-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+          <div className="bg-white border border-slate-300 rounded-xl max-w-lg w-full p-6 space-y-4 text-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-300 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center font-bold">
                   <Edit3 className="w-5 h-5" />
@@ -936,7 +936,7 @@ export const DeliveriesView: React.FC = () => {
             </div>
 
             <form onSubmit={handleSaveManualPR} className="space-y-4">
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-xs">
+              <div className="p-3 bg-slate-50 border border-slate-300 rounded-xl space-y-1 text-xs">
                 <div className="flex justify-between font-mono font-bold text-slate-800">
                   <span>Challan: {manualPRModalDC.dcNumber}</span>
                   <span>Date: {manualPRModalDC.date}</span>
@@ -965,7 +965,7 @@ export const DeliveriesView: React.FC = () => {
                   <label className="block text-[11px] font-bold text-slate-500 mb-1">
                     Quick Pick from Existing PRs:
                   </label>
-                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1 border border-slate-200 rounded-xl bg-slate-50">
+                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1 border border-slate-300 rounded-xl bg-slate-50">
                     {prs.slice(0, 15).map(p => (
                       <button
                         key={p.id}
@@ -993,7 +993,7 @@ export const DeliveriesView: React.FC = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-300">
                 <button
                   type="button"
                   onClick={() => setManualPRModalDC(null)}
@@ -1017,8 +1017,8 @@ export const DeliveriesView: React.FC = () => {
       {/* MODAL 2: UPLOAD PR IMAGE */}
       {uploadPRModalDC && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white border border-slate-200 rounded-xl max-w-lg w-full p-6 space-y-4 text-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+          <div className="bg-white border border-slate-300 rounded-xl max-w-lg w-full p-6 space-y-4 text-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-300 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-indigo-100 border border-indigo-300 text-indigo-900 flex items-center justify-center font-bold">
                   <UploadCloud className="w-5 h-5" />
@@ -1041,7 +1041,7 @@ export const DeliveriesView: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-xs">
+              <div className="p-3 bg-slate-50 border border-slate-300 rounded-xl space-y-1 text-xs">
                 <div className="flex justify-between font-mono font-bold text-slate-800">
                   <span>Challan: {uploadPRModalDC.dcNumber}</span>
                   <span>Date: {uploadPRModalDC.date}</span>
@@ -1093,7 +1093,7 @@ export const DeliveriesView: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="relative border border-slate-200 rounded-xl overflow-hidden bg-slate-100 max-h-48 flex items-center justify-center">
+                  <div className="relative border border-slate-300 rounded-xl overflow-hidden bg-slate-100 max-h-48 flex items-center justify-center">
                     <img 
                       src={uploadPRPreview} 
                       alt="PR Preview" 
@@ -1117,7 +1117,7 @@ export const DeliveriesView: React.FC = () => {
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-300">
                 <button
                   type="button"
                   onClick={() => setUploadPRModalDC(null)}

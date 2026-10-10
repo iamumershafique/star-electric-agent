@@ -412,7 +412,7 @@ Keep response practical, bulleted, and structured with clear sections.
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 pt-2">
           
           {/* Health Score */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-300 space-y-1">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-blue-600" /> Database Health
             </span>
@@ -432,7 +432,7 @@ Keep response practical, bulleted, and structured with clear sections.
             className={`p-4 rounded-xl border space-y-1 cursor-pointer transition-all ${
               totalDuplicatesCount > 0 
                 ? 'bg-rose-50/70 border-rose-200 hover:bg-rose-100/60' 
-                : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                : 'bg-slate-50 border-slate-300 hover:bg-slate-100'
             }`}
           >
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
@@ -451,7 +451,7 @@ Keep response practical, bulleted, and structured with clear sections.
           {/* Pending Demands */}
           <div 
             onClick={() => setActiveSubTab('pending')}
-            className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1 cursor-pointer hover:bg-slate-100 transition-all"
+            className="bg-slate-50 p-4 rounded-xl border border-slate-300 space-y-1 cursor-pointer hover:bg-slate-100 transition-all"
           >
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-amber-600" /> Pending PRs
@@ -505,7 +505,7 @@ Keep response practical, bulleted, and structured with clear sections.
         </div>
 
         {/* Sub Navigation Filter Tabs */}
-        <div className="flex items-center gap-2 border-t border-slate-200 pt-3 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 border-t border-slate-300 pt-3 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveSubTab('all')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
@@ -603,7 +603,7 @@ Keep response practical, bulleted, and structured with clear sections.
           <span className={`self-start sm:self-auto px-2.5 py-1 rounded-full border text-[11px] font-bold ${
             claudeKeyConfigured
               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-              : 'bg-slate-100 text-slate-600 border-slate-200'
+              : 'bg-slate-100 text-slate-600 border-slate-300'
           }`}>
             {claudeKeyConfigured
               ? `${claudeProviderName} audit API ready`
@@ -715,7 +715,7 @@ Keep response practical, bulleted, and structured with clear sections.
             )}
 
             {claudeAuditResult.suggestions.length === 0 && (
-              <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+              <p className="rounded-xl border border-slate-300 bg-slate-50 p-3 text-xs text-slate-600">
                 No high-confidence, exact printed PR-number links were proposed. This does not mean all records are linked or error-free; review the findings below.
               </p>
             )}
@@ -723,7 +723,7 @@ Keep response practical, bulleted, and structured with clear sections.
             {claudeAuditResult.findings.some(finding => finding.findings.length > 0) && (
               <div className="space-y-2">
                 <h4 className="text-xs font-semibold text-slate-800">Audit findings</h4>
-                <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 rounded-xl border border-slate-200">
+                <div className="max-h-96 overflow-y-auto divide-y divide-slate-200 rounded-xl border border-slate-300">
                   {claudeAuditResult.findings.filter(finding => finding.findings.length > 0).map(finding => (
                     <div key={`${finding.recordType}-${finding.recordId}`} className="p-3 text-[11px]">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-bold text-slate-800">
@@ -748,7 +748,7 @@ Keep response practical, bulleted, and structured with clear sections.
 
       {/* SECTION 1: DUPLICATES */}
       {(activeSubTab === 'all' || activeSubTab === 'duplicates') && (
-        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+        <div className="bg-white border border-slate-300 rounded-xl p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
@@ -924,7 +924,7 @@ Keep response practical, bulleted, and structured with clear sections.
 
       {/* SECTION 2: PENDING REQUISITIONS */}
       {(activeSubTab === 'all' || activeSubTab === 'pending') && (
-        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+        <div className="bg-white border border-slate-300 rounded-xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
@@ -956,8 +956,8 @@ Keep response practical, bulleted, and structured with clear sections.
                 const pct = totalReq > 0 ? Math.round((totalFul / totalReq) * 100) : 0;
 
                 return (
-                  <div key={pr.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 hover:border-slate-300 transition-colors">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+                  <div key={pr.id} className="p-4 rounded-xl bg-slate-50 border border-slate-300 space-y-3 hover:border-slate-300 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-300/80 pb-3">
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-semibold text-sm text-slate-900">{pr.prNumber}</span>
@@ -1018,7 +1018,7 @@ Keep response practical, bulleted, and structured with clear sections.
                         {unfulfilled.map((it, iIdx) => {
                           const remaining = Math.max(0, it.requestedQty - it.fulfilledQty);
                           return (
-                            <div key={iIdx} className="p-2.5 rounded-lg bg-white border border-slate-200 text-xs flex items-center justify-between">
+                            <div key={iIdx} className="p-2.5 rounded-lg bg-white border border-slate-300 text-xs flex items-center justify-between">
                               <div className="pr-2">
                                 <p className="font-bold text-slate-900 truncate max-w-[180px]">{it.name}</p>
                                 <span className="text-[10px] text-slate-500">{it.brand}</span>
@@ -1047,7 +1047,7 @@ Keep response practical, bulleted, and structured with clear sections.
 
       {/* SECTION 3: DC TO PR LINKING REPAIR ENGINE */}
       {(activeSubTab === 'all' || activeSubTab === 'linking') && (
-        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+        <div className="bg-white border border-slate-300 rounded-xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
@@ -1201,7 +1201,7 @@ Keep response practical, bulleted, and structured with clear sections.
 
       {/* SECTION 4: BUILTY RECONCILIATION & VERIFICATION */}
       {(activeSubTab === 'all' || activeSubTab === 'builty') && (
-        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+        <div className="bg-white border border-slate-300 rounded-xl p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
@@ -1226,7 +1226,7 @@ Keep response practical, bulleted, and structured with clear sections.
           </div>
 
           {/* Stats Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-slate-50 border border-slate-300 text-xs">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
               <span className="text-slate-600 font-medium">Builty Attached:</span>
@@ -1253,10 +1253,10 @@ Keep response practical, bulleted, and structured with clear sections.
                   className={`p-4 rounded-xl border transition-all space-y-3 ${
                     dc.isBuiltyAttached 
                       ? 'bg-emerald-50/30 border-emerald-200' 
-                      : 'bg-white border-slate-200 hover:border-slate-300'
+                      : 'bg-white border-slate-300 hover:border-slate-300'
                   }`}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-300/80 pb-3">
                     <div className="flex items-center gap-3">
                       <div className={`w-9 h-9 rounded-xl border flex items-center justify-center font-mono font-bold text-xs ${
                         dc.isBuiltyAttached
@@ -1362,7 +1362,7 @@ Keep response practical, bulleted, and structured with clear sections.
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-300 text-xs text-slate-600 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Truck className="w-4 h-4 text-slate-400" />
                         <span>Remarks: <strong>{dc.remarks || 'Direct Delivery / Builty Pending'}</strong></span>

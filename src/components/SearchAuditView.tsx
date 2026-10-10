@@ -265,7 +265,7 @@ export const SearchAuditView: React.FC = () => {
         </button>
       </div>
 
-      <details className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      <details className="bg-white border border-slate-300 rounded-xl overflow-hidden">
         <summary className="cursor-pointer list-none p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50">
           <div>
             <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
@@ -283,7 +283,7 @@ export const SearchAuditView: React.FC = () => {
             <span className="text-slate-500">{auditReport.findings.length ? 'View findings' : 'No findings'}</span>
           </div>
         </summary>
-        <div className="border-t border-slate-200 p-4 sm:p-5 space-y-2">
+        <div className="border-t border-slate-300 p-4 sm:p-5 space-y-2">
           {auditReport.findings.length === 0 ? (
             <p className="text-sm font-semibold text-emerald-800">No data integrity issues were found.</p>
           ) : (
@@ -292,7 +292,7 @@ export const SearchAuditView: React.FC = () => {
                 Findings are read-only. Resolve them from the corresponding requisition or delivery record.
                 {auditReport.findings.length > 100 && ` Showing the first 100 of ${auditReport.findings.length}.`}
               </p>
-              <ul className="max-h-96 overflow-y-auto divide-y divide-slate-100">
+              <ul className="max-h-96 overflow-y-auto divide-y divide-slate-200">
                 {auditReport.findings.slice(0, 100).map(finding => (
                   <li key={finding.id} className="py-2 flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3 text-xs">
                     <span className={`shrink-0 font-semibold ${
@@ -311,8 +311,8 @@ export const SearchAuditView: React.FC = () => {
       </details>
 
       {/* Multi-Dimensional Filter Bar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+      <div className="bg-white border border-slate-300 rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
           <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
             <Filter className="w-4 h-4 text-amber-600" />
             Multi-Dimensional Audit Filter Controls
@@ -411,7 +411,7 @@ export const SearchAuditView: React.FC = () => {
 
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
           <div>
             <label className="text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
               <Building2 className="w-3 h-3 text-blue-600" /> Jadeed Group Farm Location / Site
@@ -494,7 +494,7 @@ export const SearchAuditView: React.FC = () => {
             <span className="text-[10px] text-slate-500 uppercase font-bold">Items Dispatched under this DC:</span>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
               {matchedDC.itemsShipped.map((item, idx) => (
-                <div key={idx} className="p-2 rounded-lg bg-white border border-slate-200 text-xs flex justify-between items-center">
+                <div key={idx} className="p-2 rounded-lg bg-white border border-slate-300 text-xs flex justify-between items-center">
                   <span className="font-bold text-slate-900">{item.itemName}</span>
                   <span className="font-mono font-semibold text-emerald-800">{item.quantity} {item.unit}</span>
                 </div>
@@ -505,8 +505,8 @@ export const SearchAuditView: React.FC = () => {
       )}
 
       {/* Material Delivery Verification Tool */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+      <div className="bg-white border border-slate-300 rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
           <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
             <PackageCheck className="w-4 h-4 text-emerald-600" />
             Material Delivery Verification & Status Checker (میٹریل ڈلیوری چیکر)
@@ -598,8 +598,8 @@ export const SearchAuditView: React.FC = () => {
       </div>
 
       {/* Item Supply Traceability Report Table */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+      <div className="bg-white border border-slate-300 rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
           <div>
             <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
               <Zap className="w-4 h-4 text-amber-500" />
@@ -610,11 +610,11 @@ export const SearchAuditView: React.FC = () => {
         </div>
 
         {filteredFulfillmentLogs.length === 0 ? (
-          <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-xl text-slate-500 text-xs font-semibold">
+          <div className="p-8 text-center bg-slate-50 border border-slate-300 rounded-xl text-slate-500 text-xs font-semibold">
             No dispatch logs found matching the selected filter criteria.
           </div>
         ) : (
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
+          <div className="border border-slate-300 rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-xs text-slate-800">
               <thead className="bg-slate-100 text-slate-700 uppercase font-bold text-[10px]">
@@ -629,7 +629,7 @@ export const SearchAuditView: React.FC = () => {
                   <th className="p-3">Transport / Bilty / Driver Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
+              <tbody className="divide-y divide-slate-300 bg-white">
                 {filteredFulfillmentLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-3 font-mono font-bold text-slate-900 shrink-0">

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useApp } from '../context/AppContext';
 import { getStatusBadgeColor, calculatePRTotals } from '../lib/utils';
 import { 
@@ -104,10 +104,10 @@ export const LedgerView: React.FC = () => {
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="overflow-hidden rounded-xl border border-slate-300 bg-white">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-800">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500">
+          <table className="w-full text-left text-sm text-slate-800 [&_th]:border-r [&_td]:border-r [&_th]:border-slate-200 [&_td]:border-slate-200 [&_th:last-child]:border-r-0 [&_td:last-child]:border-r-0">
+            <thead className="border-b border-slate-300 bg-slate-50 text-xs font-medium text-slate-500">
               <tr>
                 <th className="px-4 py-3 font-medium">PR</th>
                 <th className="px-4 py-3 font-medium">Date</th>
@@ -117,7 +117,7 @@ export const LedgerView: React.FC = () => {
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
+            <tbody className="divide-y divide-slate-200 bg-white">
               {filteredPRs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-10 text-center text-sm text-slate-500">

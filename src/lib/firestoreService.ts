@@ -154,7 +154,9 @@ export async function saveDCToCloud(dc: DCRecord): Promise<void> {
   if (!db || !isFirestoreConfigured()) return;
 
   const docId = String(dc.id || dc.dcNumber).replace(/\//g, '_');
-  const { documentImage, ...cleanDC } = dc;
+  // Keep lightweight references/URLs so other devices can resolve the scan from Storage
+  const { documentImage, ...rest } = dc;
+  const cleanDC = documentImage && !documentImage.startsWith('data:') ? { ...rest, documentImage } : rest;
 
   const docRef = doc(db, DCS_COLLECTION, docId);
   await setDoc(docRef, cleanDC, { merge: true });

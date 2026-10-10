@@ -69,7 +69,7 @@ export const Dashboard: React.FC = () => {
         </button>
       </header>
 
-      <section aria-label="Portal summary" className="grid grid-cols-2 divide-x divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white sm:grid-cols-4 sm:divide-y-0">
+      <section aria-label="Portal summary" className="grid grid-cols-2 divide-x divide-y divide-slate-300 overflow-hidden rounded-xl border border-slate-300 bg-white sm:grid-cols-4 sm:divide-y-0">
         <div className="p-4 sm:p-5">
           <p className="text-xs font-medium text-slate-500">Total requisitions</p>
           <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-950">{prs.length}</p>
@@ -100,8 +100,8 @@ export const Dashboard: React.FC = () => {
           </div>
           <span className="text-xs font-medium text-slate-500">Live from portal records</span>
         </div>
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-100 px-4 py-3.5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:px-5">
+        <div className="overflow-hidden rounded-xl border border-slate-300 bg-white">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-200 px-4 py-3.5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:px-5">
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-700"><ClipboardList className="h-4 w-4" /></span>
               <div className="min-w-0">
@@ -117,7 +117,7 @@ export const Dashboard: React.FC = () => {
               {openPRs.length ? 'Review first' : 'View ledger'} <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-100 px-4 py-3.5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:px-5">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-200 px-4 py-3.5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:px-5">
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600"><FileCheck2 className="h-4 w-4" /></span>
               <div className="min-w-0">
@@ -163,7 +163,7 @@ export const Dashboard: React.FC = () => {
               All PRs <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="overflow-hidden rounded-xl border border-slate-300 bg-white">
             {prioritizedPRs.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-slate-500">No requisitions recorded yet.</p>
             ) : (
@@ -174,7 +174,7 @@ export const Dashboard: React.FC = () => {
                 const requestedQty = pr.items.filter(item => item.status !== 'Cancelled').length;
                 const completeQty = pr.items.filter(item => item.status !== 'Cancelled' && item.fulfilledQty >= item.requestedQty).length;
                 return (
-                  <div key={pr.id} className={`flex items-center gap-3 px-4 py-3 ${index < Math.min(prioritizedPRs.length, 5) - 1 ? 'border-b border-slate-100' : ''}`}>
+                  <div key={pr.id} className={`flex items-center gap-3 px-4 py-3 ${index < Math.min(prioritizedPRs.length, 5) - 1 ? 'border-b border-slate-200' : ''}`}>
                     <button onClick={() => openPR(pr)} className="min-w-0 flex-1 text-left">
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="font-mono text-sm font-semibold text-slate-900">{pr.prNumber}</span>
@@ -214,12 +214,12 @@ export const Dashboard: React.FC = () => {
               All DCs <ArrowRight className="h-3.5 w-3.5" />
             </button>
           </div>
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="overflow-hidden rounded-xl border border-slate-300 bg-white">
             {realDCs.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-slate-500">No delivery challans recorded yet.</p>
             ) : (
               realDCs.slice(0, 5).map((dc, index) => (
-                <div key={dc.id} className={`flex items-center gap-3 px-4 py-3 ${index < Math.min(realDCs.length, 5) - 1 ? 'border-b border-slate-100' : ''}`}>
+                <div key={dc.id} className={`flex items-center gap-3 px-4 py-3 ${index < Math.min(realDCs.length, 5) - 1 ? 'border-b border-slate-200' : ''}`}>
                   <button onClick={() => setActiveTab('deliveries')} className="min-w-0 flex-1 text-left">
                     <span className="flex flex-wrap items-center gap-2">
                       <span className="font-mono text-sm font-semibold text-slate-900">{dc.dcNumber}</span>
@@ -262,7 +262,7 @@ export const Dashboard: React.FC = () => {
                   setSearchQuery(site.name);
                   setActiveTab('deliveries');
                 }}
-                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
               >
                 <Building className="h-3.5 w-3.5 text-slate-400" />
                 <span>{site.name}</span>
