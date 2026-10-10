@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { getStatusBadgeColor, calculatePRTotals } from '../lib/utils';
-import { getLinkedDCNumbersForPR } from '../lib/storage';
+import { getLinkedDCNumbersForPR, isDCPRMissing } from '../lib/storage';
 import { getImageFromMemorySync } from '../lib/imageStorage';
 import type { LineItem } from '../types';
 import { 
@@ -32,7 +32,9 @@ export const PRDetailModal: React.FC = () => {
     setEditingPR,
     setIsPREditOpen,
     setSelectedBuiltyPreview,
-    updateExistingPR
+    updateExistingPR,
+    prs,
+    updateDC
   } = useApp();
 
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
@@ -41,6 +43,15 @@ export const PRDetailModal: React.FC = () => {
 
   const totals = calculatePRTotals(selectedPR);
   const linkedPRDCNumbers = getLinkedDCNumbersForPR(selectedPR, dcs);
+
+  const pendingDCs = dcs
+    .filter(dc => isDCPRMissing(dc, prs))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.dcNumber.localeCompare(a.dcNumber, undefined, { numeric: true }));
+  const linkDCToPR = (dcId: string) => {
+    const dc = dcs.find(d => d.id === dcId);
+    if (!dc) return;
+    updateDC({ ...dc, prId: selectedPR.id, prNumber: selectedPR.prNumber, noPrRequired: false });
+  };
 
   const handlePrint = () => {
     window.print();
@@ -209,6 +220,27 @@ export const PRDetailModal: React.FC = () => {
             </span>
           </div>
 
+          {pendingDCs.length > 0 && (
+            <div className="no-print rounded-xl border border-slate-300 bg-white p-4 space-y-2">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">Link a pending DC to {selectedPR.prNumber}</h4>
+                <span className="text-[11px] text-slate-500">{pendingDCs.length} DCs have no PR. Click one to link it.</span>
+              </div>
+              <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto">
+                {pendingDCs.map(dc => (
+                  <button
+                    key={dc.id}
+                    type="button"
+                    onClick={() => linkDCToPR(dc.id)}
+                    title={`${dc.siteName || ''} ${dc.date || ''}`.trim() || 'Link this DC'}
+                    className="cursor-pointer rounded-md border border-dashed border-slate-400 bg-white px-2 py-1 font-mono text-[11px] font-semibold text-slate-800 transition-colors hover:border-slate-900 hover:bg-slate-50"
+                  >
+                    + {dc.dcNumber}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Fulfillment Bar */}
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
             <div className="flex justify-between items-center text-xs">
