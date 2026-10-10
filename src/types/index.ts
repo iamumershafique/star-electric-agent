@@ -10,7 +10,7 @@ export type BrandCategory =
 
 export type ItemStatus = 'Pending' | 'Partially Fulfilled' | 'Completed' | 'Cancelled';
 export type PRStatus = 'Pending' | 'In-Progress' | 'Fulfilled' | 'Cancelled';
-export type NavigationTab = 'dashboard' | 'ledger' | 'deliveries' | 'brands' | 'search' | 'gemini-audit';
+export type NavigationTab = 'dashboard' | 'ledger' | 'deliveries' | 'search' | 'gemini-audit';
 
 export interface LineItem {
   id: string;

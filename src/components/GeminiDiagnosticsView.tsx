@@ -351,40 +351,28 @@ Keep response practical, bulleted, and structured with clear sections.
     <div className="space-y-6 w-full text-slate-900 animate-fadeIn">
       
       {/* Top Banner */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-300 flex items-center justify-center text-amber-700">
-              <Sparkles className="w-6 h-6 text-amber-600 animate-pulse" />
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                Gemini AI Diagnostics & Fix Engine
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300">
-                  Self-Healing Database
-                </span>
-              </h2>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Detect duplicates, inspect pending requisitions, and repair PR-to-DC link integrity with Google Gemini AI
-              </p>
-            </div>
+      <div className="space-y-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-950">Assistant</h1>
+            <p className="mt-1 text-sm text-slate-500">Find duplicates, check requisitions and repair PR-to-DC links.</p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handleRunAiAudit}
               disabled={isAiAuditing}
-              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-50"
             >
               {isAiAuditing ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Gemini Auditing...
+                  Auditing...
                 </>
               ) : (
                 <>
                   <Sparkles className="w-3.5 h-3.5" />
-                  Run Gemini Deep Audit
+                  Run deep audit
                 </>
               )}
             </button>
@@ -392,10 +380,10 @@ Keep response practical, bulleted, and structured with clear sections.
             {unlinkedDCs.length > 0 && (
               <button
                 onClick={handleAutoLinkAll}
-                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
               >
                 <LinkIcon className="w-3.5 h-3.5" />
-                Auto-Link All DCs ({unlinkedDCs.length})
+                Auto-link DCs ({unlinkedDCs.length})
               </button>
             )}
 
@@ -404,10 +392,10 @@ Keep response practical, bulleted, and structured with clear sections.
                 const res = await markAllDCsDelivered();
                 showFeedback(`✓ ${res.deliveredCount} DCs marked Delivered; builty attachments do not determine delivery status; ${res.skippedCount} missing-page records unchanged.` + (res.cloudFailures ? ` Cloud sync failed for ${res.cloudFailures} records; see console.` : ''));
               }}
-              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20 cursor-pointer"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
             >
               <CheckCircle2 className="w-4 h-4" />
-              Set All Delivery Statuses
+              Set all delivery statuses
             </button>
           </div>
         </div>
@@ -429,7 +417,7 @@ Keep response practical, bulleted, and structured with clear sections.
               <ShieldCheck className="w-3.5 h-3.5 text-blue-600" /> Database Health
             </span>
             <div className="flex items-baseline gap-2">
-              <span className={`text-2xl font-black ${healthScore >= 90 ? 'text-emerald-700' : healthScore >= 70 ? 'text-amber-600' : 'text-rose-600'}`}>
+              <span className={`text-2xl font-semibold ${healthScore >= 90 ? 'text-emerald-700' : healthScore >= 70 ? 'text-amber-600' : 'text-rose-600'}`}>
                 {healthScore}%
               </span>
               <span className="text-[10px] text-slate-500 font-bold">
@@ -451,7 +439,7 @@ Keep response practical, bulleted, and structured with clear sections.
               <Copy className="w-3.5 h-3.5 text-rose-600" /> Duplicate Entries
             </span>
             <div className="flex items-baseline gap-2">
-              <span className={`text-2xl font-black ${totalDuplicatesCount > 0 ? 'text-rose-700' : 'text-slate-900'}`}>
+              <span className={`text-2xl font-semibold ${totalDuplicatesCount > 0 ? 'text-rose-700' : 'text-slate-900'}`}>
                 {totalDuplicatesCount}
               </span>
               <span className="text-[10px] text-slate-500 font-bold">
@@ -469,7 +457,7 @@ Keep response practical, bulleted, and structured with clear sections.
               <Clock className="w-3.5 h-3.5 text-amber-600" /> Pending PRs
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-black text-amber-700">
+              <span className="text-2xl font-semibold text-amber-700">
                 {pendingPRs.length}
               </span>
               <span className="text-[10px] text-slate-500 font-bold">
@@ -487,7 +475,7 @@ Keep response practical, bulleted, and structured with clear sections.
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Deliveries Completed
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-black text-emerald-700">
+              <span className="text-2xl font-semibold text-emerald-700">
                 {dcs.length} / {dcs.length}
               </span>
               <span className="text-[10px] text-emerald-800 font-bold">
@@ -505,7 +493,7 @@ Keep response practical, bulleted, and structured with clear sections.
               <Package className="w-3.5 h-3.5 text-amber-600" /> Builty Receipts
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-black text-slate-900">
+              <span className="text-2xl font-semibold text-slate-900">
                 {builtyAttachedCount} / {dcs.length}
               </span>
               <span className="text-[10px] text-slate-500 font-bold">
@@ -522,7 +510,7 @@ Keep response practical, bulleted, and structured with clear sections.
             onClick={() => setActiveSubTab('all')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
               activeSubTab === 'all'
-                ? 'bg-slate-900 text-white shadow-2xs'
+                ? 'bg-slate-900 text-white'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -533,7 +521,7 @@ Keep response practical, bulleted, and structured with clear sections.
             onClick={() => setActiveSubTab('duplicates')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
               activeSubTab === 'duplicates'
-                ? 'bg-rose-600 text-white shadow-2xs'
+                ? 'bg-rose-600 text-white'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -545,7 +533,7 @@ Keep response practical, bulleted, and structured with clear sections.
             onClick={() => setActiveSubTab('pending')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
               activeSubTab === 'pending'
-                ? 'bg-amber-500 text-slate-950 shadow-2xs'
+                ? 'bg-amber-500 text-slate-950'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -557,7 +545,7 @@ Keep response practical, bulleted, and structured with clear sections.
             onClick={() => setActiveSubTab('linking')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
               activeSubTab === 'linking'
-                ? 'bg-emerald-600 text-white shadow-2xs'
+                ? 'bg-emerald-600 text-white'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -569,7 +557,7 @@ Keep response practical, bulleted, and structured with clear sections.
             onClick={() => setActiveSubTab('builty')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
               activeSubTab === 'builty'
-                ? 'bg-amber-500 text-slate-950 shadow-2xs'
+                ? 'bg-amber-500 text-slate-950'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -582,9 +570,9 @@ Keep response practical, bulleted, and structured with clear sections.
 
       {/* AI Deep Audit Output (if generated) */}
       {aiAuditReport && (
-        <div className="bg-white border-2 border-amber-300 rounded-2xl p-6 shadow-sm space-y-3 animate-fadeIn">
+        <div className="bg-white border-2 border-amber-300 rounded-xl p-6 space-y-3 animate-fadeIn">
           <div className="flex items-center justify-between border-b border-amber-200 pb-3">
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-600" />
               Gemini AI Supply Chain Audit Findings
             </h3>
@@ -601,10 +589,10 @@ Keep response practical, bulleted, and structured with clear sections.
         </div>
       )}
 
-      <section className="bg-white border-2 border-orange-200 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+      <section className="bg-white border-2 border-orange-200 rounded-xl p-5 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-orange-600" />
               Claude Haiku PR &amp; DC Document Audit
             </h3>
@@ -676,19 +664,19 @@ Keep response practical, bulleted, and structured with clear sections.
           <div className="space-y-4 border-t border-orange-100 pt-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div className="rounded-lg bg-slate-50 p-3">
-                <div className="text-xl font-black text-slate-900">{claudeAuditResult.completed}</div>
+                <div className="text-xl font-semibold text-slate-900">{claudeAuditResult.completed}</div>
                 <div className="text-[10px] font-bold text-slate-500">Records audited</div>
               </div>
               <div className="rounded-lg bg-slate-50 p-3">
-                <div className="text-xl font-black text-slate-900">{claudeAuditResult.findings.filter(finding => finding.imageAvailable).length}</div>
+                <div className="text-xl font-semibold text-slate-900">{claudeAuditResult.findings.filter(finding => finding.imageAvailable).length}</div>
                 <div className="text-[10px] font-bold text-slate-500">Scans read</div>
               </div>
               <div className="rounded-lg bg-slate-50 p-3">
-                <div className="text-xl font-black text-orange-700">{claudeAuditResult.findings.filter(finding => finding.findings.length > 0).length}</div>
+                <div className="text-xl font-semibold text-orange-700">{claudeAuditResult.findings.filter(finding => finding.findings.length > 0).length}</div>
                 <div className="text-[10px] font-bold text-slate-500">Records flagged</div>
               </div>
               <div className="rounded-lg bg-slate-50 p-3">
-                <div className="text-xl font-black text-emerald-700">{claudeAuditResult.suggestions.length}</div>
+                <div className="text-xl font-semibold text-emerald-700">{claudeAuditResult.suggestions.length}</div>
                 <div className="text-[10px] font-bold text-slate-500">Link proposals</div>
               </div>
             </div>
@@ -699,7 +687,7 @@ Keep response practical, bulleted, and structured with clear sections.
 
             {claudeAuditResult.suggestions.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-extrabold text-slate-800">Review PR↔DC link proposals</h4>
+                <h4 className="text-xs font-semibold text-slate-800">Review PR↔DC link proposals</h4>
                 {claudeAuditResult.suggestions.map(suggestion => {
                   const alreadyApplied = appliedClaudeSuggestionIds.includes(suggestion.dcId);
                   return (
@@ -734,7 +722,7 @@ Keep response practical, bulleted, and structured with clear sections.
 
             {claudeAuditResult.findings.some(finding => finding.findings.length > 0) && (
               <div className="space-y-2">
-                <h4 className="text-xs font-extrabold text-slate-800">Audit findings</h4>
+                <h4 className="text-xs font-semibold text-slate-800">Audit findings</h4>
                 <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 rounded-xl border border-slate-200">
                   {claudeAuditResult.findings.filter(finding => finding.findings.length > 0).map(finding => (
                     <div key={`${finding.recordType}-${finding.recordId}`} className="p-3 text-[11px]">
@@ -760,10 +748,10 @@ Keep response practical, bulleted, and structured with clear sections.
 
       {/* SECTION 1: DUPLICATES */}
       {(activeSubTab === 'all' || activeSubTab === 'duplicates') && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
                 <Copy className="w-4 h-4 text-rose-600" />
                 Duplicate Entry Inspector & Auto-Merger
               </h3>
@@ -775,7 +763,7 @@ Keep response practical, bulleted, and structured with clear sections.
             {duplicateDCGroups.length > 0 && (
               <button
                 onClick={handleMergeAllDCs}
-                className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md shadow-rose-500/20 flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
+                className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs flex items-center gap-1.5 transition-all cursor-pointer self-start sm:self-auto"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Auto-Merge Duplicate DCs
@@ -795,7 +783,7 @@ Keep response practical, bulleted, and structured with clear sections.
               {duplicatePRGroups.map((group, gIdx) => (
                 <div key={gIdx} className="p-4 rounded-xl bg-rose-50/70 border border-rose-200 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-extrabold text-xs text-rose-900 px-2 py-0.5 rounded bg-rose-100 border border-rose-300">
+                    <span className="font-mono font-semibold text-xs text-rose-900 px-2 py-0.5 rounded bg-rose-100 border border-rose-300">
                       Duplicate PR: {group.prNumber} ({group.records.length} records found)
                     </span>
                     <span className="text-[11px] font-semibold text-rose-800">Review records before merging</span>
@@ -849,12 +837,12 @@ Keep response practical, bulleted, and structured with clear sections.
               {duplicateDCGroups.map((group, gIdx) => (
                 <div key={`dc-dupe-${gIdx}`} className="p-4 rounded-xl bg-orange-50/70 border border-orange-200 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-extrabold text-xs text-orange-900 px-2 py-0.5 rounded bg-orange-100 border border-orange-300">
+                    <span className="font-mono font-semibold text-xs text-orange-900 px-2 py-0.5 rounded bg-orange-100 border border-orange-300">
                       Duplicate Delivery Challan: {group.dcNumber} ({group.records.length} records found)
                     </span>
                     <button
                       onClick={() => handleMergeDCs(group.records[0].id, group.records[1].id)}
-                      className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs flex items-center gap-1 shadow-2xs cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
                     >
                       Merge into Single DC
                     </button>
@@ -936,10 +924,10 @@ Keep response practical, bulleted, and structured with clear sections.
 
       {/* SECTION 2: PENDING REQUISITIONS */}
       {(activeSubTab === 'all' || activeSubTab === 'pending') && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-amber-600" />
                 Pending & Unfulfilled Requisitions Watchlist
               </h3>
@@ -972,7 +960,7 @@ Keep response practical, bulleted, and structured with clear sections.
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-extrabold text-sm text-slate-900">{pr.prNumber}</span>
+                          <span className="font-mono font-semibold text-sm text-slate-900">{pr.prNumber}</span>
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                             pr.status === 'In-Progress' 
                               ? 'bg-amber-100 text-amber-900 border border-amber-300'
@@ -993,7 +981,7 @@ Keep response practical, bulleted, and structured with clear sections.
                             setTargetDC_PR(pr);
                             setIsDCUploadOpen(true);
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-2xs cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
                         >
                           <Truck className="w-3.5 h-3.5" /> Fulfill via DC
                         </button>
@@ -1003,7 +991,7 @@ Keep response practical, bulleted, and structured with clear sections.
                             setQuickDispatchTarget({ pr, items: unfulfilled });
                             setIsQuickDispatchOpen(true);
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1 shadow-2xs cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1 cursor-pointer"
                         >
                           Quick Dispatch
                         </button>
@@ -1036,7 +1024,7 @@ Keep response practical, bulleted, and structured with clear sections.
                                 <span className="text-[10px] text-slate-500">{it.brand}</span>
                               </div>
                               <div className="text-right flex-shrink-0">
-                                <span className="font-mono font-extrabold text-rose-700 block">
+                                <span className="font-mono font-semibold text-rose-700 block">
                                   {remaining} {it.unit}
                                 </span>
                                 <span className="text-[10px] text-slate-400">
@@ -1059,10 +1047,10 @@ Keep response practical, bulleted, and structured with clear sections.
 
       {/* SECTION 3: DC TO PR LINKING REPAIR ENGINE */}
       {(activeSubTab === 'all' || activeSubTab === 'linking') && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
                 <LinkIcon className="w-4 h-4 text-emerald-600" />
                 Delivery Challan (DC) to PR Linking Fix Engine
               </h3>
@@ -1074,7 +1062,7 @@ Keep response practical, bulleted, and structured with clear sections.
             {unlinkedDCs.length > 0 && (
               <button
                 onClick={handleAutoLinkAll}
-                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 Auto-Match All
@@ -1083,16 +1071,16 @@ Keep response practical, bulleted, and structured with clear sections.
           </div>
 
           {/* Historical Deliveries Status Box */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300 space-y-2">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-300 space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0">
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-extrabold text-emerald-950 flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-emerald-950 flex items-center gap-2">
                     Historical Deliveries Ledger: {historicalDeliveredDCs.length} Deliveries Verified
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 font-black">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 font-semibold">
                       Delivered / Dispatched
                     </span>
                   </h4>
@@ -1107,7 +1095,7 @@ Keep response practical, bulleted, and structured with clear sections.
                   const res = await markAllDCsDelivered();
                   showFeedback(`✓ ${res.deliveredCount} DCs marked Delivered; builty attachments do not determine delivery status; ${res.skippedCount} missing-page records unchanged.` + (res.cloudFailures ? ` Cloud sync failed for ${res.cloudFailures} records; see console.` : ''));
                 }}
-                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-xs cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 cursor-pointer"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Set All Delivery Statuses
@@ -1146,7 +1134,7 @@ Keep response practical, bulleted, and structured with clear sections.
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-extrabold text-slate-900 text-sm">{dc.dcNumber}</span>
+                            <span className="font-mono font-semibold text-slate-900 text-sm">{dc.dcNumber}</span>
                             <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-100 text-rose-800 border border-rose-300">
                               Unlinked
                             </span>
@@ -1183,7 +1171,7 @@ Keep response practical, bulleted, and structured with clear sections.
                         <select
                           value={currentSelectVal}
                           onChange={(e) => setSelectedPRToLink(prev => ({ ...prev, [dc.id]: e.target.value }))}
-                          className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500"
+                          className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-500"
                         >
                           <option value="">Select Target PR...</option>
                           {prs.map(p => (
@@ -1196,7 +1184,7 @@ Keep response practical, bulleted, and structured with clear sections.
                         <button
                           onClick={() => handleLinkSingleDC(dc.id, currentSelectVal)}
                           disabled={!currentSelectVal}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1 shadow-2xs cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
                         >
                           <LinkIcon className="w-3.5 h-3.5" /> Link to PR
                         </button>
@@ -1213,10 +1201,10 @@ Keep response practical, bulleted, and structured with clear sections.
 
       {/* SECTION 4: BUILTY RECONCILIATION & VERIFICATION */}
       {(activeSubTab === 'all' || activeSubTab === 'builty') && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
                 <Package className="w-4 h-4 text-amber-600" />
                 Goods Delivered Builty Reconciliation & Verification
               </h3>
@@ -1230,7 +1218,7 @@ Keep response practical, bulleted, and structured with clear sections.
                 setTargetBuiltyDC(null);
                 setIsBuiltyUploadOpen(true);
               }}
-              className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-2xs cursor-pointer self-start sm:self-auto"
+              className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
             >
               <Camera className="w-3.5 h-3.5" />
               Scan & Auto-Link Builty
@@ -1279,7 +1267,7 @@ Keep response practical, bulleted, and structured with clear sections.
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-extrabold text-sm text-slate-900">{dc.dcNumber}</span>
+                          <span className="font-mono font-semibold text-sm text-slate-900">{dc.dcNumber}</span>
                           {dc.isBuiltyAttached ? (
                             <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
@@ -1318,7 +1306,7 @@ Keep response practical, bulleted, and structured with clear sections.
                               siteName: dc.siteName,
                               date: dc.builtyDate || dc.date
                             })}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             View Builty Picture
@@ -1340,7 +1328,7 @@ Keep response practical, bulleted, and structured with clear sections.
                             setTargetBuiltyDC(dc);
                             setIsBuiltyUploadOpen(true);
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer"
                         >
                           <Camera className="w-3.5 h-3.5" />
                           + Attach Builty Picture
@@ -1354,7 +1342,7 @@ Keep response practical, bulleted, and structured with clear sections.
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                       <div className="p-2.5 rounded-lg bg-white border border-emerald-200">
                         <span className="text-[10px] uppercase font-bold text-slate-400 block">Builty Number</span>
-                        <span className="font-mono font-extrabold text-slate-900">{dc.biltyNumber || 'N/A'}</span>
+                        <span className="font-mono font-semibold text-slate-900">{dc.biltyNumber || 'N/A'}</span>
                       </div>
                       <div className="p-2.5 rounded-lg bg-white border border-emerald-200">
                         <span className="text-[10px] uppercase font-bold text-slate-400 block">Goods Transport Adda</span>
@@ -1368,7 +1356,7 @@ Keep response practical, bulleted, and structured with clear sections.
                       </div>
                       <div className="p-2.5 rounded-lg bg-white border border-emerald-200">
                         <span className="text-[10px] uppercase font-bold text-slate-400 block">Freight Charges</span>
-                        <span className="font-mono font-extrabold text-emerald-800">
+                        <span className="font-mono font-semibold text-emerald-800">
                           {dc.freightCharges && dc.freightCharges > 0 ? `PKR ${dc.freightCharges.toLocaleString()}` : 'Free / Paid'}
                         </span>
                       </div>

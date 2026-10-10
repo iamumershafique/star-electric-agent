@@ -58,6 +58,10 @@ The [Firebase deployment workflow](./.github/workflows/firebase-hosting.yml) bui
 
 Until both settings are configured, automatic production deployment will fail safely.
 
+### Automatic pull requests
+
+The [auto pull request workflow](./.github/workflows/auto-pr.yml) opens a PR into `main` whenever any other branch is pushed (UI and feature changes). Merging it triggers the deployment above. In GitHub, enable Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests" for this to work.
+
 ## Claude PR/DC database audit
 
 An administrator can configure an Anthropic Claude API key or an AgentRouter token in Portal Settings and run **Claude Full PR/DC Audit** from **AI Assistant → Overview & AI Audit**. AgentRouter takes precedence when configured and uses its OpenAI-compatible chat completions endpoint with the exact vision-capable model ID entered in Settings. AgentRouter supports image scans in this audit; PDF scans are reported but not sent through this endpoint. Record details and scans are sent to AgentRouter and may be forwarded to the selected provider; charges use the AgentRouter account. Direct Anthropic uses Claude Haiku 4.5. The lower-cost model can miss details, so verify findings against original documents. API usage may incur charges. Keys are kept in that browser's local storage; do not use shared devices.

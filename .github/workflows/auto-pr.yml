@@ -1,0 +1,27 @@
+name: Auto pull request
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open or reuse a pull request into main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          existing=$(gh pr list --head "$BRANCH" --base main --state open --json number --jq '.[0].number')
+          if [ -z "$existing" ]; then
+            gh pr create --head "$BRANCH" --base main \
+              --title "$BRANCH" \
+              --body "Opened automatically for UI and feature changes. Merging this PR deploys Hosting and Firestore rules to Firebase."
+          fi

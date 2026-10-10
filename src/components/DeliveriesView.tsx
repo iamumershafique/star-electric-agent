@@ -4,7 +4,6 @@ import type { DCRecord } from '../types';
 import { fileToBase64 } from '../lib/gemini';
 import { getImageFromMemorySync } from '../lib/imageStorage';
 import { 
-  Truck, 
   Building2, 
   Calendar, 
   Plus, 
@@ -228,38 +227,16 @@ export const DeliveriesView: React.FC = () => {
     <div className="space-y-5 w-full text-slate-900">
       
       {/* Header Bar */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold text-[11px] border border-emerald-300">
-              {dcs.length} Deliveries Loaded (DC# 0001 → 600+)
-            </span>
-            {missingPRCount > 0 ? (
-              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-950 font-black text-[11px] border border-amber-300 flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3 text-amber-600" />
-                {missingPRCount} Missing PRs
-              </span>
-            ) : (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-black text-[11px] border border-emerald-300 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                100% PRs Reconciled
-              </span>
-            )}
-            <span className="text-xs text-slate-500 font-bold">• Master Ledger Google Drive</span>
-          </div>
-          <h2 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-            <Truck className="w-6 h-6 text-emerald-600" />
-            Delivery Challans &amp; Invoices Log
-          </h2>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Strict 1:1 Unified DC Number = Invoice Number • Reconciled Star Electric ↔ Jadeed Group
-          </p>
-          <p className="text-[11px] text-slate-600 font-medium mt-1">
-            Builty upload is optional and does not determine a DC&apos;s delivery status.
+          <h1 className="text-2xl font-bold tracking-tight text-slate-950">Deliveries</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            {dcs.length} delivery challans
+            {missingPRCount > 0 ? ` · ${missingPRCount} missing a PR link` : ' · all PRs reconciled'}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Auto-link button */}
           <button
             onClick={() => {
@@ -267,10 +244,10 @@ export const DeliveriesView: React.FC = () => {
               setActionToast(`⚡ Reconciliation complete: Auto-linked ${res.linkedCount} deliveries and PRs!`);
               setTimeout(() => setActionToast(null), 5000);
             }}
-            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
             title="Auto-link all delivered material PRs with DCs"
           >
-            <Sparkles className="w-4 h-4 text-amber-300" />
+            <Sparkles className="w-4 h-4 text-slate-500" />
             Auto-Link PRs &amp; DCs
           </button>
 
@@ -278,7 +255,7 @@ export const DeliveriesView: React.FC = () => {
           {missingPRCount > 0 && (
             <button
               onClick={() => setIsMissingPRMenuOpen(true)}
-              className="px-3.5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 font-extrabold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors cursor-pointer border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100"
               title="Open the separate menu to resolve delivery challans missing a PR"
             >
               <ListChecks className="w-4 h-4 text-amber-600" />
@@ -299,7 +276,7 @@ export const DeliveriesView: React.FC = () => {
               );
               setTimeout(() => setActionToast(null), 4000);
             }}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
           >
             <CheckCircle2 className="w-4 h-4" />
             Mark All DCs Delivered
@@ -311,16 +288,16 @@ export const DeliveriesView: React.FC = () => {
               setTargetBuiltyDC(null);
               setIsBuiltyUploadOpen(true);
             }}
-            className="px-4 py-2.5 rounded-xl bg-[#1e195b] hover:bg-[#282070] text-white font-extrabold text-xs shadow-md shadow-indigo-950/20 flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
           >
-            <Package className="w-4 h-4 text-red-300" /> 
+            <Package className="w-4 h-4 text-slate-500" /> 
             Scan Builty
           </button>
 
           {/* Issue DC */}
           <button
             onClick={() => setIsDCUploadOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-[#fd2729] hover:bg-[#e0191b] text-white font-extrabold text-xs shadow-md shadow-red-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors cursor-pointer bg-slate-900 text-white hover:bg-slate-800"
           >
             <Plus className="w-4 h-4" /> Issue DC
           </button>
@@ -329,7 +306,7 @@ export const DeliveriesView: React.FC = () => {
 
       {/* Action Toast Alert */}
       {actionToast && (
-        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-950 font-bold text-xs flex items-center gap-2 shadow-sm animate-fadeIn">
+        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 font-bold text-xs flex items-center gap-2 animate-fadeIn">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{actionToast}</span>
         </div>
@@ -341,11 +318,11 @@ export const DeliveriesView: React.FC = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="missing-pr-menu-title"
-            className="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl max-h-[90dvh] flex flex-col shadow-2xl text-slate-900"
+            className="bg-white border border-slate-200 rounded-xl w-full max-w-3xl max-h-[90dvh] flex flex-col text-slate-900"
           >
             <header className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-200">
               <div className="min-w-0">
-                <h3 id="missing-pr-menu-title" className="text-base sm:text-lg font-extrabold flex items-center gap-2">
+                <h3 id="missing-pr-menu-title" className="text-base sm:text-lg font-semibold flex items-center gap-2">
                   <ListChecks className="w-5 h-5 text-amber-600 shrink-0" />
                   Resolve Missing PRs
                   <span className="text-xs rounded-full bg-amber-100 text-amber-900 px-2 py-0.5">{missingPRDCs.length}</span>
@@ -426,57 +403,18 @@ export const DeliveriesView: React.FC = () => {
         </div>
       )}
 
-      {/* Google Drive Master Cloud Folder Bar */}
-      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border border-blue-200 rounded-2xl p-4 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
-            <FolderOpen className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="font-extrabold text-blue-950">
-              Google Drive Cloud Storage (Star Electric Data)
-            </p>
-            <p className="text-[11px] text-blue-800 font-medium">
-              Synchronized with master ledger (DC# 600), Builty Scans, and DC Scans (001-600) archives
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1.5 font-semibold text-[11px]">
-          <a
-            href={JADEED_DRIVE_LINKS.masterFolder}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-2.5 py-1.5 rounded-lg bg-white border border-blue-300 text-blue-900 hover:bg-blue-100 flex items-center gap-1 font-bold transition-all shadow-2xs"
-          >
-            Master Drive <ExternalLink className="w-3 h-3 text-blue-600" />
-          </a>
-          <a
-            href={JADEED_DRIVE_LINKS.builtyFolder}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-2.5 py-1.5 rounded-lg bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 flex items-center gap-1 font-bold transition-all shadow-2xs"
-          >
-            Builty Scans <ExternalLink className="w-3 h-3 text-amber-600" />
-          </a>
-          <span className="text-slate-400 font-bold px-1">|</span>
-          <span className="text-slate-500 text-[10px] font-bold">DC Scan Folders:</span>
-          {Object.entries(JADEED_DRIVE_LINKS.dcScanFolders).map(([range, url]) => (
-            <a
-              key={range}
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-2 py-1 rounded-md bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 flex items-center gap-1 text-[10px] font-mono font-bold transition-colors"
-            >
-              {range} <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
-            </a>
-          ))}
-        </div>
+      {/* Drive links */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500">
+        <span className="inline-flex items-center gap-1.5 font-medium text-slate-600"><FolderOpen className="h-4 w-4" /> Google Drive</span>
+        <a href={JADEED_DRIVE_LINKS.masterFolder} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-slate-950">Master <ExternalLink className="h-3 w-3" /></a>
+        <a href={JADEED_DRIVE_LINKS.builtyFolder} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-slate-950">Builty scans <ExternalLink className="h-3 w-3" /></a>
+        {Object.entries(JADEED_DRIVE_LINKS.dcScanFolders).map(([range, url]) => (
+          <a key={range} href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-mono text-xs hover:text-slate-950">{range} <ExternalLink className="h-3 w-3" /></a>
+        ))}
       </div>
 
       {/* Search & Filter Controls */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+      <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           
           {/* Search Box */}
@@ -490,47 +428,47 @@ export const DeliveriesView: React.FC = () => {
                 setCurrentPage(1);
               }}
               placeholder="Search DC#, Invoice#, Site, PR#, Builty#..."
-              className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold focus:outline-none focus:border-emerald-500"
+              className="w-full pl-9 pr-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-slate-500"
             />
           </div>
 
           {/* Status Filter Tabs */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 flex-wrap">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg flex-wrap">
             <button
               onClick={() => { setSelectedStatusFilter('ALL'); setCurrentPage(1); }}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'ALL' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'ALL' ? 'bg-white text-slate-900' : 'text-slate-600 hover:text-slate-900'}`}
             >
               All ({dcs.length})
             </button>
             <button
               onClick={() => { setSelectedStatusFilter('MISSING_PR'); setCurrentPage(1); }}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'MISSING_PR' ? 'bg-amber-500 text-slate-950 shadow-xs font-black' : 'text-amber-800 hover:text-amber-950'}`}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'MISSING_PR' ? 'bg-white text-slate-950' : 'text-slate-600 hover:text-slate-900'}`}
               title="Deliveries missing associated Purchase Requisition (PR)"
             >
-              ⚠️ Missing PR ({missingPRCount})
+              Missing PR ({missingPRCount})
             </button>
             <button
               onClick={() => { setSelectedStatusFilter('PR_LINKED'); setCurrentPage(1); }}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'PR_LINKED' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'PR_LINKED' ? 'bg-white text-slate-950' : 'text-slate-600 hover:text-slate-900'}`}
               title="Deliveries with linked PR or No PR Required"
             >
-              ✓ PR Resolved ({prLinkedCount})
+              PR resolved ({prLinkedCount})
             </button>
             <button
               onClick={() => { setSelectedStatusFilter('BUILTY'); setCurrentPage(1); }}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'BUILTY' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'BUILTY' ? 'bg-white text-slate-950' : 'text-slate-600 hover:text-slate-900'}`}
             >
               Builty ({builtyAttachedCount})
             </button>
             <button
               onClick={() => { setSelectedStatusFilter('DELIVERED'); setCurrentPage(1); }}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'DELIVERED' ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'DELIVERED' ? 'bg-white text-slate-950' : 'text-slate-600 hover:text-slate-900'}`}
             >
               Direct ({directDeliveredCount})
             </button>
             <button
               onClick={() => { setSelectedStatusFilter('DISPATCHED'); setCurrentPage(1); }}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'DISPATCHED' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${selectedStatusFilter === 'DISPATCHED' ? 'bg-white text-slate-950' : 'text-slate-600 hover:text-slate-900'}`}
             >
               Dispatched ({dispatchedCount})
             </button>
@@ -545,7 +483,7 @@ export const DeliveriesView: React.FC = () => {
                 setSelectedSiteFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold focus:outline-none focus:border-emerald-500 truncate"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-sm focus:outline-none focus:border-slate-500 truncate"
             >
               <option value="ALL">All Farm Sites ({sites.length})</option>
               {sites.map(s => (
@@ -588,25 +526,25 @@ export const DeliveriesView: React.FC = () => {
             <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
               <button
                 onClick={() => { setSortBy('dc'); setCurrentPage(1); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${sortBy === 'dc' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${sortBy === 'dc' ? 'bg-white text-slate-900 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}
               >
                 DC # (Challan)
               </button>
               <button
                 onClick={() => { setSortBy('date'); setCurrentPage(1); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${sortBy === 'date' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${sortBy === 'date' ? 'bg-white text-slate-900 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}
               >
                 Date Wise
               </button>
               <button
                 onClick={() => { setSortBy('site'); setCurrentPage(1); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${sortBy === 'site' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${sortBy === 'site' ? 'bg-white text-slate-900 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}
               >
                 Party / Site
               </button>
               <button
                 onClick={() => { setSortBy('pr'); setCurrentPage(1); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${sortBy === 'pr' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${sortBy === 'pr' ? 'bg-white text-slate-900 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}
               >
                 PR Wise
               </button>
@@ -618,14 +556,14 @@ export const DeliveriesView: React.FC = () => {
             <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
               <button
                 onClick={() => { setSortOrder('desc'); setCurrentPage(1); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${sortOrder === 'desc' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${sortOrder === 'desc' ? 'bg-white text-slate-950' : 'text-slate-600 hover:text-slate-900'}`}
                 title="Latest / Highest numbers on top (e.g. DC 700 / 686 -> DC 001)"
               >
                 <span>DESC (Latest on Top)</span>
               </button>
               <button
                 onClick={() => { setSortOrder('asc'); setCurrentPage(1); }}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${sortOrder === 'asc' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'}`}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${sortOrder === 'asc' ? 'bg-white text-slate-950' : 'text-slate-600 hover:text-slate-900'}`}
                 title="Oldest / Lowest numbers on top (e.g. DC 001 -> DC 700)"
               >
                 <span>ASC (Oldest First)</span>
@@ -638,7 +576,7 @@ export const DeliveriesView: React.FC = () => {
       {/* DCs List Grid */}
       <div className="space-y-3">
         {filteredDCs.length === 0 ? (
-          <div className="p-12 text-center bg-white border border-slate-200 rounded-3xl text-slate-500 text-xs font-semibold shadow-xs space-y-2">
+          <div className="p-12 text-center bg-white border border-slate-200 rounded-xl text-slate-500 text-xs font-semibold space-y-2">
             <p className="text-sm font-bold text-slate-700">No matching delivery challans found</p>
             <p className="text-slate-500">Try adjusting your search terms or filters.</p>
           </div>
@@ -659,25 +597,25 @@ export const DeliveriesView: React.FC = () => {
             return (
               <div
                 key={dc.id}
-                className={`bg-white border rounded-2xl p-5 space-y-4 hover:border-slate-300 transition-all shadow-xs ${isMissingPR ? 'border-amber-200 ring-1 ring-amber-100' : 'border-slate-200'}`}
+                className={`bg-white border rounded-xl p-4 space-y-3 hover:border-slate-300 transition-colors ${isMissingPR ? 'border-amber-300' : 'border-slate-200'}`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl border flex items-center justify-center font-extrabold font-mono text-xs ${isMissingPage ? 'bg-rose-50 text-rose-800 border-rose-200' : isMissingPR ? 'bg-amber-100 border-amber-300 text-amber-900' : 'bg-emerald-100 border-emerald-300 text-emerald-800'}`}>
+                    <div className={`w-9 h-9 rounded-xl border flex items-center justify-center font-semibold font-mono text-xs ${isMissingPage ? 'bg-rose-50 text-rose-800 border-rose-200' : isMissingPR ? 'bg-amber-100 border-amber-300 text-amber-900' : 'bg-emerald-100 border-emerald-300 text-emerald-800'}`}>
                       DC
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-extrabold text-slate-900 text-sm">{dc.dcNumber}</span>
+                        <span className="font-mono font-semibold text-slate-900 text-sm">{dc.dcNumber}</span>
                         {!isMissingPage && (
                           <>
                             <span className="text-slate-400 font-bold">=</span>
-                            <span className="font-mono font-extrabold text-emerald-700 text-sm">{dc.invoiceNumber}</span>
+                            <span className="font-mono font-semibold text-emerald-700 text-sm">{dc.invoiceNumber}</span>
                           </>
                         )}
 
                         {!isMissingPage && (
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold border flex items-center gap-1 ${
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border flex items-center gap-1 ${
                             dc.deliveryStatus === 'Dispatched'
                               ? 'bg-amber-100 text-amber-900 border-amber-300'
                               : 'bg-emerald-100 text-emerald-900 border-emerald-300'
@@ -689,27 +627,27 @@ export const DeliveriesView: React.FC = () => {
 
                         {/* PR Resolution Badges */}
                         {hasNoPRReq ? (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 font-extrabold border border-blue-300 flex items-center gap-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 font-semibold border border-blue-300 flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3 text-blue-600" /> Delivered (No PR Required)
                           </span>
                         ) : linkedPR ? (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold border border-emerald-300 flex items-center gap-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-semibold border border-emerald-300 flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" /> PR #{linkedPR.prNumber} (Linked)
                           </span>
                         ) : isMissingPR ? (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-950 font-black border border-amber-300 flex items-center gap-1 animate-pulse">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-950 font-semibold border border-amber-300 flex items-center gap-1">
                             <AlertTriangle className="w-3 h-3 text-amber-600" /> PR Missing
                           </span>
                         ) : null}
 
                         {hasBuilty && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-black border border-amber-300 flex items-center gap-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-semibold border border-amber-300 flex items-center gap-1">
                             <Package className="w-3 h-3 text-amber-700" /> Builty #{dc.biltyNumber}
                           </span>
                         )}
 
                         {dc.noBuiltyRequired && !hasBuilty && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-black border border-slate-300 flex items-center gap-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold border border-slate-300 flex items-center gap-1">
                             Builty Optional
                           </span>
                         )}
@@ -737,7 +675,7 @@ export const DeliveriesView: React.FC = () => {
                           setSelectedPR(linkedPR);
                           setIsPRDetailOpen(true);
                         }}
-                        className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-amber-100 text-slate-800 hover:text-amber-900 text-xs font-bold border border-slate-300 flex items-center gap-1 transition-colors shadow-2xs"
+                        className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-amber-100 text-slate-800 hover:text-amber-900 text-xs font-bold border border-slate-300 flex items-center gap-1 transition-colors"
                       >
                         PR #{linkedPR.prNumber} <ArrowRight className="w-3 h-3" />
                       </button>
@@ -782,7 +720,7 @@ export const DeliveriesView: React.FC = () => {
                           <p className="font-bold text-slate-900 truncate">{item.itemName}</p>
                           <span className="text-[10px] text-slate-500 font-semibold">{item.brand}</span>
                         </div>
-                        <span className="font-mono font-extrabold text-emerald-800 px-2 py-0.5 rounded-full bg-emerald-100 border border-emerald-300 shrink-0">
+                        <span className="font-mono font-semibold text-emerald-800 px-2 py-0.5 rounded-full bg-emerald-100 border border-emerald-300 shrink-0">
                           {item.quantity} {item.unit}
                         </span>
                       </div>
@@ -794,7 +732,7 @@ export const DeliveriesView: React.FC = () => {
                 <div className="text-xs text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 font-semibold">
                   <div className="flex flex-wrap items-center gap-2">
                     {hasBuilty ? (
-                      <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950 font-extrabold border border-amber-300 flex items-center gap-1.5">
+                      <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950 font-semibold border border-amber-300 flex items-center gap-1.5">
                         <Package className="w-3.5 h-3.5 text-amber-700" />
                         Adda: {dc.addaName || 'Goods Transport'} | Bilty #{dc.biltyNumber} | Freight: {dc.isFreightFree || dc.freightCharges === 0 ? 'FREE / مفت' : `PKR ${dc.freightCharges || 'To Pay'}`}
                         {dc.freightStatus && (
@@ -804,11 +742,11 @@ export const DeliveriesView: React.FC = () => {
                         )}
                       </span>
                     ) : dc.transportType === 'Pickup / Driver' && dc.driverName ? (
-                      <span className="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-900 font-extrabold border border-blue-300 flex items-center gap-1.5">
+                      <span className="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-900 font-semibold border border-blue-300 flex items-center gap-1.5">
                         🚗 Driver: {dc.driverName} | Vehicle: {dc.vehicleNumber || 'N/A'}
                       </span>
                     ) : (
-                      <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-950 font-extrabold border border-emerald-300 flex items-center gap-1.5">
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-950 font-semibold border border-emerald-300 flex items-center gap-1.5">
                         ✅ Delivered to Farm / Site
                       </span>
                     )}
@@ -926,9 +864,9 @@ export const DeliveriesView: React.FC = () => {
 
       {/* Pagination Footer */}
       {totalPages > 1 && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="text-slate-600 font-semibold">
-            Page <span className="font-extrabold text-slate-900">{clampedPage}</span> of <span className="font-extrabold text-slate-900">{totalPages}</span> ({filteredDCs.length} total deliveries)
+            Page <span className="font-semibold text-slate-900">{clampedPage}</span> of <span className="font-semibold text-slate-900">{totalPages}</span> ({filteredDCs.length} total deliveries)
           </div>
 
           <div className="flex items-center gap-2">
@@ -952,7 +890,7 @@ export const DeliveriesView: React.FC = () => {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`w-8 h-8 rounded-xl font-bold text-xs transition-all cursor-pointer ${pageNum === clampedPage ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-200 border border-slate-200'}`}
+                    className={`w-8 h-8 rounded-xl font-bold text-xs transition-all cursor-pointer ${pageNum === clampedPage ? 'bg-white text-slate-950' : 'bg-slate-50 text-slate-700 hover:bg-slate-200 border border-slate-200'}`}
                   >
                     {pageNum}
                   </button>
@@ -974,14 +912,14 @@ export const DeliveriesView: React.FC = () => {
       {/* MANUAL PR LINK DIALOG */}
       {manualPRModalDC && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-xl max-w-lg w-full p-6 space-y-4 text-slate-900">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-300 text-amber-900 flex items-center justify-center font-bold">
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900">
+                  <h3 className="text-base font-semibold text-slate-900">
                     Add PR Number Manually
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
@@ -1017,7 +955,7 @@ export const DeliveriesView: React.FC = () => {
                   value={manualPRInput}
                   onChange={(e) => setManualPRInput(e.target.value)}
                   placeholder="e.g. PR-151, PR-58, PR-674, PR-204"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-500 bg-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-slate-500 bg-white"
                 />
               </div>
 
@@ -1033,7 +971,7 @@ export const DeliveriesView: React.FC = () => {
                         key={p.id}
                         type="button"
                         onClick={() => setManualPRInput(p.prNumber)}
-                        className="px-2 py-1 rounded-lg bg-white hover:bg-amber-100 text-slate-800 text-xs font-mono font-bold border border-slate-300 transition-colors shadow-2xs cursor-pointer"
+                        className="px-2 py-1 rounded-lg bg-white hover:bg-amber-100 text-slate-800 text-xs font-mono font-bold border border-slate-300 transition-colors cursor-pointer"
                       >
                         {p.prNumber}
                       </button>
@@ -1051,7 +989,7 @@ export const DeliveriesView: React.FC = () => {
                   value={manualPRNotes}
                   onChange={(e) => setManualPRNotes(e.target.value)}
                   placeholder="e.g. Delivered per supervisor verbal confirmation"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-amber-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-slate-500"
                 />
               </div>
 
@@ -1065,7 +1003,7 @@ export const DeliveriesView: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   Link PR &amp; Mark Delivered
@@ -1079,14 +1017,14 @@ export const DeliveriesView: React.FC = () => {
       {/* MODAL 2: UPLOAD PR IMAGE */}
       {uploadPRModalDC && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-slate-900">
+          <div className="bg-white border border-slate-200 rounded-xl max-w-lg w-full p-6 space-y-4 text-slate-900">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-indigo-100 border border-indigo-300 text-indigo-900 flex items-center justify-center font-bold">
                   <UploadCloud className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900">
+                  <h3 className="text-base font-semibold text-slate-900">
                     Upload PR Document Image
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
@@ -1136,20 +1074,20 @@ export const DeliveriesView: React.FC = () => {
               {!uploadPRPreview ? (
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 rounded-2xl p-6 text-center cursor-pointer transition-all space-y-2"
+                  className="border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 rounded-xl p-6 text-center cursor-pointer transition-all space-y-2"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 mx-auto flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 mx-auto flex items-center justify-center">
                     <UploadCloud className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-xs font-extrabold text-indigo-950">
+                    <p className="text-xs font-semibold text-indigo-950">
                       Click to choose or drag PR photo here
                     </p>
                     <p className="text-[11px] text-indigo-700 font-medium">
                       Select CamScanner image from your JADEED PR folder
                     </p>
                   </div>
-                  <span className="inline-block px-3 py-1 rounded-lg bg-white border border-indigo-200 text-indigo-900 font-bold text-xs shadow-2xs">
+                  <span className="inline-block px-3 py-1 rounded-lg bg-white border border-indigo-200 text-indigo-900 font-bold text-xs">
                     Browse Files
                   </span>
                 </div>
@@ -1192,7 +1130,7 @@ export const DeliveriesView: React.FC = () => {
                   type="button"
                   disabled={!uploadPRPreview || isProcessingUpload}
                   onClick={handleSaveUploadedPRImage}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs shadow-md shadow-indigo-600/20 flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
                 >
                   {isProcessingUpload ? (
                     <>

@@ -1,15 +1,12 @@
-import React from 'react';
+﻿import React from 'react';
 import { useApp } from '../context/AppContext';
 import { getStatusBadgeColor, calculatePRTotals } from '../lib/utils';
 import { 
   Search, 
-  Filter, 
-  Building2, 
   Truck, 
   Eye, 
   Trash2, 
   Plus,
-  FileSpreadsheet,
   Edit3
 } from 'lucide-react';
 
@@ -48,103 +45,83 @@ export const LedgerView: React.FC = () => {
 
   return (
     <div className="space-y-6 text-slate-900">
-      
-      {/* Search & Filter Bar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <FileSpreadsheet className="w-5 h-5 text-[#1e195b]" />
-              Master Requisition Ledger
-            </h2>
-            <p className="text-xs text-slate-500 font-medium">
-              Showing {filteredPRs.length} of {prs.length} Purchase Requisitions for Jadeed Group
-            </p>
-          </div>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-950">Requisitions</h1>
+          <p className="mt-1 text-sm text-slate-500">{filteredPRs.length} of {prs.length} purchase requisitions</p>
+        </div>
+        <button
+          onClick={() => setIsPRUploadOpen(true)}
+          className="inline-flex cursor-pointer items-center gap-2 self-start rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800 sm:self-auto"
+        >
+          <Plus className="h-4 w-4" /> New PR
+        </button>
+      </header>
 
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="relative min-w-0 flex-1 sm:min-w-64">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search PR number, site or item"
+            className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 focus:border-slate-500 focus:outline-none"
+          />
+        </div>
+        <select
+          value={selectedStatusFilter}
+          onChange={(e) => setSelectedStatusFilter(e.target.value)}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-500 focus:outline-none"
+        >
+          <option value="ALL">All statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="In-Progress">In progress</option>
+          <option value="Fulfilled">Fulfilled</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+        <select
+          value={selectedSiteFilter}
+          onChange={(e) => setSelectedSiteFilter(e.target.value)}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-500 focus:outline-none"
+        >
+          <option value="ALL">All locations</option>
+          {sites.map(s => (
+            <option key={s.id} value={s.region}>{s.name}</option>
+          ))}
+        </select>
+        {(searchQuery || selectedStatusFilter !== 'ALL' || selectedSiteFilter !== 'ALL') && (
           <button
-            onClick={() => setIsPRUploadOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-[#fd2729] hover:bg-[#e0191b] text-white font-extrabold text-xs shadow-md shadow-red-500/20 flex items-center gap-1.5 transition-all self-start md:self-auto cursor-pointer"
+            onClick={() => {
+              setSearchQuery('');
+              setSelectedStatusFilter('ALL');
+              setSelectedSiteFilter('ALL');
+            }}
+            className="cursor-pointer px-2 py-2 text-sm font-medium text-slate-600 hover:text-slate-950"
           >
-            <Plus className="w-4 h-4" /> Add New PR
+            Clear
           </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search PR #, Farm site, item..."
-              className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold focus:outline-none focus:border-amber-500"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-slate-500" />
-            <select
-              value={selectedStatusFilter}
-              onChange={(e) => setSelectedStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold focus:outline-none focus:border-amber-500"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="Pending">Pending Only</option>
-              <option value="In-Progress">In-Progress</option>
-              <option value="Fulfilled">Fulfilled</option>
-              <option value="Cancelled">Cancelled (Cannot Provide)</option>
-            </select>
-          </div>
-
-          <div>
-            <select
-              value={selectedSiteFilter}
-              onChange={(e) => setSelectedSiteFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold focus:outline-none focus:border-amber-500"
-            >
-              <option value="ALL">All Farm Locations</option>
-              {sites.map(s => (
-                <option key={s.id} value={s.region}>{s.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {(searchQuery || selectedStatusFilter !== 'ALL' || selectedSiteFilter !== 'ALL') && (
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedStatusFilter('ALL');
-                setSelectedSiteFilter('ALL');
-              }}
-              className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
-            >
-              Clear Filters
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* Ledger Table */}
-      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-800">
-            <thead className="bg-slate-100 text-slate-700 uppercase font-bold text-[10px] tracking-wider border-b border-slate-200">
+          <table className="w-full text-left text-sm text-slate-800">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-medium text-slate-500">
               <tr>
-                <th className="p-4">PR Tracking ID</th>
-                <th className="p-4">Requisition Date</th>
-                <th className="p-4">Jadeed Farm Site</th>
-                <th className="p-4">Items & Brands</th>
-                <th className="p-4">Fulfillment Status</th>
-                <th className="p-4 text-center">Total Items</th>
-                <th className="p-4 text-center">Actions</th>
+                <th className="px-4 py-3 font-medium">PR</th>
+                <th className="px-4 py-3 font-medium">Date</th>
+                <th className="px-4 py-3 font-medium">Site</th>
+                <th className="px-4 py-3 font-medium">Items</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 bg-white">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {filteredPRs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-500 font-medium">
-                    No Purchase Requisitions match your active search criteria.
+                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-slate-500">
+                    No requisitions match your filters.
                   </td>
                 </tr>
               ) : (
@@ -152,85 +129,58 @@ export const LedgerView: React.FC = () => {
                   const totals = calculatePRTotals(pr);
 
                   return (
-                    <tr key={pr.id} className="hover:bg-slate-50 transition-colors group">
-                      <td className="p-4">
-                        <span 
+                    <tr key={pr.id} className="transition-colors hover:bg-slate-50">
+                      <td className="px-4 py-3">
+                        <button
                           onClick={() => {
                             setSelectedPR(pr);
                             setIsPRDetailOpen(true);
                           }}
-                          className="font-bold text-slate-900 group-hover:text-amber-700 cursor-pointer font-mono"
+                          className="cursor-pointer font-mono text-sm font-semibold text-slate-900 hover:underline"
                         >
                           {pr.prNumber}
-                        </span>
+                        </button>
                       </td>
 
-                      <td className="p-4 text-slate-700 font-mono font-semibold">
-                        {pr.date}
+                      <td className="whitespace-nowrap px-4 py-3 text-slate-600">{pr.date}</td>
+
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-slate-900">{pr.siteName}</p>
+                        {pr.contactPerson && <p className="text-xs text-slate-500">{pr.contactPerson}</p>}
                       </td>
 
-                      <td className="p-4">
-                        <div className="space-y-0.5">
-                          <p className="font-bold text-slate-900 flex items-center gap-1.5">
-                            <Building2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                            {pr.siteName}
-                          </p>
-                          {pr.contactPerson && (
-                            <p className="text-[10px] text-slate-500">{pr.contactPerson}</p>
-                          )}
-                        </div>
+                      <td className="max-w-xs px-4 py-3">
+                        <p className="truncate text-slate-800">{pr.items.map(i => i.name).join(', ')}</p>
+                        <p className="truncate text-xs text-slate-500">
+                          {totals.totalItemsCount} items · {Array.from(new Set(pr.items.map(i => i.brand))).filter(Boolean).join(', ')}
+                        </p>
                       </td>
 
-                      <td className="p-4">
-                        <div className="space-y-1 max-w-xs">
-                          <div className="text-slate-900 font-bold truncate">
-                            {pr.items.map(i => i.name).join(', ')}
-                          </div>
-                          <div className="flex items-center gap-1 flex-wrap">
-                            {Array.from(new Set(pr.items.map(i => i.brand))).map(b => (
-                              <span key={b} className="text-[9px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 font-semibold border border-slate-300">
-                                {b}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="p-4">
-                        <div className="space-y-1.5">
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full border inline-block ${getStatusBadgeColor(pr.status)}`}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <span className={`inline-block rounded-full border px-2 py-0.5 text-xs font-medium ${getStatusBadgeColor(pr.status)}`}>
                             {pr.status}
                           </span>
-                          
-                          <div className="flex items-center gap-2">
-                            <div className="w-24 bg-slate-200 h-2 rounded-full overflow-hidden border border-slate-300">
-                              <div
-                                className="bg-emerald-500 h-full rounded-full transition-all"
-                                style={{ width: `${totals.percentage}%` }}
-                              />
+                          <div className="hidden items-center gap-2 lg:flex">
+                            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
+                              <div className="h-full rounded-full bg-slate-700" style={{ width: `${totals.percentage}%` }} />
                             </div>
-                            <span className="text-[10px] text-slate-600 font-mono font-bold">
-                              {totals.completedItemsCount}/{totals.totalItemsCount}
-                            </span>
+                            <span className="text-xs tabular-nums text-slate-500">{totals.completedItemsCount}/{totals.totalItemsCount}</span>
                           </div>
                         </div>
                       </td>
 
-                      <td className="p-4 text-center font-mono font-bold text-slate-900">
-                        {totals.totalItemsCount} Items
-                      </td>
-
-                      <td className="p-4 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-0.5">
                           <button
                             onClick={() => {
                               setSelectedPR(pr);
                               setIsPRDetailOpen(true);
                             }}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-                            title="Inspect PR Details"
+                            className="cursor-pointer rounded-md p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                            title="View details"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="h-4 w-4" />
                           </button>
 
                           <button
@@ -238,10 +188,10 @@ export const LedgerView: React.FC = () => {
                               setEditingPR(pr);
                               setIsPREditOpen(true);
                             }}
-                            className="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 transition-colors"
-                            title="Edit PR & Items"
+                            className="cursor-pointer rounded-md p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                            title="Edit"
                           >
-                            <Edit3 className="w-4 h-4" />
+                            <Edit3 className="h-4 w-4" />
                           </button>
 
                           <button
@@ -249,10 +199,10 @@ export const LedgerView: React.FC = () => {
                               setTargetDC_PR(pr);
                               setIsDCUploadOpen(true);
                             }}
-                            className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 transition-colors"
-                            title="Issue DC & Invoice"
+                            className="cursor-pointer rounded-md p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                            title="Record delivery"
                           >
-                            <Truck className="w-4 h-4" />
+                            <Truck className="h-4 w-4" />
                           </button>
 
                           <button
@@ -261,7 +211,7 @@ export const LedgerView: React.FC = () => {
                                 deletePR(pr.id);
                               }
                             }}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-700 transition-colors"
+                            className="cursor-pointer rounded-md p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-700"
                             title="Delete Record"
                           >
                             <Trash2 className="w-4 h-4" />
