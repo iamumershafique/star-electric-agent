@@ -11,6 +11,7 @@ export const JADEED_DRIVE_LINKS = {
     '401-500': 'https://drive.google.com/drive/folders/1CpAHo_PKsIOrXtJcynrZavkGKdJZEoal',
     '501-600': 'https://drive.google.com/drive/folders/1LZAguU5oBXo1dA2OoXLIMz36LZKOWAzp',
     '601-700': 'https://drive.google.com/drive/folders/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW',
+    '701-800': 'https://drive.google.com/drive/folders/1QirE97-gMrqZ5kQT_hZZGmRFB-efREro',
   }
 };
 
@@ -24,7 +25,8 @@ export function getDCScanFolderLink(dcNumber: string): string {
   if (num <= 400) return JADEED_DRIVE_LINKS.dcScanFolders['301-400'];
   if (num <= 500) return JADEED_DRIVE_LINKS.dcScanFolders['401-500'];
   if (num <= 600) return JADEED_DRIVE_LINKS.dcScanFolders['501-600'];
-  return JADEED_DRIVE_LINKS.dcScanFolders['601-700'];
+  if (num <= 700) return JADEED_DRIVE_LINKS.dcScanFolders['601-700'];
+  return JADEED_DRIVE_LINKS.dcScanFolders['701-800'];
 }
 
 export const JADEED_FARM_SITES: string[] = [

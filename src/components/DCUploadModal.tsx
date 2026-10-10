@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { DocumentClassificationError, fileToBase64 } from '../lib/gemini';
-import { getActiveOCRProvider, processDCWithAI } from '../lib/aiOcr';
+import { getActiveOCRProvider, getOCRProviderLabel, processDCWithAI } from '../lib/aiOcr';
 import type { BrandCategory, PRRecord, TransportType } from '../types';
 import { 
   X, 
@@ -625,7 +625,7 @@ export const DCUploadModal: React.FC = () => {
               }`}
             >
               <Sparkles className="w-4 h-4 text-amber-700" />
-              Scan DC Image(s) via Gemini AI
+              Scan DC Image(s) via {getOCRProviderLabel(activeOCRProvider)}
             </button>
 
             <input
@@ -788,7 +788,7 @@ export const DCUploadModal: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 font-bold">
                   <Loader2 className="w-4 h-4 text-amber-600 animate-spin" />
-                  <span>Processing Delivery Challans via Gemini AI Vision...</span>
+                  <span>Processing Delivery Challans via {getOCRProviderLabel(activeOCRProvider)}...</span>
                 </div>
                 {scanProgress && (
                   <span className="font-mono font-extrabold text-amber-800 bg-amber-200/70 px-2 py-0.5 rounded-md text-[11px]">

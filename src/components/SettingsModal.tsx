@@ -28,15 +28,24 @@ import {
   getAgentRouterModel,
   getClaudeApiKey,
   getGeminiApiKey,
+  getOllamaEndpoint,
+  getOllamaModel,
   getOpenAIApiKey,
+  getPreferredOCRProvider,
   saveAgentRouterApiKey,
   saveAgentRouterModel,
   saveClaudeApiKey,
-  saveOpenAIApiKey
+  saveOllamaEndpoint,
+  saveOllamaModel,
+  saveOpenAIApiKey,
+  savePreferredOCRProvider,
+  type PreferredOCRProvider
 } from '../lib/storage';
+import { getActiveOCRProvider } from '../lib/aiOcr';
 import { validateGeminiApiKey } from '../lib/gemini';
 import { validateOpenAIApiKey } from '../lib/openai';
 import { validateAgentRouterApiKey, validateClaudeApiKey } from '../lib/claude';
+import { validateOllamaEndpoint } from '../lib/ollama';
 import { cleanApiKey } from '../lib/utils';
 
 export const SettingsModal: React.FC = () => {
@@ -61,6 +70,15 @@ export const SettingsModal: React.FC = () => {
   const [inputAgentRouterKey, setInputAgentRouterKey] = useState('');
   const [savedAgentRouterKey, setSavedAgentRouterKey] = useState(() => getAgentRouterApiKey());
   const [agentRouterModel, setAgentRouterModel] = useState(() => getAgentRouterModel());
+  const [preferredProvider, setPreferredProvider] = useState<PreferredOCRProvider>(() => getPreferredOCRProvider());
+  const [inputOllamaEndpoint, setInputOllamaEndpoint] = useState(() => getOllamaEndpoint() || 'http://localhost:11434');
+  const [savedOllamaEndpoint, setSavedOllamaEndpoint] = useState(() => getOllamaEndpoint());
+  const [ollamaModel, setOllamaModel] = useState(() => getOllamaModel() || 'minicpm-v');
+  const [isTestingOllama, setIsTestingOllama] = useState(false);
+  const [ollamaTestResult, setOllamaTestResult] = useState<{
+    status: 'idle' | 'success' | 'error';
+    message: string;
+  }>({ status: 'idle', message: '' });
   const [showKey, setShowKey] = useState(false);
   const [showOpenAIKey, setShowOpenAIKey] = useState(false);
   const [showClaudeKey, setShowClaudeKey] = useState(false);
@@ -106,6 +124,12 @@ export const SettingsModal: React.FC = () => {
       setInputAgentRouterKey('');
       setSavedAgentRouterKey(activeAgentRouterKey);
       setAgentRouterModel(getAgentRouterModel());
+      setPreferredProvider(getPreferredOCRProvider());
+      const activeOllamaEndpoint = getOllamaEndpoint();
+      setInputOllamaEndpoint(activeOllamaEndpoint || 'http://localhost:11434');
+      setSavedOllamaEndpoint(activeOllamaEndpoint);
+      setOllamaModel(getOllamaModel() || 'minicpm-v');
+      setOllamaTestResult({ status: 'idle', message: '' });
       setTestResult({ status: 'idle', message: '' });
       setOpenAITestResult({ status: 'idle', message: '' });
       setClaudeTestResult({ status: 'idle', message: '' });
@@ -381,6 +405,47 @@ export const SettingsModal: React.FC = () => {
     setAgentRouterTestResult({ status: 'idle', message: 'AgentRouter disconnected. The direct Claude key, if configured, can be used instead.' });
   };
 
+  const handleSaveAndTestOllama = async () => {
+    const endpoint = (inputOllamaEndpoint || '').trim().replace(/\/+$/, '');
+    const model = (ollamaModel || '').trim() || 'minicpm-v';
+    if (!endpoint) {
+      setOllamaTestResult({ status: 'error', message: 'Enter your Ollama endpoint URL (e.g. http://localhost:11434).' });
+      return;
+    }
+    setIsTestingOllama(true);
+    setOllamaTestResult({ status: 'idle', message: '' });
+    try {
+      const result = await validateOllamaEndpoint(endpoint, model);
+      if (result.valid) {
+        saveOllamaEndpoint(endpoint);
+        saveOllamaModel(model);
+        setSavedOllamaEndpoint(endpoint);
+        setOllamaTestResult({
+          status: 'success',
+          message: result.message
+        });
+      } else {
+        setOllamaTestResult({ status: 'error', message: result.message });
+      }
+    } catch (error) {
+      setOllamaTestResult({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Could not reach Ollama server.'
+      });
+    } finally {
+      setIsTestingOllama(false);
+    }
+  };
+
+  const handleClearOllama = () => {
+    saveOllamaEndpoint('');
+    saveOllamaModel('');
+    setSavedOllamaEndpoint('');
+    setInputOllamaEndpoint('http://localhost:11434');
+    setOllamaModel('minicpm-v');
+    setOllamaTestResult({ status: 'idle', message: 'Ollama disconnected. Portal will use Gemini or OpenAI if configured.' });
+  };
+
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -402,6 +467,7 @@ export const SettingsModal: React.FC = () => {
   const hasLinkedOpenAIKey = Boolean(savedOpenAIKey);
   const hasLinkedClaudeKey = Boolean(savedClaudeKey);
   const hasLinkedAgentRouterKey = Boolean(savedAgentRouterKey);
+  const hasLinkedOllama = Boolean(savedOllamaEndpoint);
   const maskedKey = hasLinkedKey 
     ? `${geminiApiKey.substring(0, 6)}••••••••••••${geminiApiKey.slice(-4)}`
     : '';
@@ -414,6 +480,13 @@ export const SettingsModal: React.FC = () => {
   const maskedAgentRouterKey = hasLinkedAgentRouterKey
     ? `${savedAgentRouterKey.substring(0, 6)}••••••••••••${savedAgentRouterKey.slice(-4)}`
     : '';
+
+  const currentActiveOCR = getActiveOCRProvider(geminiApiKey);
+
+  const handlePreferredProviderChange = (p: PreferredOCRProvider) => {
+    savePreferredOCRProvider(p);
+    setPreferredProvider(p);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
@@ -441,32 +514,185 @@ export const SettingsModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Gemini API Key Section */}
+        {/* Primary Active OCR Engine Preference Selector */}
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              Default Active OCR Engine:
+            </span>
+            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-extrabold border border-emerald-300">
+              Active: {currentActiveOCR}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 pt-0.5">
+            {[
+              { id: 'auto', label: 'Auto Priority' },
+              { id: 'gemini', label: 'Google Gemini' },
+              { id: 'ollama', label: 'Ollama (Local)' },
+              { id: 'claude', label: 'Anthropic Claude' },
+              { id: 'openai', label: 'OpenAI Vision' },
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => handlePreferredProviderChange(opt.id as PreferredOCRProvider)}
+                className={`px-2 py-1.5 rounded-lg text-[11px] font-bold text-center transition-all cursor-pointer ${
+                  preferredProvider === opt.id
+                    ? 'bg-amber-500 text-slate-950 shadow-xs'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-500 font-medium">
+            Select which OCR provider is active by default. Choose "Auto Priority" to automatically select the best connected provider.
+          </p>
+        </div>
+
+        {/* 1. Local / Self-Hosted Ollama Vision Provider */}
+        <div className="space-y-4 bg-teal-50/60 p-4 rounded-xl border border-teal-200">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-slate-900 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-teal-700" />
+              Ollama Local Vision (Open-Source)
+            </label>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+              currentActiveOCR === 'Ollama'
+                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                : hasLinkedOllama
+                ? 'bg-teal-100 text-teal-800 border-teal-300'
+                : 'bg-slate-100 text-slate-600 border-slate-300'
+            }`}>
+              {currentActiveOCR === 'Ollama' ? (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                  Primary OCR Active
+                </>
+              ) : hasLinkedOllama ? 'Connected (Standby)' : 'Not Connected'}
+            </span>
+          </div>
+
+          <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+            Run open-source vision models (<code>minicpm-v</code> or <code>qwen2.5vl:3b</code>) locally on your PC or private server for 100% private, free document OCR.
+          </p>
+
+          {hasLinkedOllama && (
+            <div className="p-2.5 rounded-lg bg-white border border-teal-200 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-slate-800 font-medium font-mono text-[11px]">
+                <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+                <span>{savedOllamaEndpoint} ({ollamaModel})</span>
+              </div>
+              <button
+                onClick={handleClearOllama}
+                className="text-[11px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 hover:underline cursor-pointer"
+                title="Disconnect Ollama"
+              >
+                <Trash2 className="w-3 h-3" /> Disconnect
+              </button>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <div>
+              <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                Ollama Endpoint URL
+              </label>
+              <input
+                type="text"
+                value={inputOllamaEndpoint}
+                onChange={(e) => {
+                  setInputOllamaEndpoint(e.target.value);
+                  setOllamaTestResult({ status: 'idle', message: '' });
+                }}
+                placeholder="http://localhost:11434 or https://your-tunnel.trycloudflare.com"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-mono font-medium focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+              />
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                Vision Model Name
+              </label>
+              <input
+                type="text"
+                value={ollamaModel}
+                onChange={(e) => {
+                  setOllamaModel(e.target.value);
+                  setOllamaTestResult({ status: 'idle', message: '' });
+                }}
+                placeholder="minicpm-v or qwen2.5vl:3b"
+                className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-mono font-medium focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={handleSaveAndTestOllama}
+                disabled={isTestingOllama || !inputOllamaEndpoint.trim()}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                {isTestingOllama ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                Save &amp; Connect Ollama
+              </button>
+              <button
+                onClick={handleSaveAndTestOllama}
+                disabled={isTestingOllama || !inputOllamaEndpoint.trim()}
+                className="py-2.5 px-3 rounded-xl bg-white hover:bg-teal-50 border border-slate-300 text-slate-700 font-bold text-xs flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              >
+                {isTestingOllama ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-teal-600" />}
+                Test
+              </button>
+            </div>
+          </div>
+
+          {ollamaTestResult.status !== 'idle' && (
+            <div className={`p-3 rounded-xl border text-xs font-medium ${
+              ollamaTestResult.status === 'success'
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                : 'bg-rose-50 border-rose-300 text-rose-900'
+            }`}>
+              <div className="font-bold">
+                {ollamaTestResult.status === 'success' ? 'Ollama Connected' : 'Connection Issue'}
+              </div>
+              <p className="text-[11px] mt-1">{ollamaTestResult.message}</p>
+            </div>
+          )}
+
+          <div className="pt-1 border-t border-teal-200 text-[10px] text-teal-900 space-y-0.5">
+            <div>💡 <strong>Local:</strong> Ensure Ollama is running. In PowerShell, run: <code>ollama run minicpm-v</code>.</div>
+            <div>💡 <strong>Remote / Phone access:</strong> Run <code>cloudflared tunnel --url http://localhost:11434</code> to get a free https tunnel.</div>
+          </div>
+        </div>
+
+        {/* 2. Google Gemini API Key Section */}
         <div className="space-y-4 bg-amber-50/60 p-4 rounded-xl border border-amber-200">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-slate-900 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-700" />
-              Google Gemini API Key
+              Google Gemini AI Vision
             </label>
 
             {hasLinkedKey ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                currentActiveOCR === 'Gemini'
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  : 'bg-amber-100 text-amber-800 border-amber-300'
+              }`}>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                {hasLinkedOpenAIKey ? 'Linked (OpenAI is active)' : 'Linked & Active'}
-              </span>
-            ) : hasLinkedOpenAIKey ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
-                OpenAI OCR Active
+                {currentActiveOCR === 'Gemini' ? 'Primary OCR Active' : 'Connected (Standby)'}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-300">
-                Offline Simulator Mode
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                Not Connected
               </span>
             )}
           </div>
 
           <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-            Paste a Gemini API key as an alternative OCR provider. OpenAI takes precedence whenever its key is saved.
+            Core AI Vision engine for Star Electric Portal. Fast, accurate multi-page demand requisition and delivery challan OCR.
           </p>
 
           {/* Current saved status banner */}
