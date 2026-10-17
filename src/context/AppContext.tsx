@@ -39,6 +39,7 @@ import {
   INITIAL_SITES
 } from '../lib/storage';
 import { initImageMemory } from '../lib/imageStorage';
+import { normalizePRNumber } from '../lib/utils';
 import {
   subscribeToCloudPRs,
   subscribeToCloudDCs,
@@ -381,13 +382,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const map = new Map<string, PRRecord>();
             prev.forEach(p => map.set(p.id, p));
             cloudPRs.forEach(cp => {
-              const cloudNumber = (cp.prNumber || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-              const existing = map.get(cp.id) || Array.from(map.values()).find(p =>
-                (p.prNumber || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === cloudNumber
-              );
+              const cloudNumber = normalizePRNumber(cp.prNumber);
+              const existing = map.get(cp.id) || (cloudNumber ? Array.from(map.values()).find(p =>
+                normalizePRNumber(p.prNumber) === cloudNumber
+              ) : undefined);
               map.set(existing?.id || cp.id, existing ? {
                 ...existing,
                 ...cp,
+                id: existing.id,
                 prNumber: cp.prNumber || existing.prNumber,
                 date: cp.date || existing.date,
                 siteName: cp.siteName || existing.siteName,
@@ -414,6 +416,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 return cloud ? {
                   ...p,
                   ...cloud,
+                  id: p.id,
                   dcNumber: cloud.dcNumber || p.dcNumber,
                   invoiceNumber: cloud.invoiceNumber || p.invoiceNumber,
                   prNumber: cloud.prNumber || p.prNumber,
@@ -429,13 +432,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const map = new Map<string, DCRecord>();
             prev.forEach(d => map.set(d.id, d));
             cloudDCs.forEach(cd => {
-              const cloudNumber = (cd.dcNumber || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-              const existing = map.get(cd.id) || Array.from(map.values()).find(d =>
-                (d.dcNumber || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === cloudNumber
-              );
+              const cloudNumber = normalizePRNumber(cd.dcNumber);
+              const existing = map.get(cd.id) || (cloudNumber ? Array.from(map.values()).find(d =>
+                normalizePRNumber(d.dcNumber) === cloudNumber
+              ) : undefined);
               map.set(existing?.id || cd.id, existing ? {
                 ...existing,
                 ...cd,
+                id: existing.id,
                 dcNumber: cd.dcNumber || existing.dcNumber,
                 invoiceNumber: cd.invoiceNumber || existing.invoiceNumber,
                 prNumber: cd.prNumber || existing.prNumber,

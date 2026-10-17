@@ -131,6 +131,16 @@ export function subscribeToCloudDCs(onUpdate: (dcs: DCRecord[]) => void): Unsubs
   }
 }
 
+const isInlineImage = (value: unknown): boolean => typeof value === 'string' && value.startsWith('data:');
+
+const withoutInlineImages = <T extends Record<string, any>>(record: T, keys: string[]): T => {
+  const clean: Record<string, any> = { ...record };
+  keys.forEach(key => {
+    if (isInlineImage(clean[key])) delete clean[key];
+  });
+  return clean as T;
+};
+
 /**
  * Save or update a single PR in Firestore
  */
@@ -140,7 +150,11 @@ export async function savePRToCloud(pr: PRRecord): Promise<void> {
 
   const docId = String(pr.id || pr.prNumber).replace(/\//g, '_');
   // Strip heavy base64 to preserve database storage limits
-  const { documentImage, ...cleanPR } = pr;
+  const { documentImage, ...rest } = pr;
+  const cleanPR = {
+    ...withoutInlineImages(rest, ['prDocumentImage']),
+    ...(pr.fulfillmentLogs ? { fulfillmentLogs: pr.fulfillmentLogs.map(log => withoutInlineImages(log, ['builtyImage'])) } : {})
+  };
 
   const docRef = doc(db, PRS_COLLECTION, docId);
   await setDoc(docRef, cleanPR, { merge: true });
@@ -156,7 +170,8 @@ export async function saveDCToCloud(dc: DCRecord): Promise<void> {
   const docId = String(dc.id || dc.dcNumber).replace(/\//g, '_');
   // Keep lightweight references/URLs so other devices can resolve the scan from Storage
   const { documentImage, ...rest } = dc;
-  const cleanDC = documentImage && !documentImage.startsWith('data:') ? { ...rest, documentImage } : rest;
+  const strippedDC = withoutInlineImages(rest, ['builtyImage', 'prDocumentImage']);
+  const cleanDC = documentImage && !documentImage.startsWith('data:') ? { ...strippedDC, documentImage } : strippedDC;
 
   const docRef = doc(db, DCS_COLLECTION, docId);
   await setDoc(docRef, cleanDC, { merge: true });

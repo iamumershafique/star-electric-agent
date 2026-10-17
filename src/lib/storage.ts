@@ -29,7 +29,7 @@ const dcSequenceNumber = (dcNumber: string): number | undefined => {
   return match ? Number(match[1]) : undefined;
 };
 
-const seedImportsEnabled = import.meta.env.DEV;
+const seedImportsEnabled = true;
 const driveLedgerByDC = new Map((seedImportsEnabled ? JADEED_DRIVE_DC_LEDGER : []).map(entry => [entry.dcNumber, entry]));
 const driveScansByDC = new Map(JADEED_DRIVE_DC_SCANS.map(entry => [entry.dcNumber, entry]));
 const driveDCScanImageUrls = new Set(JADEED_DRIVE_DC_SCANS.map(entry => entry.imageUrl));
@@ -39,8 +39,23 @@ const verifiedScanPRs = seedImportsEnabled ? JADEED_DRIVE_SCAN_PR_VERIFICATIONS 
 const hasBuiltyEvidence = (dc: DCRecord): boolean =>
   !!(dc.isBuiltyAttached || dc.biltyNumber?.trim() || dc.builtyImage);
 
-const normalizePRReference = (value: string): string =>
-  value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+const normalizePRReference = (value: string): string => normalizePRNumber(value);
+
+const prMatchesDCLink = (pr: PRRecord, dc: { prId?: string; prNumber?: string }): boolean =>
+  (!!dc.prId && pr.id === dc.prId) ||
+  (hasPRNumber(dc.prNumber) && !!normalizePRNumber(pr.prNumber) && normalizePRNumber(pr.prNumber) === normalizePRNumber(dc.prNumber));
+
+const recomputePRFromLogs = (pr: PRRecord, logs: FulfillmentLog[]): PRRecord => {
+  const totals: Record<string, number> = {};
+  logs.forEach(log => {
+    totals[log.itemId] = (totals[log.itemId] || 0) + log.quantityShipped;
+  });
+  const items = pr.items.map(item => {
+    const fulfilledQty = totals[item.id] || 0;
+    return { ...item, fulfilledQty, status: computeItemStatus(item.requestedQty, fulfilledQty) };
+  });
+  return { ...pr, items, fulfillmentLogs: logs, status: computePRStatus(items) };
+};
 
 const verifiedScanPRKeys = new Set(
   verifiedScanPRs.map(entry => `${normalizePRReference(entry.prNumber)}:${normalizeDateToISO(entry.date)}`)
@@ -56,9 +71,7 @@ export function getVerifiedDriveDCUpdates(dcs: DCRecord[]): DriveVerifiedDCUpdat
     const builtyEntry = driveBuiltyByDC.get(sequenceNumber);
     const update: DriveVerifiedDCUpdate = {
       id: dc.id,
-      dcNumber: dc.dcNumber,
-      prId: dc.prId || '',
-      prNumber: dc.prNumber || ''
+      dcNumber: dc.dcNumber
     };
 
     if (ledgerEntry?.date) update.date = ledgerEntry.date;
@@ -72,7 +85,10 @@ export function getVerifiedDriveDCUpdates(dcs: DCRecord[]): DriveVerifiedDCUpdat
         !(builtyEntry && dc.biltyNumber?.replace(/[^0-9]/g, '') === builtyEntry.biltyNumber);
     }
 
-    return Object.keys(update).length > 2 ? [update] : [];
+    if (Object.keys(update).length <= 2) return [];
+    if (dc.prId) update.prId = dc.prId;
+    if (dc.prNumber) update.prNumber = dc.prNumber;
+    return [update];
   });
 }
 
@@ -712,14 +728,14 @@ export function isDCPRMissing(dc: DCRecord, allPRs: PRRecord[]): boolean {
     return true;
   }
   if (/^PR-JAD-\d{4}$/i.test(dc.prNumber)) {
-    const realPR = allPRs.find(p => p.id === dc.prId || p.prNumber.trim().toLowerCase() === dc.prNumber.trim().toLowerCase());
+    const realPR = allPRs.find(p => p.id === dc.prId || normalizePRNumber(p.prNumber) === normalizePRNumber(dc.prNumber));
     if (!realPR || (realPR.items.length === 1 && realPR.items[0].name.includes('Electrical Supplies & Consumables'))) {
       return true;
     }
   }
   const hasRealPR = allPRs.some(p => 
     p.id === dc.prId || 
-    p.prNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === dc.prNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+    normalizePRNumber(p.prNumber) === normalizePRNumber(dc.prNumber)
   );
   return !hasRealPR;
 }
@@ -747,7 +763,7 @@ export function autoLinkPRsAndDCsInStorage(): {
   });
 
   const updatedDCs = dcs.map(dc => {
-    if (!hasPRNumber(dc.prNumber) || dc.noPrRequired) {
+    if (dc.noPrRequired) {
       return dc;
     }
 
@@ -759,7 +775,7 @@ export function autoLinkPRsAndDCsInStorage(): {
     }
 
     // B. Check the normalized PR number
-    if (!matchedPR && dc.prNumber) {
+    if (!matchedPR && hasPRNumber(dc.prNumber)) {
       const normalizedDCPr = normalizePRNumber(dc.prNumber);
       if (normalizedDCPr) {
         matchedPR = prByNumber.get(normalizedDCPr);
@@ -767,7 +783,7 @@ export function autoLinkPRsAndDCsInStorage(): {
     }
 
     // C. Check PR fulfillment logs as fallback
-    if (!matchedPR) {
+    if (!matchedPR && normalizePRNumber(dc.dcNumber)) {
       matchedPR = prs.find(p => 
         (p.fulfillmentLogs || []).some(log => 
           normalizePRNumber(log.dcNumber) === normalizePRNumber(dc.dcNumber)
@@ -1168,7 +1184,7 @@ export function deleteDC(dcId: string): { updatedPRs: PRRecord[]; updatedDCs: DC
   const updatedDCs = dcs.filter(d => d.id !== dcId);
 
   // Recalculate PR fulfillment
-  const targetPRIndex = prs.findIndex(p => p.id === targetDC.prId || p.prNumber === targetDC.prNumber);
+  const targetPRIndex = prs.findIndex(p => prMatchesDCLink(p, targetDC));
   let updatedPRs = prs;
 
   if (targetPRIndex >= 0) {
@@ -1223,20 +1239,25 @@ export function updateDCInStorage(
   newDCs[dcIndex] = updatedDC;
   saveAllDCs(newDCs);
 
-  // Sync with linked PR if exists
-  const targetPRIndex = prs.findIndex(
-    p => p.id === updatedDC.prId || p.prNumber === updatedDC.prNumber || p.id === oldDC.prId || p.prNumber === oldDC.prNumber
-  );
-  let updatedPRs = prs;
+  // Sync with linked PR(s); clean the old PR's logs when the DC moved to another PR
+  const targetPRIndex = prs.findIndex(p => prMatchesDCLink(p, updatedDC));
+  const oldPRIndex = prs.findIndex(p => prMatchesDCLink(p, oldDC));
+  let updatedPRs = [...prs];
+
+  if (oldPRIndex >= 0 && oldPRIndex !== targetPRIndex) {
+    const oldPR = prs[oldPRIndex];
+    const remaining = (oldPR.fulfillmentLogs || []).filter(
+      l => l.dcNumber !== oldDC.dcNumber && l.dcNumber !== updatedDC.dcNumber
+    );
+    updatedPRs[oldPRIndex] = recomputePRFromLogs(oldPR, remaining);
+  }
 
   if (targetPRIndex >= 0) {
     const pr = prs[targetPRIndex];
-    // Remove old logs for this DC
     const otherLogs = (pr.fulfillmentLogs || []).filter(
       l => l.dcNumber !== oldDC.dcNumber && l.dcNumber !== updatedDC.dcNumber
     );
 
-    // Create new logs from updatedDC.itemsShipped
     const newLogs: FulfillmentLog[] = updatedDC.itemsShipped.map(item => ({
       id: `flog-${Math.random().toString(36).substring(2, 9)}`,
       dcNumber: updatedDC.dcNumber,
@@ -1256,34 +1277,10 @@ export function updateDCInStorage(
       notes: updatedDC.remarks
     }));
 
-    const allLogs = [...otherLogs, ...newLogs];
-
-    // Recompute fulfilled totals
-    const itemFulfilledTotals: Record<string, number> = {};
-    allLogs.forEach(log => {
-      itemFulfilledTotals[log.itemId] = (itemFulfilledTotals[log.itemId] || 0) + log.quantityShipped;
-    });
-
-    const updatedItems = pr.items.map(item => {
-      const newFulfilled = itemFulfilledTotals[item.id] || 0;
-      return {
-        ...item,
-        fulfilledQty: newFulfilled,
-        status: computeItemStatus(item.requestedQty, newFulfilled)
-      };
-    });
-
-    const updatedPR: PRRecord = {
-      ...pr,
-      items: updatedItems,
-      fulfillmentLogs: allLogs,
-      status: computePRStatus(updatedItems)
-    };
-
-    updatedPRs = [...prs];
-    updatedPRs[targetPRIndex] = updatedPR;
-    saveAllPRs(updatedPRs);
+    updatedPRs[targetPRIndex] = recomputePRFromLogs(pr, [...otherLogs, ...newLogs]);
   }
+
+  if (oldPRIndex >= 0 || targetPRIndex >= 0) saveAllPRs(updatedPRs);
 
   return { updatedPRs, updatedDCs: newDCs };
 }
@@ -1344,7 +1341,10 @@ export function saveDCAndFulfillPR(
       const shippedQty = fulfillmentMap[item.id] !== undefined ? fulfillmentMap[item.id] : 0;
       
       // BUG FIX #4: Validate quantity doesn't exceed remaining
-      const maxRemaining = Math.max(0, item.requestedQty - (item.fulfilledQty || 0));
+      const fulfilledByOthers = otherLogs
+        .filter(l => l.itemId === item.id)
+        .reduce((sum, l) => sum + l.quantityShipped, 0);
+      const maxRemaining = Math.max(0, item.requestedQty - fulfilledByOthers);
       const actualShippedQty = Math.min(Math.max(0, shippedQty), maxRemaining);
       
       if (actualShippedQty > 0) {
@@ -1587,7 +1587,7 @@ export function attachBuiltyToDCInStorage(
     const cleanDC = d.dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
     if (cleanDC === cleanQuery) return true;
     // Match digits e.g. "674" matches "DC-674"
-    if (cleanQuery && (cleanDC.includes(cleanQuery) || cleanQuery.includes(cleanDC))) return true;
+    if (/^\d+$/.test(cleanQuery) && dcSequenceNumber(d.dcNumber) === Number(cleanQuery)) return true;
     return false;
   });
 
@@ -1625,7 +1625,7 @@ export function attachBuiltyToDCInStorage(
 
   // Sync fulfillment logs on linked PR
   let linkedPR: PRRecord | undefined;
-  const prIdx = prs.findIndex(p => p.id === dc.prId || p.prNumber === dc.prNumber);
+  const prIdx = prs.findIndex(p => prMatchesDCLink(p, dc));
   if (prIdx >= 0) {
     const pr = { ...prs[prIdx] };
     pr.fulfillmentLogs = (pr.fulfillmentLogs || []).map(log => {
