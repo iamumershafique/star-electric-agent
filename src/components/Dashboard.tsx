@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { getStatusBadgeColor } from '../lib/utils';
+import { isDCPRMissing } from '../lib/storage';
 import { 
   FileCheck2, 
   CheckCircle2, 
@@ -9,7 +10,9 @@ import {
   ArrowRight,
   Truck,
   Edit3,
-  Package
+  Package,
+  AlertTriangle,
+  Link2Off
 } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
@@ -62,6 +65,14 @@ export const Dashboard: React.FC = () => {
     !(d.dcNumber || '').toLowerCase().includes('missing') &&
     (d.isBuiltyAttached || Boolean(d.biltyNumber?.trim()) || Boolean(d.builtyImage))
   ).length;
+  const unlinkedDCs = dcs.filter(d => !(d.dcNumber || "").toLowerCase().includes("missing") && isDCPRMissing(d, prs)).length;
+  const prsNoDCs = prs.filter(p => p.status !== "Cancelled" && p.status !== "Fulfilled" && !dcs.some(d => d.prId === p.id)).length;
+  const topSites = sites
+    .map(s => ({ name: s.name, count: dcs.filter(d => d.siteName === s.name).length }))
+    .filter(s => s.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+  const maxSiteCount = topSites[0]?.count || 1;
   const completedDCCount = deliveredDCCount + dispatchedDCCount;
   const directDeliveredCount = deliveredDCCount;
 
@@ -186,10 +197,10 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Main Content Area: Fits in remaining desktop height with scrollable panels */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 min-h-0">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 items-start">
         
         {/* Left Column (2 Cols): Recent Requisitions */}
-        <div className="xl:col-span-2 bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm flex flex-col min-h-0">
+        <div className="xl:col-span-2 bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100 shrink-0">
             <div>
               <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
@@ -207,14 +218,14 @@ export const Dashboard: React.FC = () => {
             </button>
           </div>
 
-          <div className="space-y-2 overflow-y-auto max-h-[36rem] pr-1">
+          <div className="space-y-2 overflow-y-auto max-h-[44rem] pr-1">
             {prs.length === 0 ? (
               <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-lg space-y-1">
                 <p className="text-xs font-bold text-slate-700">No requisitions recorded yet</p>
                 <p className="text-[11px] text-slate-500">Click "Scan Demand PR" to upload a demand sheet.</p>
               </div>
             ) : (
-              prs.slice(0, 6).map(pr => {
+              prs.slice(0, 10).map(pr => {
                 const completedItems = pr.items.filter(i => i.fulfilledQty >= i.requestedQty).length;
                 const progressPct = pr.items.length > 0 ? Math.round((completedItems / pr.items.length) * 100) : 0;
 
@@ -283,10 +294,62 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Right Column (1 Col): Split vertically between Major Brands & Farm Locations */}
-        <div className="flex flex-col gap-3 min-h-0">
+        <div className="flex flex-col gap-3">
           
+          <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+            <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5 pb-2 border-b border-slate-100">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+              Needs Attention
+            </h3>
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <button
+                onClick={() => setActiveTab('deliveries')}
+                className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 hover:border-amber-400 text-left cursor-pointer"
+              >
+                <Link2Off className="w-4 h-4 text-amber-700" />
+                <div className="text-xl font-extrabold text-amber-800 mt-1">{unlinkedDCs}</div>
+                <div className="text-[10px] font-bold text-amber-900">DCs need a PR link</div>
+              </button>
+              <button
+                onClick={() => setActiveTab('ledger')}
+                className="p-2.5 rounded-lg bg-red-50 border border-red-200 hover:border-red-400 text-left cursor-pointer"
+              >
+                <FileCheck2 className="w-4 h-4 text-red-700" />
+                <div className="text-xl font-extrabold text-red-800 mt-1">{prsNoDCs}</div>
+                <div className="text-[10px] font-bold text-red-900">Open PRs with no DC</div>
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+            <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5 pb-2 border-b border-slate-100">
+              <Building className="w-3.5 h-3.5 text-blue-600" />
+              Top Sites by Deliveries
+            </h3>
+            <div className="space-y-1.5 pt-2">
+              {topSites.map(s => (
+                <div
+                  key={s.name}
+                  onClick={() => {
+                    setSearchQuery(s.name);
+                    setActiveTab('deliveries');
+                  }}
+                  className="cursor-pointer group"
+                >
+                  <div className="flex justify-between text-[11px] font-bold text-slate-800 group-hover:text-emerald-800">
+                    <span className="truncate pr-2">{s.name}</span>
+                    <span>{s.count}</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(s.count / maxSiteCount) * 100}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Top Card: Recent Delivery Challans & Invoices (DCs) */}
-          <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col flex-1 min-h-0">
+          <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 shrink-0">
               <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
                 <Truck className="w-3.5 h-3.5 text-emerald-600" />
@@ -300,7 +363,7 @@ export const Dashboard: React.FC = () => {
               </button>
             </div>
 
-            <div className="space-y-2 overflow-y-auto flex-1 min-h-0 pt-2 pr-1">
+            <div className="space-y-2 overflow-y-auto max-h-80 pt-2 pr-1">
               {dcs.length === 0 ? (
                 <div className="text-center py-4 text-[11px] text-slate-500 font-medium">
                   No Delivery Challans generated yet. Click "Record DC" to create one.
@@ -336,7 +399,7 @@ export const Dashboard: React.FC = () => {
                     </p>
                     <div className="flex items-center justify-between text-[10px] text-slate-600 font-semibold">
                       <span>{dc.itemsShipped.length} Line Item(s)</span>
-                      <span className="text-blue-800 font-extrabold font-mono">PR #{dc.prNumber}</span>
+                      <span className="text-blue-800 font-extrabold font-mono">{dc.prNumber?.trim() ? `PR #${dc.prNumber}` : "No PR linked"}</span>
                     </div>
                   </div>
                 ))
@@ -345,7 +408,7 @@ export const Dashboard: React.FC = () => {
           </div>
 
           {/* Bottom Card: Jadeed Group Farm Locations */}
-          <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col flex-1 min-h-0">
+          <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm flex flex-col">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 shrink-0">
               <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
                 <Building className="w-3.5 h-3.5 text-blue-600" />
@@ -354,7 +417,7 @@ export const Dashboard: React.FC = () => {
               <span className="text-[10px] font-bold text-slate-500">{sites.length} Active</span>
             </div>
 
-            <div className="overflow-y-auto flex-1 min-h-0 pt-2 pr-1">
+            <div className="overflow-y-auto max-h-80 pt-2 pr-1">
               {sites.length === 0 ? (
                 <div className="text-center py-4 text-[11px] text-slate-500 font-medium">
                   No farm locations recorded yet. Upload a demand document to discover.
