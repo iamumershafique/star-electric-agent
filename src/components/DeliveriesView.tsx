@@ -85,6 +85,10 @@ export const DeliveriesView: React.FC = () => {
   // Statistics
   const missingPRCount = useMemo(() => dcs.filter(d => isDCPRMissing(d)).length, [dcs, isDCPRMissing]);
   const missingPRDCs = useMemo(() => dcs.filter(d => isDCPRMissing(d)), [dcs, isDCPRMissing]);
+  const selectablePRs = useMemo(() => prs.filter(pr => {
+    const number = pr.prNumber.trim();
+    return !!number && !/^DC\b/i.test(number) && !/^NO\s+PR(?:\s+REQUIRED)?$/i.test(number);
+  }), [prs]);
   const prLinkedCount = useMemo(() => dcs.length - missingPRCount, [dcs, missingPRCount]);
   const builtyAttachedCount = dcs.filter(hasBuiltyEvidence).length;
   const directDeliveredCount = dcs.filter(d => d.deliveryStatus === 'Delivered' && !isMissingPhysicalPage(d)).length;
@@ -153,18 +157,18 @@ export const DeliveriesView: React.FC = () => {
   const handleSaveManualPR = (e: React.FormEvent) => {
     e.preventDefault();
     if (!manualPRModalDC) return;
-    const cleanNum = manualPRInput.trim();
-    if (!cleanNum) {
-      alert('Please enter a valid PR Number (e.g. PR-151 or PR-204).');
+    const targetPR = prs.find(pr => pr.id === manualPRInput);
+    if (!targetPR) {
+      alert('Please select a requisition from the list.');
       return;
     }
 
-    const result = linkDCToManualPR(manualPRModalDC.id, cleanNum, manualPRNotes);
+    const result = linkDCToManualPR(manualPRModalDC.id, targetPR.id, manualPRNotes);
     if (!result.success) {
-      alert(result.error || `PR ${cleanNum} could not be linked.`);
+      alert(result.error || `PR ${targetPR.prNumber} could not be linked.`);
       return;
     }
-    setActionToast(`✓ DC ${manualPRModalDC.dcNumber} linked to existing PR #${cleanNum}. Item fulfillment was not changed.`);
+    setActionToast(`✓ DC ${manualPRModalDC.dcNumber} linked to PR ${targetPR.prNumber} (${targetPR.date}). Item fulfillment was not changed.`);
     setManualPRModalDC(null);
     setManualPRInput('');
     setManualPRNotes('');
@@ -552,6 +556,19 @@ export const DeliveriesView: React.FC = () => {
                 <option key={s.id} value={s.name}>{s.name}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              Notes / Remarks (Optional):
+            </label>
+            <textarea
+              rows={2}
+              value={manualPRNotes}
+              onChange={(e) => setManualPRNotes(e.target.value)}
+              placeholder="e.g. Linked per supervisor confirmation"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-amber-500"
+            />
           </div>
 
           {/* Page Size & Stats */}
@@ -982,7 +999,7 @@ export const DeliveriesView: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold text-slate-900">
-                    Add PR Number Manually
+                    Link to a Requisition
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
                     Link {manualPRModalDC.dcNumber} to a Purchase Requisition
@@ -1008,51 +1025,21 @@ export const DeliveriesView: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Purchase Requisition (PR) Number:
+                  Purchase Requisition (PR):
                 </label>
-                <input
-                  type="text"
+                <select
                   required
-                  autoFocus
                   value={manualPRInput}
                   onChange={(e) => setManualPRInput(e.target.value)}
-                  placeholder="e.g. PR-151, PR-58, PR-674, PR-204"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-900 focus:outline-none focus:border-amber-500 bg-white"
-                />
-              </div>
-
-              {/* Quick Suggestion Pills from Loaded PRs */}
-              {prs.length > 0 && (
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">
-                    Quick Pick from Existing PRs:
-                  </label>
-                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1 border border-slate-200 rounded-xl bg-slate-50">
-                    {prs.slice(0, 15).map(p => (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => setManualPRInput(p.prNumber)}
-                        className="px-2 py-1 rounded-lg bg-white hover:bg-amber-100 text-slate-800 text-xs font-mono font-bold border border-slate-300 transition-colors shadow-2xs cursor-pointer"
-                      >
-                        {p.prNumber}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Notes / Remarks (Optional):
-                </label>
-                <textarea
-                  rows={2}
-                  value={manualPRNotes}
-                  onChange={(e) => setManualPRNotes(e.target.value)}
-                  placeholder="e.g. Delivered per supervisor verbal confirmation"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-none focus:border-amber-500"
-                />
+                >
+                  <option value="">Select a PR...</option>
+                  {selectablePRs.map(pr => (
+                    <option key={pr.id} value={pr.id}>
+                      {pr.prNumber} — {pr.date || 'Date unknown'} — {pr.siteName || 'Site unknown'}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
@@ -1068,7 +1055,7 @@ export const DeliveriesView: React.FC = () => {
                   className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  Link PR &amp; Mark Delivered
+                  Link DC to PR
                 </button>
               </div>
             </form>

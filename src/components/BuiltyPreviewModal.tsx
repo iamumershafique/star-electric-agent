@@ -136,6 +136,7 @@ export const BuiltyPreviewModal: React.FC = () => {
             <img
               src={resolvedImage}
               alt="Delivery document scan"
+              referrerPolicy="no-referrer"
               onError={() => setImageUnavailable(true)}
               className="max-h-[55vh] sm:max-h-[65vh] w-auto max-w-full object-contain rounded-xl shadow-md border border-slate-200"
             />

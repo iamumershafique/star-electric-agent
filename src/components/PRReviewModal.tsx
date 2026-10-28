@@ -100,9 +100,10 @@ export const PRReviewModal: React.FC = () => {
       setDrafts(initialDrafts);
       setActiveIndex(0);
 
-      const firstPr = initialDrafts[0]?.prNumber;
+      const firstDraft = initialDrafts[0];
+      const firstPr = firstDraft?.prNumber;
       if (firstPr && firstPr !== 'NO PR') {
-        const dupCheck = verifyAndCheckDuplicate(firstPr);
+        const dupCheck = verifyAndCheckDuplicate(firstPr, firstDraft.date, firstDraft.siteName);
         setDuplicateWarning(dupCheck.isDuplicate);
       } else {
         setDuplicateWarning(false);
@@ -121,9 +122,12 @@ export const PRReviewModal: React.FC = () => {
       return updated;
     });
 
-    if (fields.prNumber !== undefined) {
-      if (fields.prNumber.trim() && fields.prNumber.trim() !== 'NO PR') {
-        const dupCheck = verifyAndCheckDuplicate(fields.prNumber);
+    if (fields.prNumber !== undefined || fields.date !== undefined || fields.siteName !== undefined) {
+      const prNumber = fields.prNumber ?? currentDraft.prNumber;
+      const date = fields.date ?? currentDraft.date;
+      const siteName = fields.siteName ?? currentDraft.siteName;
+      if (prNumber.trim() && prNumber.trim() !== 'NO PR') {
+        const dupCheck = verifyAndCheckDuplicate(prNumber, date, siteName);
         setDuplicateWarning(dupCheck.isDuplicate);
       } else {
         setDuplicateWarning(false);

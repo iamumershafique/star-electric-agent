@@ -99,6 +99,7 @@ export interface DCRecord {
   // Missing PR Resolution & Attachment Fields
   noPrRequired?: boolean;
   prDocumentImage?: string;
+  prLinkReviewed?: boolean;
 }
 
 export interface DriveVerifiedDCUpdate {

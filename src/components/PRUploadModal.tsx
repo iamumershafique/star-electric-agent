@@ -145,7 +145,7 @@ export const PRUploadModal: React.FC = () => {
       // If single PR and duplicate, prompt duplicate warning.
       // For multi-PR batch (e.g. PR-37, PR-66, PR-194), open PRReviewModal directly with all tabs available!
       if (resultList.length === 1) {
-        const dupCheck = verifyAndCheckDuplicate(primary.prNumber);
+        const dupCheck = verifyAndCheckDuplicate(primary.prNumber, primary.date, primary.siteName);
         if (dupCheck.isDuplicate && primary.prNumber !== 'NO PR') {
           setDuplicateInfo({
             isDuplicate: true,

@@ -21,10 +21,12 @@ import {
 export const PRDetailModal: React.FC = () => {
   const { 
     isPRDetailOpen, 
-    setIsPRDetailOpen, 
-    selectedPR, 
+    setIsPRDetailOpen,
+    selectedPR,
     dcs,
-    setTargetDC_PR, 
+    isDCPRMissing,
+    linkDCToPR,
+    setTargetDC_PR,
     setIsDCUploadOpen,
     deletePR,
     setQuickDispatchTarget,
@@ -36,11 +38,14 @@ export const PRDetailModal: React.FC = () => {
   } = useApp();
 
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  const [dcToLinkId, setDcToLinkId] = useState('');
+  const [linkMessage, setLinkMessage] = useState('');
 
   if (!isPRDetailOpen || !selectedPR) return null;
 
   const totals = calculatePRTotals(selectedPR);
   const linkedPRDCNumbers = getLinkedDCNumbersForPR(selectedPR, dcs);
+  const unlinkedDCs = dcs.filter(dc => isDCPRMissing(dc));
 
   const handlePrint = () => {
     window.print();
@@ -205,9 +210,47 @@ export const PRDetailModal: React.FC = () => {
               </span>
             )}
             <span className="basis-full text-[10px] text-slate-600">
-              An asterisk in the item table means the DC is linked to the PR, but its contents are not verified for that specific item.
+              The item table lists only DCs whose fulfillment record identifies that specific requisition line.
             </span>
           </div>
+
+          {unlinkedDCs.length > 0 && (
+            <div className="flex flex-col sm:flex-row sm:items-end gap-2 rounded-xl border border-amber-200 bg-amber-50/70 p-3">
+              <label className="flex-1 text-[10px] font-bold text-slate-700">
+                Link an unlinked delivery challan to this requisition
+                <select
+                  value={dcToLinkId}
+                  onChange={event => {
+                    setDcToLinkId(event.target.value);
+                    setLinkMessage('');
+                  }}
+                  className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800"
+                >
+                  <option value="">Select a DC number...</option>
+                  {unlinkedDCs.map(dc => (
+                    <option key={dc.id} value={dc.id}>
+                      {dc.dcNumber} — {dc.date || 'Date unknown'} — {dc.siteName || 'Site unknown'}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                disabled={!dcToLinkId}
+                onClick={() => {
+                  const result = linkDCToPR(dcToLinkId, selectedPR.id);
+                  setLinkMessage(result.success
+                    ? 'DC linked to this PR. Item quantities were not changed.'
+                    : result.error || 'Could not link this DC.');
+                  if (result.success) setDcToLinkId('');
+                }}
+                className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Link DC
+              </button>
+              {linkMessage && <span role="status" className="text-[11px] font-semibold text-slate-700">{linkMessage}</span>}
+            </div>
+          )}
 
           {/* Fulfillment Bar */}
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
@@ -271,16 +314,10 @@ export const PRDetailModal: React.FC = () => {
                     const isSelected = selectedItemIds.includes(item.id);
                     const itemDCNumbers = Array.from(new Set(
                       (selectedPR.fulfillmentLogs || [])
-                        .filter(log =>
-                          log.itemId === item.id ||
-                          log.itemName.toLowerCase().replace(/[^a-z0-9]/g, '') ===
-                            item.name.toLowerCase().replace(/[^a-z0-9]/g, '')
-                        )
+                        .filter(log => log.itemId === item.id)
                         .map(log => log.dcNumber.trim())
                         .filter(Boolean)
                     ));
-                    const itemSpecificDCNumbers = itemDCNumbers.length > 0;
-                    const linkedDCNumbers = itemSpecificDCNumbers ? itemDCNumbers : linkedPRDCNumbers;
 
                     return (
                       <tr key={item.id} className={`hover:bg-slate-50 transition-colors ${isSelected ? 'bg-amber-50/50' : ''}`}>
@@ -299,21 +336,15 @@ export const PRDetailModal: React.FC = () => {
                           )}
                         </td>
                         <td className="p-3">
-                          {linkedDCNumbers.length > 0 ? (
+                          {itemDCNumbers.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
-                              {linkedDCNumbers.map(dcNumber => (
+                              {itemDCNumbers.map(dcNumber => (
                                 <span
                                   key={dcNumber}
-                                  title={itemSpecificDCNumbers
-                                    ? `This DC is recorded for ${item.name}.`
-                                    : 'This DC is linked to the PR; its contents are not verified for this specific item.'}
-                                  className={`text-[10px] px-2 py-0.5 rounded border font-mono font-semibold ${
-                                    itemSpecificDCNumbers
-                                      ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-                                      : 'border-blue-300 bg-blue-50 text-blue-900'
-                                  }`}
+                                  title={`This DC is recorded for ${item.name} on this requisition.`}
+                                  className="text-[10px] px-2 py-0.5 rounded border font-mono font-semibold border-emerald-300 bg-emerald-50 text-emerald-800"
                                 >
-                                  {dcNumber}{itemSpecificDCNumbers ? '' : '*'}
+                                  {dcNumber}
                                 </span>
                               ))}
                             </div>

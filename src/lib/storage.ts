@@ -39,6 +39,35 @@ const hasBuiltyEvidence = (dc: DCRecord): boolean =>
 const normalizePRReference = (value: string): string =>
   value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
+const compareNormalizedDates = (left: string, right: string): number | undefined => {
+  const normalizedLeft = normalizeDateToISO(left);
+  const normalizedRight = normalizeDateToISO(right);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedLeft) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(normalizedRight)) {
+    return undefined;
+  }
+  return normalizedLeft < normalizedRight ? -1 : normalizedLeft > normalizedRight ? 1 : 0;
+};
+
+const findLinkedPRForDC = (dc: DCRecord, prs: PRRecord[]): PRRecord | undefined => {
+  if (dc.prId) {
+    const linkedPR = prs.find(pr => pr.id === dc.prId);
+    return linkedPR &&
+      normalizePRReference(linkedPR.prNumber) === normalizePRReference(dc.prNumber)
+      ? linkedPR
+      : undefined;
+  }
+
+  if (!hasPRNumber(dc.prNumber)) return undefined;
+  const matchingPRs = prs.filter(pr =>
+    normalizePRReference(pr.prNumber) === normalizePRReference(dc.prNumber)
+  );
+  if (matchingPRs.length !== 1 || compareNormalizedDates(dc.date, matchingPRs[0].date) === -1) {
+    return undefined;
+  }
+  return matchingPRs[0];
+};
+
 const verifiedScanPRKeys = new Set(
   verifiedScanPRs.map(entry => `${normalizePRReference(entry.prNumber)}:${normalizeDateToISO(entry.date)}`)
 );
@@ -91,6 +120,9 @@ export function getDriveVerifiedPRFulfillmentUpdates(prs: PRRecord[]): DriveVeri
 
 export function getLinkedDCNumbersForPR(pr: PRRecord, dcs: DCRecord[]): string[] {
   const linkedNumbers = new Map<string, string>();
+  const isBeforeRequisition = (date: string) => {
+    return compareNormalizedDates(date, pr.date) === -1;
+  };
   const addDCNumber = (value: string) => {
     const dcNumber = value.trim();
     if (!dcNumber) return;
@@ -101,17 +133,28 @@ export function getLinkedDCNumbersForPR(pr: PRRecord, dcs: DCRecord[]): string[]
     if (!linkedNumbers.has(key)) linkedNumbers.set(key, dcNumber);
   };
 
-  (pr.fulfillmentLogs || []).forEach(log => addDCNumber(log.dcNumber));
   const normalizedPRNumber = normalizePRReference(pr.prNumber);
-
-  dcs.forEach(dc => {
-    const hasDirectPRReference =
-      dc.prId === pr.id ||
-      (normalizedPRNumber && normalizePRReference(dc.prNumber) === normalizedPRNumber);
-    if (hasDirectPRReference && dc.dcNumber.trim()) {
-      addDCNumber(dc.dcNumber);
+  const matchingPRCount = normalizedPRNumber
+    ? getPRs().filter(candidate => normalizePRReference(candidate.prNumber) === normalizedPRNumber).length
+    : 0;
+  const linkedDCs = dcs.filter(dc => {
+    if (dc.prId) {
+      return dc.prId === pr.id &&
+        normalizePRReference(dc.prNumber) === normalizedPRNumber &&
+        (!isBeforeRequisition(dc.date) || dc.prLinkReviewed);
     }
+    return matchingPRCount === 1 &&
+      normalizePRReference(dc.prNumber) === normalizedPRNumber &&
+      !isBeforeRequisition(dc.date);
   });
+  const linkedDCKeys = new Set(linkedDCs.map(dc => normalizePRReference(dc.dcNumber)));
+
+  (pr.fulfillmentLogs || []).forEach(log => {
+    const key = normalizePRReference(log.dcNumber);
+    if (linkedDCKeys.has(key)) addDCNumber(log.dcNumber);
+  });
+
+  linkedDCs.forEach(dc => addDCNumber(dc.dcNumber));
 
   verifiedScanPRs
     .filter(entry =>
@@ -616,19 +659,22 @@ export function getDCs(): DCRecord[] {
           normalizeDateToISO(pr.date) === normalizeDateToISO(entry.date)
         )
       );
-      const matchedPR = verification
+      const verifiedPR = verification
         ? prs.find(pr =>
             normalizePRReference(pr.prNumber) === normalizePRReference(verification.prNumber) &&
             normalizeDateToISO(pr.date) === normalizeDateToISO(verification.date)
           )
-        : prs.find(pr =>
-            normalizePRReference(pr.prNumber) === normalizePRReference(dc.prNumber)
-          );
+        : undefined;
+      const currentPR = dc.prId
+        ? prs.find(pr => pr.id === dc.prId &&
+            normalizePRReference(pr.prNumber) === normalizePRReference(dc.prNumber))
+        : undefined;
+      const matchedPR = verifiedPR || currentPR || findLinkedPRForDC(dc, prs);
       const hasGeneratedPlaceholder = /^PR-JAD-\d{4}$/i.test(dc.prNumber || '');
 
-      if (verification && matchedPR) {
-        if (dc.prId === matchedPR.id && dc.prNumber === matchedPR.prNumber) return dc;
-        return { ...dc, prId: matchedPR.id, prNumber: matchedPR.prNumber };
+      if (verifiedPR) {
+        if (dc.prId === verifiedPR.id && dc.prNumber === verifiedPR.prNumber && dc.prLinkReviewed) return dc;
+        return { ...dc, prId: verifiedPR.id, prNumber: verifiedPR.prNumber, prLinkReviewed: true };
       }
 
       if (matchedPR) {
@@ -714,11 +760,21 @@ export function isDCPRMissing(dc: DCRecord, allPRs: PRRecord[]): boolean {
       return true;
     }
   }
-  const hasRealPR = allPRs.some(p => 
-    p.id === dc.prId || 
-    p.prNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === dc.prNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+
+  if (dc.prId) {
+    const linkedPR = allPRs.find(pr => pr.id === dc.prId);
+    if (!linkedPR) return true;
+    return normalizePRReference(linkedPR.prNumber) !== normalizePRReference(dc.prNumber) ||
+      (compareNormalizedDates(dc.date, linkedPR.date) === -1 && !dc.prLinkReviewed);
+  }
+
+  const normalizedDCPr = normalizePRReference(dc.prNumber);
+  const matchingPRs = allPRs.filter(pr =>
+    normalizePRReference(pr.prNumber) === normalizedDCPr
   );
-  return !hasRealPR;
+  if (matchingPRs.length !== 1) return true;
+
+  return compareNormalizedDates(dc.date, matchingPRs[0].date) === -1;
 }
 
 /**
@@ -733,14 +789,18 @@ export function autoLinkPRsAndDCsInStorage(): {
   let dcs = getDCs();
   let linkedCount = 0;
 
-  const prByNumber = new Map<string, PRRecord>();
+  const prByNumber = new Map<string, PRRecord[]>();
   const prById = new Map<string, PRRecord>();
 
   prs.forEach(p => {
     const normalizedNum = normalizePRNumber(p.prNumber);
 
     prById.set(p.id, p);
-    if (normalizedNum) prByNumber.set(normalizedNum, p);
+    if (normalizedNum) {
+      const candidates = prByNumber.get(normalizedNum) || [];
+      candidates.push(p);
+      prByNumber.set(normalizedNum, candidates);
+    }
   });
 
   const updatedDCs = dcs.map(dc => {
@@ -750,26 +810,38 @@ export function autoLinkPRsAndDCsInStorage(): {
 
     let matchedPR: PRRecord | undefined;
 
-    // A. Check dc.prId
-    if (dc.prId && prById.has(dc.prId)) {
-      matchedPR = prById.get(dc.prId);
-    }
+    const normalizedDCPr = normalizePRNumber(dc.prNumber);
 
-    // B. Check the normalized PR number
-    if (!matchedPR && dc.prNumber) {
-      const normalizedDCPr = normalizePRNumber(dc.prNumber);
-      if (normalizedDCPr) {
-        matchedPR = prByNumber.get(normalizedDCPr);
+    // A. Keep an existing ID link only when its PR number agrees with the DC.
+    if (dc.prId) {
+      const linkedPR = prById.get(dc.prId);
+      if (linkedPR && normalizePRNumber(linkedPR.prNumber) === normalizedDCPr) {
+        matchedPR = linkedPR;
       }
     }
 
-    // C. Check PR fulfillment logs as fallback
+    // B. Recover stale or missing IDs only for a unique PR reference whose
+    // requisition date is not later than the delivery date.
+    if (!matchedPR && normalizedDCPr) {
+      const candidates = prByNumber.get(normalizedDCPr) || [];
+      if (candidates.length === 1) {
+        const candidate = candidates[0];
+        if (compareNormalizedDates(dc.date, candidate.date) !== -1) {
+          matchedPR = candidate;
+        }
+      }
+    }
+
+    // C. A unique fulfillment-log reference is direct evidence of the link.
     if (!matchedPR) {
-      matchedPR = prs.find(p => 
-        (p.fulfillmentLogs || []).some(log => 
-          normalizePRNumber(log.dcNumber) === normalizePRNumber(dc.dcNumber)
-        )
-      );
+      const loggedPRs = prs.filter(p => {
+        return normalizePRNumber(p.prNumber) === normalizedDCPr &&
+          compareNormalizedDates(dc.date, p.date) !== -1 &&
+          (p.fulfillmentLogs || []).some(log =>
+            normalizePRNumber(log.dcNumber) === normalizePRNumber(dc.dcNumber)
+          );
+      });
+      if (loggedPRs.length === 1) matchedPR = loggedPRs[0];
     }
 
     if (matchedPR) {
@@ -808,14 +880,19 @@ export function linkDCToManualPRInStorage(
   if (dcIndex === -1) return { updatedPRs: prs, updatedDCs: dcs };
 
   const targetDC = dcs[dcIndex];
-  const cleanEnteredPR = prNumber.trim();
-  const normalizedEntered = normalizePRReference(cleanEnteredPR);
-  const targetPR = prs.find(p => normalizePRReference(p.prNumber) === normalizedEntered);
+  const enteredReference = prNumber.trim();
+  const matchingPRs = prs.filter(p =>
+    normalizePRReference(p.prNumber) === normalizePRReference(enteredReference)
+  );
+  const targetPR = prs.find(p => p.id === enteredReference) ||
+    (matchingPRs.length === 1 ? matchingPRs[0] : undefined);
   if (!targetPR) {
     return {
       updatedPRs: prs,
       updatedDCs: dcs,
-      error: `PR ${cleanEnteredPR} is not in the requisition register. A DC cannot create a PR; add the actual PR document first.`
+      error: matchingPRs.length > 1
+        ? `PR ${enteredReference} matches multiple requisition dates. Select the exact requisition from the list.`
+        : `PR ${enteredReference} is not in the requisition register. A DC cannot create a PR; add the actual PR document first.`
     };
   }
 
@@ -823,6 +900,7 @@ export function linkDCToManualPRInStorage(
     ...targetDC,
     prId: targetPR.id,
     prNumber: targetPR.prNumber,
+    prLinkReviewed: true,
     noPrRequired: false,
     remarks: (targetDC.remarks && !targetDC.remarks.includes(targetPR.prNumber)) 
       ? `${targetDC.remarks} | Linked to ${targetPR.prNumber}${notes ? ` (${notes})` : ''}`
@@ -1031,7 +1109,12 @@ export function saveAllDCs(dcs: DCRecord[]): boolean {
   }
 }
 
-export function checkDuplicatePR(prNumber: string, idToIgnore?: string): { isDuplicate: boolean; existingPR?: PRRecord } {
+export function checkDuplicatePR(
+  prNumber: string,
+  idToIgnore?: string,
+  date?: string,
+  siteName?: string
+): { isDuplicate: boolean; existingPR?: PRRecord } {
   const prs = getPRs();
   const normalizedSearch = normalizePRNumber(prNumber);
   
@@ -1041,7 +1124,9 @@ export function checkDuplicatePR(prNumber: string, idToIgnore?: string): { isDup
   
   const match = prs.find(pr => 
     pr.id !== idToIgnore && 
-    normalizePRNumber(pr.prNumber) === normalizedSearch
+    normalizePRNumber(pr.prNumber) === normalizedSearch &&
+    (date === undefined || normalizeDateToISO(pr.date) === normalizeDateToISO(date)) &&
+    (siteName === undefined || normalizeSiteName(pr.siteName) === normalizeSiteName(siteName))
   );
 
   return {
@@ -1109,10 +1194,17 @@ export function saveMultiplePRsInStorage(records: PRRecord[]): PRRecord[] {
       documentImage: docImg
     };
 
-    const existingIndex = prs.findIndex(
-      p => p.id === newPR.id ||
-      (p.prNumber && newPR.prNumber &&
-       p.prNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === newPR.prNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase())
+    const normalizedPRNumber = normalizePRReference(newPR.prNumber);
+    const isRealPRNumber = hasPRNumber(newPR.prNumber);
+    const normalizedPRDate = normalizeDateToISO(newPR.date);
+    const normalizedPRSite = normalizeSiteName(newPR.siteName);
+    const existingIndex = prs.findIndex(p =>
+      p.id === newPR.id ||
+      (isRealPRNumber &&
+        !!normalizedPRDate &&
+        normalizePRReference(p.prNumber) === normalizedPRNumber &&
+        normalizeDateToISO(p.date) === normalizedPRDate &&
+        normalizeSiteName(p.siteName) === normalizedPRSite)
     );
 
     if (existingIndex >= 0) {
@@ -1165,7 +1257,8 @@ export function deleteDC(dcId: string): { updatedPRs: PRRecord[]; updatedDCs: DC
   const updatedDCs = dcs.filter(d => d.id !== dcId);
 
   // Recalculate PR fulfillment
-  const targetPRIndex = prs.findIndex(p => p.id === targetDC.prId || p.prNumber === targetDC.prNumber);
+  const targetPR = findLinkedPRForDC(targetDC, prs);
+  const targetPRIndex = targetPR ? prs.findIndex(p => p.id === targetPR.id) : -1;
   let updatedPRs = prs;
 
   if (targetPRIndex >= 0) {
@@ -1221,9 +1314,8 @@ export function updateDCInStorage(
   saveAllDCs(newDCs);
 
   // Sync with linked PR if exists
-  const targetPRIndex = prs.findIndex(
-    p => p.id === updatedDC.prId || p.prNumber === updatedDC.prNumber || p.id === oldDC.prId || p.prNumber === oldDC.prNumber
-  );
+  const targetPR = findLinkedPRForDC(updatedDC, prs) || findLinkedPRForDC(oldDC, prs);
+  const targetPRIndex = targetPR ? prs.findIndex(p => p.id === targetPR.id) : -1;
   let updatedPRs = prs;
 
   if (targetPRIndex >= 0) {
@@ -1297,10 +1389,18 @@ export function saveDCAndFulfillPR(
   const itemsShippedList: DCRecord['itemsShipped'] = [];
   const newFulfillmentLogs: FulfillmentLog[] = [];
 
-  let targetPRIndex = prs.findIndex(
-    p => (dcData.prId && dcData.prId !== '__NEW_PR__' && p.id === dcData.prId) ||
-      (dcData.prNumber && normalizePRReference(p.prNumber) === normalizePRReference(dcData.prNumber))
-  );
+  let targetPRIndex = dcData.prId && dcData.prId !== '__NEW_PR__'
+    ? prs.findIndex(p => p.id === dcData.prId)
+    : -1;
+  if (!dcData.prId && hasPRNumber(dcData.prNumber)) {
+    const matchingPRs = prs.filter(p =>
+      normalizePRReference(p.prNumber) === normalizePRReference(dcData.prNumber)
+    );
+    if (matchingPRs.length === 1 &&
+        compareNormalizedDates(dcData.date, matchingPRs[0].date) !== -1) {
+      targetPRIndex = prs.findIndex(p => p.id === matchingPRs[0].id);
+    }
+  }
 
   if (targetPRIndex === -1) {
     const normalizedDCNumber = normalizePRReference(syncedDCNumber);
@@ -1438,6 +1538,7 @@ export function saveDCAndFulfillPR(
     invoiceNumber: syncedInvoiceNumber,
     prId: targetPR.id,
     prNumber: targetPR.prNumber,
+    prLinkReviewed: !!(dcData.prId && dcData.prId !== '__NEW_PR__'),
     siteName: dcData.siteName || targetPR.siteName,
     itemsShipped: finalItemsShipped,
     documentImage: dcData.documentImage,
@@ -1488,7 +1589,8 @@ export function saveMultipleDCsAndFulfillPRs(
 // 1. Link an unlinked or mismatched DC to a selected PR
 export function linkDCToPRInStorage(
   dcId: string,
-  targetPrId: string
+  targetPrId: string,
+  reviewed = true
 ): { success: boolean; updatedPRs: PRRecord[]; updatedDCs: DCRecord[]; error?: string } {
   const prs = getPRs();
   const dcs = getDCs();
@@ -1508,6 +1610,7 @@ export function linkDCToPRInStorage(
 
   targetDC.prId = targetPR.id;
   targetDC.prNumber = targetPR.prNumber;
+  targetDC.prLinkReviewed = reviewed;
   
   // BUG FIX #3: Use normalized site name comparison for better matching
   const dcSiteNormalized = normalizeSiteName(targetDC.siteName);
@@ -1535,20 +1638,25 @@ export function autoLinkAllDCsInStorage(): {
   let linkedCount = 0;
 
   for (const dc of currentDCs) {
-    const isUnlinked = !dc.prId || !hasPRNumber(dc.prNumber) || !currentPRs.some(p => p.id === dc.prId);
+    const linkedPR = currentPRs.find(p => p.id === dc.prId);
+    const isUnlinked = !linkedPR ||
+      !hasPRNumber(dc.prNumber) ||
+      normalizePRReference(linkedPR.prNumber) !== normalizePRReference(dc.prNumber) ||
+      (compareNormalizedDates(dc.date, linkedPR.date) === -1 && !dc.prLinkReviewed);
     if (!isUnlinked) continue;
 
     // Link only when the normalized PR reference matches
     const normalizedDcPr = normalizePRNumber(dc.prNumber);
     if (!normalizedDcPr) continue; // No PR number to match
     
-    let matchedPR = currentPRs.find(p => {
+    const matchingPRs = currentPRs.filter(p => {
       const normalizedPr = normalizePRNumber(p.prNumber);
       return normalizedPr === normalizedDcPr;
     });
 
-    if (matchedPR) {
-      const res = linkDCToPRInStorage(dc.id, matchedPR.id);
+    if (matchingPRs.length === 1 &&
+        compareNormalizedDates(dc.date, matchingPRs[0].date) !== -1) {
+      const res = linkDCToPRInStorage(dc.id, matchingPRs[0].id, false);
       if (res.success) {
         currentPRs = res.updatedPRs;
         currentDCs = res.updatedDCs;
@@ -1751,7 +1859,7 @@ export function mergeDuplicatePRsInStorage(
 
   // Re-point any DCs that were linked to duplicate PR
   dcs = dcs.map(dc => {
-    if (dc.prId === duplicate.id || dc.prNumber === duplicate.prNumber) {
+    if (dc.prId === duplicate.id) {
       return {
         ...dc,
         prId: primary.id,

@@ -39,6 +39,7 @@ import {
   INITIAL_SITES
 } from '../lib/storage';
 import { initImageMemory } from '../lib/imageStorage';
+import { normalizeDateToISO, normalizeSiteName } from '../lib/utils';
 import {
   subscribeToCloudPRs,
   subscribeToCloudDCs,
@@ -154,7 +155,11 @@ interface AppContextType {
   attachMultipleBuiltys: (
     builtys: GeminiBuiltyExtractionResult[]
   ) => { attachedCount: number; unlinkedCount: number; results: any[] };
-  verifyAndCheckDuplicate: (prNumber: string) => { isDuplicate: boolean; existingPR?: PRRecord };
+  verifyAndCheckDuplicate: (
+    prNumber: string,
+    date?: string,
+    siteName?: string
+  ) => { isDuplicate: boolean; existingPR?: PRRecord };
   linkDCToPR: (dcId: string, prId: string) => { success: boolean; error?: string };
   autoLinkAllDCs: () => { linkedCount: number };
   mergeDuplicatePRs: (primaryPrId: string, duplicatePrId: string) => { success: boolean; error?: string };
@@ -383,7 +388,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             cloudPRs.forEach(cp => {
               const cloudNumber = (cp.prNumber || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
               const existing = map.get(cp.id) || Array.from(map.values()).find(p =>
-                (p.prNumber || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === cloudNumber
+                (p.prNumber || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === cloudNumber &&
+                normalizeDateToISO(p.date) === normalizeDateToISO(cp.date) &&
+                normalizeSiteName(p.siteName) === normalizeSiteName(cp.siteName)
               );
               map.set(existing?.id || cp.id, existing ? {
                 ...existing,
@@ -468,12 +475,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const verifyAndCheckDuplicate = (prNumber: string) => {
-    return checkDuplicatePR(prNumber);
+  const verifyAndCheckDuplicate = (prNumber: string, date?: string, siteName?: string) => {
+    return checkDuplicatePR(prNumber, undefined, date, siteName);
   };
 
   const addNewPR = (newPR: PRRecord): boolean => {
-    const dupCheck = checkDuplicatePR(newPR.prNumber, newPR.id);
+    const dupCheck = checkDuplicatePR(newPR.prNumber, newPR.id, newPR.date, newPR.siteName);
     if (dupCheck.isDuplicate) {
       setDuplicateInfo({
         isDuplicate: true,
@@ -589,6 +596,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (res.success) {
       setPRs(res.updatedPRs);
       setDCs(res.updatedDCs);
+      const linkedDC = res.updatedDCs.find(dc => dc.id === dcId);
+      if (linkedDC) {
+        saveDCToCloud(linkedDC).catch(error => {
+          console.error(`[Firestore] Failed to sync PR link for ${linkedDC.dcNumber}:`, error);
+        });
+      }
       if (selectedPR && selectedPR.id === prId) {
         const refreshed = res.updatedPRs.find(p => p.id === prId);
         if (refreshed) setSelectedPR(refreshed);
