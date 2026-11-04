@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   ShieldAlert, 
@@ -19,6 +19,16 @@ export const MasterResetModal: React.FC = () => {
   const [passwordInput, setPasswordInput] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMasterResetOpen) {
+        setIsMasterResetOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMasterResetOpen, setIsMasterResetOpen]);
 
   if (!isMasterResetOpen) return null;
 
@@ -42,7 +52,12 @@ export const MasterResetModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="master-reset-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn"
+    >
       <div className="bg-white border border-rose-300 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 relative overflow-hidden text-slate-900">
         
         {/* Header */}
@@ -52,7 +67,7 @@ export const MasterResetModal: React.FC = () => {
               <ShieldAlert className="w-5 h-5 text-rose-700" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900">
+              <h3 id="master-reset-modal-title" className="text-lg font-extrabold text-slate-900">
                 Master Reset Database
               </h3>
               <p className="text-xs text-rose-800 font-bold">Security Password Authorization Required</p>
@@ -60,7 +75,9 @@ export const MasterResetModal: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => setIsMasterResetOpen(false)}
+            aria-label="Close dialog"
             className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -83,6 +100,7 @@ export const MasterResetModal: React.FC = () => {
             </label>
             <input
               type="password"
+              aria-label="Master Reset Security Password"
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
               placeholder="Enter password (2214)"

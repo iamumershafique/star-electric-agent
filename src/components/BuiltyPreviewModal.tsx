@@ -40,10 +40,25 @@ export const BuiltyPreviewModal: React.FC = () => {
     return () => { cancelled = true; };
   }, [selectedBuiltyPreview?.url]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedBuiltyPreview) {
+        setSelectedBuiltyPreview(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedBuiltyPreview, setSelectedBuiltyPreview]);
+
   if (!selectedBuiltyPreview) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="builty-preview-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn"
+    >
       <div className="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-3 sm:p-5 shadow-2xl flex flex-col space-y-4 max-h-[92vh] text-slate-900">
         
         {/* Header */}
@@ -53,7 +68,7 @@ export const BuiltyPreviewModal: React.FC = () => {
               <Package className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 flex flex-wrap items-center gap-2 break-words">
+              <h3 id="builty-preview-modal-title" className="text-base font-extrabold text-slate-900 flex flex-wrap items-center gap-2 break-words">
                 {selectedBuiltyPreview.title || 'Goods Transport Builty Picture'}
                 {selectedBuiltyPreview.dcNumber && (
                   <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-extrabold border border-emerald-300">
@@ -72,6 +87,7 @@ export const BuiltyPreviewModal: React.FC = () => {
               <a
                 href={resolvedImage}
                 download={`${selectedBuiltyPreview.dcNumber || 'builty'}_scan.jpg`}
+                aria-label="Download document scan image"
                 className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
                 title="Download image"
               >
@@ -79,7 +95,9 @@ export const BuiltyPreviewModal: React.FC = () => {
               </a>
             )}
             <button
+              type="button"
               onClick={() => setSelectedBuiltyPreview(null)}
+              aria-label="Close dialog"
               className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             >
               <X className="w-5 h-5" />

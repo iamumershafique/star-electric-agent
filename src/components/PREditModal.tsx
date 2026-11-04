@@ -72,6 +72,17 @@ export const PREditModal: React.FC = () => {
     }
   }, [editingPR, isPREditOpen, sites]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isPREditOpen) {
+        setIsPREditOpen(false);
+        setEditingPR(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPREditOpen, setIsPREditOpen, setEditingPR]);
+
   if (!isPREditOpen || !editingPR) return null;
 
   const handleItemChange = (index: number, field: keyof LineItem, value: any) => {
@@ -158,7 +169,12 @@ export const PREditModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-6 max-h-[92vh] flex flex-col text-slate-900">
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pr-edit-modal-title"
+        className="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-6 max-h-[92vh] flex flex-col text-slate-900"
+      >
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-4 shrink-0">
@@ -167,7 +183,7 @@ export const PREditModal: React.FC = () => {
               <Edit3 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h3 id="pr-edit-modal-title" className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 Edit Purchase Requisition: <span className="font-mono text-amber-700">{editingPR.prNumber}</span>
               </h3>
               <p className="text-xs text-slate-500 font-medium">Modify requisition details, site location, and electrical line items</p>
@@ -175,10 +191,12 @@ export const PREditModal: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => {
               setIsPREditOpen(false);
               setEditingPR(null);
             }}
+            aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -205,6 +223,7 @@ export const PREditModal: React.FC = () => {
                 value={prNumber}
                 onChange={(e) => setPrNumber(e.target.value)}
                 placeholder="e.g. PR 01, PR-JAD-2026-613"
+                aria-label="PR tracking number"
                 className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-amber-500"
                 required
               />
@@ -218,6 +237,7 @@ export const PREditModal: React.FC = () => {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                aria-label="Requisition date"
                 className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-amber-500"
                 required
               />
@@ -232,6 +252,7 @@ export const PREditModal: React.FC = () => {
                 value={contactPerson}
                 onChange={(e) => setContactPerson(e.target.value)}
                 placeholder="e.g. Engr. Tariq Mahmood"
+                aria-label="Supervisor or contact person"
                 className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-semibold focus:outline-none focus:border-amber-500"
               />
             </div>
@@ -244,6 +265,7 @@ export const PREditModal: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <select
                     value={isCustomSite ? 'CUSTOM' : siteName}
+                    aria-label="Farm site location"
                     onChange={(e) => {
                       if (e.target.value === 'CUSTOM') {
                         setIsCustomSite(true);
@@ -266,6 +288,7 @@ export const PREditModal: React.FC = () => {
                     value={customSiteName}
                     onChange={(e) => setCustomSiteName(e.target.value)}
                     placeholder="Enter full farm location name..."
+                    aria-label="Custom farm location name"
                     className="w-full px-3 py-2 rounded-lg bg-white border border-amber-300 text-xs font-bold focus:outline-none focus:border-amber-500"
                   />
                 )}
@@ -281,6 +304,7 @@ export const PREditModal: React.FC = () => {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="e.g. Shed #4 expansion project"
+                aria-label="Notes and instructions"
                 className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-semibold focus:outline-none focus:border-amber-500"
               />
             </div>
@@ -328,6 +352,7 @@ export const PREditModal: React.FC = () => {
                             value={item.name}
                             onChange={(e) => handleItemChange(idx, 'name', e.target.value)}
                             placeholder="Item name / cable / breaker..."
+                            aria-label={`Item ${idx + 1} description`}
                             className="w-full px-2.5 py-1.5 rounded bg-slate-50 border border-slate-300 text-xs font-bold focus:outline-none focus:border-amber-500"
                             required
                           />
@@ -336,6 +361,7 @@ export const PREditModal: React.FC = () => {
                           <select
                             value={item.brand}
                             onChange={(e) => handleItemChange(idx, 'brand', e.target.value as BrandCategory)}
+                            aria-label={`Item ${idx + 1} brand`}
                             className="w-full px-2 py-1.5 rounded bg-slate-50 border border-slate-300 text-xs font-semibold focus:outline-none focus:border-amber-500"
                           >
                             {BRAND_OPTIONS.map(b => (
@@ -349,6 +375,7 @@ export const PREditModal: React.FC = () => {
                             min="1"
                             value={item.requestedQty}
                             onChange={(e) => handleItemChange(idx, 'requestedQty', parseFloat(e.target.value) || 0)}
+                            aria-label={`Item ${idx + 1} requested quantity`}
                             className="w-20 px-2 py-1.5 rounded bg-slate-50 border border-slate-300 text-xs font-mono font-bold text-center focus:outline-none focus:border-amber-500"
                             required
                           />
@@ -359,6 +386,7 @@ export const PREditModal: React.FC = () => {
                             min="0"
                             value={item.fulfilledQty}
                             onChange={(e) => handleItemChange(idx, 'fulfilledQty', parseFloat(e.target.value) || 0)}
+                            aria-label={`Item ${idx + 1} shipped quantity`}
                             className="w-20 px-2 py-1.5 rounded bg-slate-50 border border-slate-300 text-xs font-mono font-bold text-emerald-700 text-center focus:outline-none focus:border-amber-500"
                           />
                         </td>
@@ -366,6 +394,7 @@ export const PREditModal: React.FC = () => {
                           <select
                             value={item.unit}
                             onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
+                            aria-label={`Item ${idx + 1} unit`}
                             className="w-24 px-2 py-1.5 rounded bg-slate-50 border border-slate-300 text-xs font-semibold text-center focus:outline-none focus:border-amber-500"
                           >
                             {UNIT_OPTIONS.map(u => (
@@ -379,6 +408,7 @@ export const PREditModal: React.FC = () => {
                             value={item.specifications || ''}
                             onChange={(e) => handleItemChange(idx, 'specifications', e.target.value)}
                             placeholder="e.g. 600/1000V XLPE, 4-Pole"
+                            aria-label={`Item ${idx + 1} specifications`}
                             className="w-full px-2.5 py-1.5 rounded bg-slate-50 border border-slate-300 text-xs font-medium focus:outline-none focus:border-amber-500"
                           />
                         </td>
@@ -386,6 +416,7 @@ export const PREditModal: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleRemoveItem(idx)}
+                            aria-label={`Remove item ${idx + 1}`}
                             className="p-1.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                             title="Delete Line Item"
                           >

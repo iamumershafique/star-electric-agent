@@ -61,6 +61,16 @@ export const QuickDispatchModal: React.FC = () => {
     }
   }, [quickDispatchTarget, isQuickDispatchOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isQuickDispatchOpen) {
+        setIsQuickDispatchOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isQuickDispatchOpen, setIsQuickDispatchOpen]);
+
   if (!isQuickDispatchOpen || !quickDispatchTarget) return null;
 
   const { pr, items } = quickDispatchTarget;
@@ -117,7 +127,12 @@ export const QuickDispatchModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-5 max-h-[92vh] flex flex-col text-slate-900">
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quick-dispatch-modal-title"
+        className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-5 max-h-[92vh] flex flex-col text-slate-900"
+      >
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-3 shrink-0">
@@ -126,7 +141,7 @@ export const QuickDispatchModal: React.FC = () => {
               <PackageCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <h3 id="quick-dispatch-modal-title" className="text-base font-extrabold text-slate-900 flex items-center gap-2">
                 Mark Delivered & Issue DC
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
                   PR #{pr.prNumber}
@@ -139,7 +154,9 @@ export const QuickDispatchModal: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => setIsQuickDispatchOpen(false)}
+            aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -194,6 +211,7 @@ export const QuickDispatchModal: React.FC = () => {
                             max={maxAllowed}
                             value={currentShipping}
                             onChange={(e) => handleQtyChange(item.id, parseFloat(e.target.value) || 0, maxAllowed)}
+                            aria-label={`${item.name} dispatch quantity`}
                             className="w-full px-2 py-1 rounded-lg bg-white border border-slate-300 text-center font-mono font-extrabold text-xs text-emerald-700 focus:outline-none focus:border-emerald-600"
                           />
                         </td>
@@ -216,6 +234,7 @@ export const QuickDispatchModal: React.FC = () => {
                 value={dcNumber}
                 onChange={(e) => setDcNumber(e.target.value)}
                 placeholder="e.g. DC-612"
+                aria-label="Delivery challan number"
                 className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 font-mono font-bold text-xs focus:outline-none focus:border-emerald-500"
               />
               <span className="text-[10px] text-emerald-700 font-bold mt-1 block">
@@ -231,6 +250,7 @@ export const QuickDispatchModal: React.FC = () => {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                aria-label="Dispatch date"
                 className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
               />
             </div>
@@ -281,6 +301,7 @@ export const QuickDispatchModal: React.FC = () => {
                       value={addaName}
                       onChange={(e) => setAddaName(e.target.value)}
                       placeholder="e.g. Rawalpindi Goods Transport"
+                      aria-label="Adda transport name"
                       className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
                     />
                   </div>
@@ -294,6 +315,7 @@ export const QuickDispatchModal: React.FC = () => {
                       value={biltyNumber}
                       onChange={(e) => setBiltyNumber(e.target.value)}
                       placeholder="e.g. BL-7891"
+                      aria-label="Bilty number"
                       className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 font-mono text-xs font-bold focus:outline-none focus:border-amber-500"
                     />
                   </div>
@@ -314,6 +336,7 @@ export const QuickDispatchModal: React.FC = () => {
                           setIsFreightFree(e.target.checked);
                           if (e.target.checked) setFreightCharges('0');
                         }}
+                        aria-label="Free freight"
                         className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                       />
                       FREE / مفت کرایہ
@@ -328,6 +351,7 @@ export const QuickDispatchModal: React.FC = () => {
                           value={freightCharges}
                           onChange={(e) => setFreightCharges(e.target.value)}
                           placeholder="Amount"
+                          aria-label="Freight charges in PKR"
                           className="w-28 px-2.5 py-1 rounded-lg bg-white border border-slate-300 font-mono font-bold text-xs text-slate-900 focus:outline-none focus:border-emerald-500"
                         />
                       </div>
@@ -346,6 +370,7 @@ export const QuickDispatchModal: React.FC = () => {
                     value={driverName}
                     onChange={(e) => setDriverName(e.target.value)}
                     placeholder="e.g. Nawaz"
+                    aria-label="Driver name"
                     className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
                   />
                 </div>
@@ -359,6 +384,7 @@ export const QuickDispatchModal: React.FC = () => {
                     value={vehicleNumber}
                     onChange={(e) => setVehicleNumber(e.target.value)}
                     placeholder="e.g. STS-1500"
+                    aria-label="Vehicle number"
                     className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
                   />
                 </div>
@@ -374,6 +400,7 @@ export const QuickDispatchModal: React.FC = () => {
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
                 placeholder="Optional delivery notes or instructions"
+                aria-label="Additional dispatch remarks"
                 className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-medium focus:outline-none focus:border-amber-500"
               />
             </div>

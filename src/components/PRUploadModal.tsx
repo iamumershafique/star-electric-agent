@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { DocumentClassificationError, fileToBase64 } from '../lib/gemini';
 import { getActiveOCRProvider, getOCRProviderLabel, processDocumentWithAI } from '../lib/aiOcr';
@@ -49,6 +49,16 @@ export const PRUploadModal: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activeOCRProvider = getActiveOCRProvider(geminiApiKey);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isPRUploadOpen && !isProcessing) {
+        setIsPRUploadOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPRUploadOpen, isProcessing, setIsPRUploadOpen]);
 
   if (!isPRUploadOpen) return null;
 
@@ -176,7 +186,12 @@ export const PRUploadModal: React.FC = () => {
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-fadeIn">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pr-upload-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-fadeIn"
+    >
       <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5 relative overflow-hidden text-slate-900 max-h-[90vh] flex flex-col">
         
         {/* Header */}
@@ -186,7 +201,7 @@ export const PRUploadModal: React.FC = () => {
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h3 id="pr-upload-modal-title" className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 Scan Demand Requisition
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300">
                   Multi-File AI OCR
@@ -197,6 +212,7 @@ export const PRUploadModal: React.FC = () => {
                   </span>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => { setIsPRUploadOpen(false); setIsSettingsOpen(true); }}
                     className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 font-bold border border-amber-300 hover:bg-amber-100 flex items-center gap-1 cursor-pointer transition-colors"
                     title="Click to configure an AI OCR provider"
@@ -210,7 +226,9 @@ export const PRUploadModal: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => setIsPRUploadOpen(false)}
+            aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -224,6 +242,7 @@ export const PRUploadModal: React.FC = () => {
           accept="image/*,.pdf"
           multiple
           className="hidden"
+          aria-label="Select demand sheet images or PDF files"
         />
 
         <div className="overflow-y-auto space-y-4 pr-1 flex-1">
@@ -248,7 +267,16 @@ export const PRUploadModal: React.FC = () => {
           {/* File Upload / Drop Zone */}
           {files.length === 0 ? (
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="Upload files. Click or press Enter to browse files, or drag and drop files here."
               onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 ${
@@ -309,11 +337,11 @@ export const PRUploadModal: React.FC = () => {
                       {item.base64.startsWith('data:image') ? (
                         <img 
                           src={item.base64} 
-                          alt="preview" 
+                          alt={`Preview of ${item.name}`} 
                           className="w-9 h-9 rounded object-cover border border-slate-200 flex-shrink-0" 
                         />
                       ) : (
-                        <div className="w-9 h-9 rounded bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0 font-bold text-xs">
+                        <div className="w-9 h-9 rounded bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0 font-bold text-xs" aria-label="PDF document">
                           PDF
                         </div>
                       )}
@@ -329,6 +357,7 @@ export const PRUploadModal: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleRemoveFile(item.id)}
+                      aria-label={`Remove file ${item.name}`}
                       className="p-1 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors flex-shrink-0"
                       title="Remove file"
                     >

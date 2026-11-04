@@ -159,6 +159,16 @@ export const DCUploadModal: React.FC = () => {
     setScanProgress(null);
   }, [targetDC_PR, isDCUploadOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isDCUploadOpen && !isScanning) {
+        setIsDCUploadOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDCUploadOpen, isScanning, setIsDCUploadOpen]);
+
   if (!isDCUploadOpen) return null;
 
   // Ensure drafts is never empty and currentDraft is always valid
@@ -555,7 +565,12 @@ export const DCUploadModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dc-upload-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn"
+    >
       <div className="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl space-y-5 max-h-[92vh] flex flex-col text-slate-900">
         
         {/* Header */}
@@ -565,7 +580,7 @@ export const DCUploadModal: React.FC = () => {
               <Truck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h3 id="dc-upload-modal-title" className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 Delivery Challan & Invoice Management
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
                   DC # = Invoice #
@@ -576,6 +591,7 @@ export const DCUploadModal: React.FC = () => {
                   </span>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => { setIsDCUploadOpen(false); setIsSettingsOpen(true); }}
                     className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 font-bold border border-amber-300 hover:bg-amber-100 flex items-center gap-1 cursor-pointer transition-colors"
                     title="Click to configure an AI OCR provider"
@@ -591,7 +607,9 @@ export const DCUploadModal: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => setIsDCUploadOpen(false)}
+            aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -602,6 +620,7 @@ export const DCUploadModal: React.FC = () => {
         <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-3 flex-shrink-0">
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setActiveMode('manual')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                 activeMode === 'manual'
@@ -614,6 +633,7 @@ export const DCUploadModal: React.FC = () => {
             </button>
 
             <button
+              type="button"
               onClick={() => {
                 setActiveMode('scan');
                 fileInputRef.current?.click();
@@ -635,6 +655,7 @@ export const DCUploadModal: React.FC = () => {
               accept="image/*,.pdf"
               multiple
               className="hidden"
+              aria-label="Upload Delivery Challan images or PDF"
             />
           </div>
 
@@ -673,6 +694,7 @@ export const DCUploadModal: React.FC = () => {
                   <ChevronLeft className="w-3.5 h-3.5" /> Prev
                 </button>
                 <select
+                  aria-label="Select delivery challan draft"
                   value={activeDraftIndex}
                   onChange={(e) => setActiveDraftIndex(parseInt(e.target.value, 10))}
                   className="px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700 focus:outline-none focus:border-emerald-600 max-w-[150px] truncate"
@@ -831,6 +853,7 @@ export const DCUploadModal: React.FC = () => {
                 </label>
                 <input
                   type="text"
+                  aria-label="Delivery Challan number"
                   value={currentDraft.dcNumber}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -852,6 +875,7 @@ export const DCUploadModal: React.FC = () => {
                 </label>
                 <input
                   type="text"
+                  aria-label="Invoice number matching DC number"
                   value={currentDraft.dcNumber}
                   disabled
                   className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 font-mono font-bold text-sm cursor-not-allowed"
@@ -875,6 +899,7 @@ export const DCUploadModal: React.FC = () => {
               </div>
 
               <select
+                aria-label="Target Purchase Requisition assignment"
                 value={currentDraft.selectedPrId}
                 onChange={(e) => handleSelectPR(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 font-bold text-xs focus:outline-none focus:border-amber-500 shadow-2xs"
@@ -912,6 +937,7 @@ export const DCUploadModal: React.FC = () => {
                 </label>
                 <input
                   type="date"
+                  aria-label="Dispatch Date"
                   value={currentDraft.date}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -976,6 +1002,7 @@ export const DCUploadModal: React.FC = () => {
                     </label>
                     <input
                       type="text"
+                      aria-label="Adda or Goods Transport Name"
                       value={currentDraft.addaName}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -992,6 +1019,7 @@ export const DCUploadModal: React.FC = () => {
                     </label>
                     <input
                       type="text"
+                      aria-label="Bilty Number"
                       value={currentDraft.biltyNumber}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -1009,6 +1037,7 @@ export const DCUploadModal: React.FC = () => {
                     <label className="flex items-center gap-1.5 cursor-pointer text-xs font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-300">
                       <input
                         type="checkbox"
+                        aria-label="Free freight charges"
                         checked={currentDraft.isFreightFree}
                         onChange={(e) => {
                           const checked = e.target.checked;
@@ -1029,6 +1058,7 @@ export const DCUploadModal: React.FC = () => {
                         <input
                           type="number"
                           min={0}
+                          aria-label="Freight charges in PKR"
                           value={currentDraft.freightCharges}
                           onChange={(e) => {
                             const val = e.target.value;
@@ -1050,6 +1080,7 @@ export const DCUploadModal: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    aria-label="Driver Name"
                     value={currentDraft.driverName}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -1066,6 +1097,7 @@ export const DCUploadModal: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    aria-label="Vehicle Number"
                     value={currentDraft.vehicleNumber}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -1085,6 +1117,7 @@ export const DCUploadModal: React.FC = () => {
               </label>
               <input
                 type="text"
+                aria-label="Challan Remarks or Transport Notes"
                 value={currentDraft.remarks}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -1149,6 +1182,7 @@ export const DCUploadModal: React.FC = () => {
                   <div className="sm:col-span-2">
                     <input
                       type="text"
+                      aria-label="New item description"
                       placeholder="Item Description (e.g. 4 Core 16mm² Cable)"
                       value={newItemName}
                       onChange={(e) => setNewItemName(e.target.value)}
@@ -1157,6 +1191,7 @@ export const DCUploadModal: React.FC = () => {
                   </div>
                   <div>
                     <select
+                      aria-label="New item brand"
                       value={newItemBrand}
                       onChange={(e) => setNewItemBrand(e.target.value as BrandCategory)}
                       className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-amber-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-600"
@@ -1172,6 +1207,7 @@ export const DCUploadModal: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
+                      aria-label="New item quantity"
                       min={0.1}
                       step="any"
                       placeholder="Qty"
@@ -1180,6 +1216,7 @@ export const DCUploadModal: React.FC = () => {
                       className="w-20 px-2 py-1.5 rounded-lg bg-white border border-amber-300 text-slate-900 text-xs font-mono font-bold focus:outline-none focus:border-amber-600"
                     />
                     <select
+                      aria-label="New item unit"
                       value={newItemUnit}
                       onChange={(e) => setNewItemUnit(e.target.value)}
                       className="w-24 px-2 py-1.5 rounded-lg bg-white border border-amber-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-600"
@@ -1239,6 +1276,7 @@ export const DCUploadModal: React.FC = () => {
                               onClick={() => handleToggleItemDelivered(item.id)}
                               className="p-1 text-slate-500 hover:text-emerald-700 transition-colors"
                               title={isFull ? 'Mark as Undelivered' : 'Mark as Delivered'}
+                              aria-label={isFull ? `Mark ${item.name} as Undelivered` : `Mark ${item.name} as Delivered`}
                             >
                               {isFull ? (
                                 <CheckSquare className="w-5 h-5 text-emerald-600" />
@@ -1257,6 +1295,7 @@ export const DCUploadModal: React.FC = () => {
                               type="number"
                               min={0}
                               step="any"
+                              aria-label={`Shipped quantity for ${item.name}`}
                               value={item.shippedQty}
                               onChange={(e) => handleQtyChange(item.id, parseFloat(e.target.value) || 0)}
                               className="w-full px-2 py-1.5 rounded-lg bg-white border border-slate-300 text-center text-emerald-700 font-extrabold font-mono text-sm focus:outline-none focus:border-emerald-600"
@@ -1268,6 +1307,7 @@ export const DCUploadModal: React.FC = () => {
                               onClick={() => handleRemoveItem(item.id)}
                               className="p-1 text-slate-400 hover:text-rose-600 transition-colors"
                               title="Remove item from this Challan"
+                              aria-label={`Remove ${item.name} from this Challan`}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>

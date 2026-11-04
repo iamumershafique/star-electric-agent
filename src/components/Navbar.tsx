@@ -33,12 +33,18 @@ export const Navbar: React.FC = () => {
         
         {/* 1. Left: Logo & Minimal Brand Tag */}
         <div className="flex items-center justify-between gap-3 shrink-0">
-          <img 
-            src="/star-electric-logo.png" 
-            alt="Star Electric" 
-            className="h-8 w-auto object-contain cursor-pointer transition-transform hover:scale-[1.02]"
+          <button
+            type="button"
             onClick={() => setActiveTab('dashboard')}
-          />
+            className="flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 rounded-lg p-0.5 transition-transform hover:scale-[1.02]"
+            aria-label="Star Electric Dashboard home"
+          >
+            <img 
+              src="/star-electric-logo.png" 
+              alt="Star Electric logo" 
+              className="h-8 w-auto object-contain"
+            />
+          </button>
           <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-3">
             <span className="text-xs font-black text-slate-900 tracking-tight">STAR ELECTRIC</span>
             <span className="text-slate-300">•</span>
@@ -49,7 +55,9 @@ export const Navbar: React.FC = () => {
         {/* 2. Center: Minimal Clean Navigation Tabs (One-Liner) */}
         <nav aria-label="Main navigation" className="flex items-center gap-1 overflow-x-auto no-scrollbar py-1 min-w-0 w-full xl:w-auto xl:justify-center">
           <button
+            type="button"
             onClick={() => setActiveTab('dashboard')}
+            aria-current={activeTab === 'dashboard' ? 'page' : undefined}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
               activeTab === 'dashboard'
                 ? 'bg-slate-900 text-white shadow-xs'
@@ -61,7 +69,9 @@ export const Navbar: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('ledger')}
+            aria-current={activeTab === 'ledger' ? 'page' : undefined}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
               activeTab === 'ledger'
                 ? 'bg-slate-900 text-white shadow-xs'
@@ -72,13 +82,16 @@ export const Navbar: React.FC = () => {
             <span>Requisitions</span>
             {pendingPRsCount > 0 && (
               <span className="px-1.5 py-0.2 text-[9px] rounded-full font-black bg-rose-500 text-white">
+                <span className="sr-only">Pending requisitions: </span>
                 {pendingPRsCount}
               </span>
             )}
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('deliveries')}
+            aria-current={activeTab === 'deliveries' ? 'page' : undefined}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
               activeTab === 'deliveries'
                 ? 'bg-slate-900 text-white shadow-xs'
@@ -90,7 +103,9 @@ export const Navbar: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('search')}
+            aria-current={activeTab === 'search' ? 'page' : undefined}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
               activeTab === 'search'
                 ? 'bg-slate-900 text-white shadow-xs'
@@ -102,7 +117,9 @@ export const Navbar: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('brands')}
+            aria-current={activeTab === 'brands' ? 'page' : undefined}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
               activeTab === 'brands'
                 ? 'bg-slate-900 text-white shadow-xs'
@@ -114,7 +131,9 @@ export const Navbar: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('gemini-audit')}
+            aria-current={activeTab === 'gemini-audit' ? 'page' : undefined}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
               activeTab === 'gemini-audit'
                 ? 'bg-slate-900 text-white shadow-xs'
@@ -125,6 +144,7 @@ export const Navbar: React.FC = () => {
             <span>AI Assistant</span>
             {unlinkedCount > 0 && (
               <span className="px-1.5 py-0.2 text-[9px] rounded-full font-black bg-amber-500 text-white">
+                <span className="sr-only">Unlinked delivery challans: </span>
                 {unlinkedCount}
               </span>
             )}
@@ -135,7 +155,9 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Action 1: Upload Delivery Challan */}
           <button
+            type="button"
             onClick={() => setIsDCUploadOpen(true)}
+            aria-label="Scan or record a Delivery Challan"
             className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
             title="Scan or record a Delivery Challan (DC)"
           >
@@ -145,8 +167,10 @@ export const Navbar: React.FC = () => {
 
           {/* Action 2: Upload Demand PR */}
           <button
+            type="button"
             onClick={() => setIsPRUploadOpen(true)}
-            className="px-3 py-1.5 rounded-lg bg-[#fd2729] hover:bg-[#e0191b] text-white font-bold text-xs shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
+            aria-label="Upload Demand Purchase Requisition"
+            className="px-3 py-1.5 rounded-lg bg-[#d91a1c] hover:bg-[#b91517] text-white font-bold text-xs shadow-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shrink-0"
             title="Upload Demand Purchase Requisition (PR)"
           >
             <FileUp className="w-3.5 h-3.5" />
@@ -156,7 +180,9 @@ export const Navbar: React.FC = () => {
           {/* Settings & Logout Controls */}
           <div className="flex items-center gap-1.5 border-l border-slate-200 pl-2">
             <button
+              type="button"
               onClick={() => setIsSettingsOpen(true)}
+              aria-label="Open portal settings"
               className="px-2.5 py-1.5 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
               title="Settings (AI Configuration, Mobile Link & Master Reset)"
             >
@@ -165,7 +191,9 @@ export const Navbar: React.FC = () => {
             </button>
 
             <button
+              type="button"
               onClick={logout}
+              aria-label="Log out of Portal"
               className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
               title="Log out of Portal"
             >

@@ -110,6 +110,16 @@ export const PRReviewModal: React.FC = () => {
     }
   }, [pendingExtractedData, pendingExtractedDataList]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isPRReviewOpen) {
+        setIsPRReviewOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPRReviewOpen, setIsPRReviewOpen]);
+
   if (!isPRReviewOpen || drafts.length === 0) return null;
 
   const currentDraft = drafts[activeIndex] || drafts[0];
@@ -226,7 +236,12 @@ export const PRReviewModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl space-y-5 max-h-[90vh] flex flex-col text-slate-900">
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pr-review-modal-title"
+        className="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl space-y-5 max-h-[90vh] flex flex-col text-slate-900"
+      >
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-3 flex-shrink-0">
@@ -235,7 +250,7 @@ export const PRReviewModal: React.FC = () => {
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h3 id="pr-review-modal-title" className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 Review & Confirm PR Data
                 {drafts.length > 1 && (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold border border-amber-300 flex items-center gap-1">
@@ -251,7 +266,9 @@ export const PRReviewModal: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => setIsPRReviewOpen(false)}
+            aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -301,6 +318,7 @@ export const PRReviewModal: React.FC = () => {
               <select
                 value={activeIndex}
                 onChange={(e) => setActiveIndex(Number(e.target.value))}
+                aria-label="Select draft requisition"
                 className="bg-white border border-slate-300 rounded px-2 py-0.5 font-bold text-slate-800 text-xs focus:outline-none focus:border-amber-500 max-w-[160px] truncate"
               >
                 {drafts.map((d, idx) => (
@@ -344,6 +362,7 @@ export const PRReviewModal: React.FC = () => {
                 value={currentDraft.prNumber}
                 onChange={(e) => updateCurrentDraft({ prNumber: e.target.value })}
                 placeholder="e.g. PR-JAD-2026-613 or NO PR"
+                aria-label="PR tracking number"
                 className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 font-mono font-bold text-sm focus:outline-none focus:border-amber-500"
               />
               <span className="text-[10px] text-slate-500 font-medium mt-1 block">
@@ -359,6 +378,7 @@ export const PRReviewModal: React.FC = () => {
                 type="date"
                 value={currentDraft.date}
                 onChange={(e) => updateCurrentDraft({ date: e.target.value })}
+                aria-label="Requisition date"
                 className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
               />
             </div>
@@ -372,6 +392,7 @@ export const PRReviewModal: React.FC = () => {
                 value={currentDraft.siteName}
                 onChange={(e) => updateCurrentDraft({ siteName: e.target.value })}
                 placeholder="e.g. Jadeed Farm - Khanewal Site B"
+                aria-label="Jadeed farm location"
                 className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
                 list="existing-sites-list"
               />
@@ -418,6 +439,7 @@ export const PRReviewModal: React.FC = () => {
                           value={item.name}
                           onChange={(e) => handleUpdateItem(idx, 'name', e.target.value)}
                           placeholder="e.g. 95mm 4-Core Copper Cable"
+                          aria-label={`Item ${idx + 1} description`}
                           className="w-full px-2 py-1 rounded-lg bg-white border border-slate-300 text-slate-900 font-bold focus:outline-none focus:border-amber-500"
                         />
                       </td>
@@ -425,6 +447,7 @@ export const PRReviewModal: React.FC = () => {
                         <select
                           value={item.brand}
                           onChange={(e) => handleUpdateItem(idx, 'brand', e.target.value as BrandCategory)}
+                          aria-label={`Item ${idx + 1} brand`}
                           className="w-full px-2 py-1 rounded-lg bg-white border border-slate-300 text-slate-900 font-semibold focus:outline-none focus:border-amber-500 text-xs"
                         >
                           {BRAND_OPTIONS.map(b => (
@@ -437,6 +460,7 @@ export const PRReviewModal: React.FC = () => {
                           type="number"
                           value={item.requestedQty}
                           onChange={(e) => handleUpdateItem(idx, 'requestedQty', parseFloat(e.target.value) || 0)}
+                          aria-label={`Item ${idx + 1} requested quantity`}
                           className="w-full px-2 py-1 rounded-lg bg-white border border-slate-300 text-slate-900 text-center font-mono font-bold focus:outline-none focus:border-amber-500"
                         />
                       </td>
@@ -445,6 +469,7 @@ export const PRReviewModal: React.FC = () => {
                           type="text"
                           value={item.unit}
                           onChange={(e) => handleUpdateItem(idx, 'unit', e.target.value)}
+                          aria-label={`Item ${idx + 1} unit`}
                           className="w-full px-2 py-1 rounded-lg bg-white border border-slate-300 text-slate-900 text-center font-bold focus:outline-none focus:border-amber-500"
                         />
                       </td>
@@ -452,6 +477,7 @@ export const PRReviewModal: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleRemoveItem(idx)}
+                          aria-label={`Delete item ${idx + 1}`}
                           className="p-1.5 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors"
                           title="Delete item row"
                         >

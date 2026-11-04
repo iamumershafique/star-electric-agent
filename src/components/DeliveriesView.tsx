@@ -319,8 +319,10 @@ export const DeliveriesView: React.FC = () => {
 
           {/* Issue DC */}
           <button
+            type="button"
             onClick={() => setIsDCUploadOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-[#fd2729] hover:bg-[#e0191b] text-white font-extrabold text-xs shadow-md shadow-red-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
+            aria-label="Issue Delivery Challan"
+            className="px-4 py-2.5 rounded-xl bg-[#d91a1c] hover:bg-[#b91517] text-white font-extrabold text-xs shadow-md shadow-red-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Issue DC
           </button>
@@ -484,6 +486,7 @@ export const DeliveriesView: React.FC = () => {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             <input
               type="text"
+              aria-label="Search deliveries by DC number, invoice, site, PR, or builty"
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -540,6 +543,7 @@ export const DeliveriesView: React.FC = () => {
           <div className="flex items-center gap-1.5">
             <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <select
+              aria-label="Filter deliveries by farm site"
               value={selectedSiteFilter}
               onChange={(e) => {
                 setSelectedSiteFilter(e.target.value);
@@ -562,6 +566,7 @@ export const DeliveriesView: React.FC = () => {
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] text-slate-500 font-medium">Per page:</span>
               <select
+                aria-label="Number of deliveries per page"
                 value={pageSize}
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));
@@ -973,7 +978,12 @@ export const DeliveriesView: React.FC = () => {
 
       {/* MANUAL PR LINK DIALOG */}
       {manualPRModalDC && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="manual-pr-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn"
+        >
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-slate-900">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2.5">
@@ -981,7 +991,7 @@ export const DeliveriesView: React.FC = () => {
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900">
+                  <h3 id="manual-pr-modal-title" className="text-base font-extrabold text-slate-900">
                     Add PR Number Manually
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
@@ -990,7 +1000,9 @@ export const DeliveriesView: React.FC = () => {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setManualPRModalDC(null)}
+                aria-label="Close dialog"
                 className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -1014,6 +1026,7 @@ export const DeliveriesView: React.FC = () => {
                   type="text"
                   required
                   autoFocus
+                  aria-label="Purchase Requisition Number"
                   value={manualPRInput}
                   onChange={(e) => setManualPRInput(e.target.value)}
                   placeholder="e.g. PR-151, PR-58, PR-674, PR-204"
@@ -1048,6 +1061,7 @@ export const DeliveriesView: React.FC = () => {
                 </label>
                 <textarea
                   rows={2}
+                  aria-label="Notes or Remarks (optional)"
                   value={manualPRNotes}
                   onChange={(e) => setManualPRNotes(e.target.value)}
                   placeholder="e.g. Delivered per supervisor verbal confirmation"
@@ -1078,7 +1092,12 @@ export const DeliveriesView: React.FC = () => {
 
       {/* MODAL 2: UPLOAD PR IMAGE */}
       {uploadPRModalDC && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="upload-pr-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn"
+        >
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-slate-900">
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div className="flex items-center gap-2.5">
@@ -1086,7 +1105,7 @@ export const DeliveriesView: React.FC = () => {
                   <UploadCloud className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-900">
+                  <h3 id="upload-pr-modal-title" className="text-base font-extrabold text-slate-900">
                     Upload PR Document Image
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
@@ -1095,7 +1114,9 @@ export const DeliveriesView: React.FC = () => {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setUploadPRModalDC(null)}
+                aria-label="Close dialog"
                 className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -1117,6 +1138,7 @@ export const DeliveriesView: React.FC = () => {
                 </label>
                 <input
                   type="text"
+                  aria-label="PR Number for this document"
                   value={uploadPRNumber}
                   onChange={(e) => setUploadPRNumber(e.target.value)}
                   placeholder="e.g. PR-151, PR-674"
@@ -1130,12 +1152,22 @@ export const DeliveriesView: React.FC = () => {
                 ref={fileInputRef}
                 accept="image/*,.pdf"
                 onChange={handlePRFileChange}
+                aria-label="Select PR document image or PDF"
                 className="hidden"
               />
 
               {!uploadPRPreview ? (
                 <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Browse PR document file. Click or press Enter to upload."
                   onClick={() => fileInputRef.current?.click()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
                   className="border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 rounded-2xl p-6 text-center cursor-pointer transition-all space-y-2"
                 >
                   <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 mx-auto flex items-center justify-center">

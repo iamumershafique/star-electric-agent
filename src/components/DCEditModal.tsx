@@ -67,6 +67,17 @@ export const DCEditModal: React.FC = () => {
     }
   }, [editingDC, isDCEditOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isDCEditOpen) {
+        setIsDCEditOpen(false);
+        setEditingDC(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDCEditOpen, setIsDCEditOpen, setEditingDC]);
+
   if (!isDCEditOpen || !editingDC) return null;
 
   const handleItemQtyChange = (index: number, qty: number) => {
@@ -118,7 +129,12 @@ export const DCEditModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl space-y-6 max-h-[92vh] flex flex-col text-slate-900">
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dc-edit-modal-title"
+        className="bg-white border border-slate-200 rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl space-y-6 max-h-[92vh] flex flex-col text-slate-900"
+      >
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-4 shrink-0">
@@ -127,7 +143,7 @@ export const DCEditModal: React.FC = () => {
               <Truck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h3 id="dc-edit-modal-title" className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 Edit Delivery Challan: <span className="font-mono text-emerald-700">{editingDC.dcNumber}</span>
               </h3>
               <p className="text-xs text-slate-500 font-medium">
@@ -137,10 +153,12 @@ export const DCEditModal: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => {
               setIsDCEditOpen(false);
               setEditingDC(null);
             }}
+            aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -167,6 +185,7 @@ export const DCEditModal: React.FC = () => {
                 value={dcNumber}
                 onChange={(e) => setDcNumber(e.target.value)}
                 placeholder="e.g. DC-613"
+                aria-label="Delivery challan number"
                 className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-emerald-500"
                 required
               />
@@ -180,6 +199,7 @@ export const DCEditModal: React.FC = () => {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                aria-label="Dispatch date"
                 className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-emerald-500"
                 required
               />
@@ -195,6 +215,7 @@ export const DCEditModal: React.FC = () => {
                 value={siteName}
                 onChange={(e) => setSiteName(e.target.value)}
                 placeholder="Jadeed Farm Site..."
+                aria-label="Destination farm site"
                 className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-bold focus:outline-none focus:border-emerald-500"
                 required
               />
@@ -266,6 +287,7 @@ export const DCEditModal: React.FC = () => {
                       value={addaName}
                       onChange={(e) => setAddaName(e.target.value)}
                       placeholder="e.g. Rawalpindi Goods Transport"
+                      aria-label="Transport adda name"
                       className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-semibold focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -276,6 +298,7 @@ export const DCEditModal: React.FC = () => {
                       value={biltyNumber}
                       onChange={(e) => setBiltyNumber(e.target.value)}
                       placeholder="e.g. BL-8412"
+                      aria-label="Bilty number"
                       className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -287,6 +310,7 @@ export const DCEditModal: React.FC = () => {
                           type="checkbox"
                           checked={isFreightFree}
                           onChange={(e) => setIsFreightFree(e.target.checked)}
+                          aria-label="Free freight"
                           className="rounded text-emerald-600 focus:ring-emerald-500"
                         />
                         Free (مفت)
@@ -298,6 +322,7 @@ export const DCEditModal: React.FC = () => {
                       value={isFreightFree ? '0' : freightCharges}
                       onChange={(e) => setFreightCharges(e.target.value)}
                       placeholder="0"
+                      aria-label="Freight charges in PKR"
                       className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-400"
                     />
                   </div>
@@ -311,6 +336,7 @@ export const DCEditModal: React.FC = () => {
                       value={destinationCity}
                       onChange={(e) => setDestinationCity(e.target.value)}
                       placeholder="e.g. Khanewal / Mankera / Sahiwal"
+                      aria-label="Destination city or hub"
                       className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-semibold focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -321,6 +347,7 @@ export const DCEditModal: React.FC = () => {
                       value={packagesCount}
                       onChange={(e) => setPackagesCount(e.target.value)}
                       placeholder="e.g. 4"
+                      aria-label="Number of packages or bundles"
                       className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -335,6 +362,7 @@ export const DCEditModal: React.FC = () => {
                     value={driverName}
                     onChange={(e) => setDriverName(e.target.value)}
                     placeholder="e.g. Nawaz"
+                    aria-label="Driver or transporter name"
                     className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-semibold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -345,6 +373,7 @@ export const DCEditModal: React.FC = () => {
                     value={vehicleNumber}
                     onChange={(e) => setVehicleNumber(e.target.value)}
                     placeholder="e.g. STS-1500"
+                    aria-label="Vehicle number"
                     className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -358,6 +387,7 @@ export const DCEditModal: React.FC = () => {
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
                 placeholder="e.g. Delivered directly to site supervisor"
+                aria-label="Remarks and notes"
                 className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-medium focus:outline-none focus:border-emerald-500"
               />
             </div>
@@ -480,6 +510,7 @@ export const DCEditModal: React.FC = () => {
                           min="0"
                           value={item.quantity}
                           onChange={(e) => handleItemQtyChange(idx, parseFloat(e.target.value) || 0)}
+                          aria-label={`${item.itemName} shipped quantity`}
                           className="w-24 px-2 py-1 rounded bg-slate-50 border border-slate-300 text-xs font-mono font-bold text-center text-emerald-700 focus:outline-none focus:border-emerald-500"
                           required
                         />

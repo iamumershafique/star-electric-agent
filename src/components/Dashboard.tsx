@@ -193,15 +193,16 @@ export const Dashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100 shrink-0">
             <div>
               <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-[#fd2729]" />
+                <Zap className="w-4 h-4 text-[#d91a1c]" />
                 Recent Requisitions (Jadeed Group)
               </h3>
               <p className="text-[11px] text-slate-500 font-medium">Incoming demand sheets & status</p>
             </div>
 
             <button
+              type="button"
               onClick={() => setActiveTab('ledger')}
-              className="text-xs font-bold text-[#1e195b] hover:text-[#fd2729] flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-[#1e195b] hover:text-[#d91a1c] flex items-center gap-1 cursor-pointer"
             >
               Master Ledger <ArrowRight className="w-3.5 h-3.5" />
             </button>
@@ -260,6 +261,7 @@ export const Dashboard: React.FC = () => {
 
                       <div className="flex items-center gap-1.5">
                         <button 
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditingPR(pr);
@@ -267,10 +269,15 @@ export const Dashboard: React.FC = () => {
                           }}
                           className="px-2 py-1 rounded bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-300 transition-colors shadow-2xs flex items-center gap-1"
                           title="Edit PR"
+                          aria-label={`Edit Purchase Requisition ${pr.prNumber}`}
                         >
                           <Edit3 className="w-3 h-3" /> Edit
                         </button>
-                        <button className="px-2.5 py-1 rounded bg-white group-hover:bg-[#1e195b] text-slate-900 group-hover:text-white text-xs font-extrabold border border-slate-300 group-hover:border-[#1e195b] transition-colors shadow-2xs">
+                        <button
+                          type="button"
+                          aria-label={`Inspect Purchase Requisition ${pr.prNumber}`}
+                          className="px-2.5 py-1 rounded bg-white group-hover:bg-[#1e195b] text-slate-900 group-hover:text-white text-xs font-extrabold border border-slate-300 group-hover:border-[#1e195b] transition-colors shadow-2xs"
+                        >
                           Inspect
                         </button>
                       </div>
@@ -293,8 +300,9 @@ export const Dashboard: React.FC = () => {
                 Recent Delivery Challans (DCs)
               </h3>
               <button
+                type="button"
                 onClick={() => setActiveTab('deliveries')}
-                className="text-[11px] font-bold text-[#1e195b] hover:text-[#fd2729] hover:underline cursor-pointer"
+                className="text-[11px] font-bold text-[#1e195b] hover:text-[#d91a1c] hover:underline cursor-pointer"
               >
                 All DCs ({dcs.length})
               </button>
@@ -320,6 +328,7 @@ export const Dashboard: React.FC = () => {
                         <span className="text-[10px] text-slate-500 font-medium">{dc.date}</span>
                       </div>
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingDC(dc);
@@ -327,6 +336,7 @@ export const Dashboard: React.FC = () => {
                         }}
                         className="p-1 rounded bg-white hover:bg-amber-100 text-slate-600 hover:text-amber-900 border border-slate-200 transition-colors shadow-2xs"
                         title="Edit Delivery Challan"
+                        aria-label={`Edit Delivery Challan ${dc.dcNumber}`}
                       >
                         <Edit3 className="w-3 h-3" />
                       </button>

@@ -632,6 +632,7 @@ Keep response practical, bulleted, and structured with clear sections.
             type="checkbox"
             checked={claudeConsent}
             onChange={event => setClaudeConsent(event.target.checked)}
+            aria-label="Authorize sending portal PR and DC details for Claude audit"
             className="mt-0.5 accent-orange-600"
           />
           <span>I authorize sending these portal PR/DC details and available scans through the configured provider (AgentRouter if connected) to its selected Claude model for this audit.</span>
@@ -1183,6 +1184,7 @@ Keep response practical, bulleted, and structured with clear sections.
                         <select
                           value={currentSelectVal}
                           onChange={(e) => setSelectedPRToLink(prev => ({ ...prev, [dc.id]: e.target.value }))}
+                          aria-label={`Select target PR to link to Delivery Challan ${dc.dcNumber}`}
                           className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:border-amber-500"
                         >
                           <option value="">Select Target PR...</option>

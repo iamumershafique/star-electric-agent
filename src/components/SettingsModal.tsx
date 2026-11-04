@@ -138,6 +138,16 @@ export const SettingsModal: React.FC = () => {
     }
   }, [isSettingsOpen, geminiApiKey]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSettingsOpen) {
+        setIsSettingsOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSettingsOpen, setIsSettingsOpen]);
+
   if (!isSettingsOpen) return null;
 
   const handleSaveAndTest = async () => {
@@ -489,7 +499,12 @@ export const SettingsModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn"
+    >
       <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6 relative overflow-hidden text-slate-900 max-h-[95vh] overflow-y-auto">
         
         {/* Modal Header */}
@@ -499,7 +514,7 @@ export const SettingsModal: React.FC = () => {
               <Settings className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900">
+              <h3 id="settings-modal-title" className="text-lg font-extrabold text-slate-900">
                 Settings & API Configuration
               </h3>
               <p className="text-xs text-slate-500 font-medium">AI OCR provider & data management</p>
@@ -507,7 +522,9 @@ export const SettingsModal: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => setIsSettingsOpen(false)}
+            aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -602,6 +619,7 @@ export const SettingsModal: React.FC = () => {
               </label>
               <input
                 type="text"
+                aria-label="Ollama Endpoint URL"
                 value={inputOllamaEndpoint}
                 onChange={(e) => {
                   setInputOllamaEndpoint(e.target.value);
@@ -618,6 +636,7 @@ export const SettingsModal: React.FC = () => {
               </label>
               <input
                 type="text"
+                aria-label="Vision Model Name"
                 value={ollamaModel}
                 onChange={(e) => {
                   setOllamaModel(e.target.value);
@@ -718,6 +737,7 @@ export const SettingsModal: React.FC = () => {
               <Key className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
               <input
                 type={showKey ? 'text' : 'password'}
+                aria-label="Google Gemini API key"
                 value={inputKey}
                 onChange={(e) => {
                   setInputKey(e.target.value);
@@ -731,6 +751,7 @@ export const SettingsModal: React.FC = () => {
                 onClick={() => setShowKey(!showKey)}
                 className="absolute right-3 text-slate-400 hover:text-slate-600 p-1"
                 title={showKey ? 'Hide Key' : 'Show Key'}
+                aria-label={showKey ? 'Hide Key' : 'Show Key'}
               >
                 {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -859,6 +880,7 @@ export const SettingsModal: React.FC = () => {
               <Key className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
               <input
                 type={showOpenAIKey ? 'text' : 'password'}
+                aria-label="OpenAI API key"
                 value={inputOpenAIKey}
                 onChange={(event) => {
                   setInputOpenAIKey(event.target.value);
@@ -873,6 +895,7 @@ export const SettingsModal: React.FC = () => {
                 onClick={() => setShowOpenAIKey(!showOpenAIKey)}
                 className="absolute right-3 text-slate-400 hover:text-slate-600 p-1"
                 title={showOpenAIKey ? 'Hide Key' : 'Show Key'}
+                aria-label={showOpenAIKey ? 'Hide Key' : 'Show Key'}
               >
                 {showOpenAIKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -968,6 +991,7 @@ export const SettingsModal: React.FC = () => {
               <Key className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
               <input
                 type={showAgentRouterKey ? 'text' : 'password'}
+                aria-label="AgentRouter API token"
                 value={inputAgentRouterKey}
                 onChange={event => {
                   setInputAgentRouterKey(event.target.value);
@@ -982,12 +1006,14 @@ export const SettingsModal: React.FC = () => {
                 onClick={() => setShowAgentRouterKey(!showAgentRouterKey)}
                 className="absolute right-3 text-slate-400 hover:text-slate-600 p-1"
                 title={showAgentRouterKey ? 'Hide Token' : 'Show Token'}
+                aria-label={showAgentRouterKey ? 'Hide Token' : 'Show Token'}
               >
                 {showAgentRouterKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             <input
               type="text"
+              aria-label="AgentRouter Claude model ID"
               value={agentRouterModel}
               onChange={event => {
                 setAgentRouterModel(event.target.value);
@@ -1074,6 +1100,7 @@ export const SettingsModal: React.FC = () => {
               <Key className="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none" />
               <input
                 type={showClaudeKey ? 'text' : 'password'}
+                aria-label="Anthropic Claude API key"
                 value={inputClaudeKey}
                 onChange={(event) => {
                   setInputClaudeKey(event.target.value);
@@ -1088,6 +1115,7 @@ export const SettingsModal: React.FC = () => {
                 onClick={() => setShowClaudeKey(!showClaudeKey)}
                 className="absolute right-3 text-slate-400 hover:text-slate-600 p-1"
                 title={showClaudeKey ? 'Hide Key' : 'Show Key'}
+                aria-label={showClaudeKey ? 'Hide Key' : 'Show Key'}
               >
                 {showClaudeKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -1252,7 +1280,7 @@ export const SettingsModal: React.FC = () => {
 
             <label className="px-3 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs">
               <Upload className="w-3.5 h-3.5 text-blue-600" /> Import JSON
-              <input type="file" accept=".json" onChange={handleFileImport} className="hidden" />
+              <input type="file" accept=".json" onChange={handleFileImport} aria-label="Import JSON database backup file" className="hidden" />
             </label>
           </div>
 

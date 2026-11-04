@@ -63,8 +63,9 @@ export const LedgerView: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => setIsPRUploadOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-[#fd2729] hover:bg-[#e0191b] text-white font-extrabold text-xs shadow-md shadow-red-500/20 flex items-center gap-1.5 transition-all self-start md:self-auto cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-[#d91a1c] hover:bg-[#b91517] text-white font-extrabold text-xs shadow-md shadow-red-500/20 flex items-center gap-1.5 transition-all self-start md:self-auto cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Add New PR
           </button>
@@ -75,6 +76,7 @@ export const LedgerView: React.FC = () => {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             <input
               type="text"
+              aria-label="Search PR number, farm site, or item"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search PR #, Farm site, item..."
@@ -85,6 +87,7 @@ export const LedgerView: React.FC = () => {
           <div className="flex items-center gap-2">
             <Filter className="w-3.5 h-3.5 text-slate-500" />
             <select
+              aria-label="Filter by requisition status"
               value={selectedStatusFilter}
               onChange={(e) => setSelectedStatusFilter(e.target.value)}
               className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold focus:outline-none focus:border-amber-500"
@@ -99,6 +102,7 @@ export const LedgerView: React.FC = () => {
 
           <div>
             <select
+              aria-label="Filter by farm location"
               value={selectedSiteFilter}
               onChange={(e) => setSelectedSiteFilter(e.target.value)}
               className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-semibold focus:outline-none focus:border-amber-500"

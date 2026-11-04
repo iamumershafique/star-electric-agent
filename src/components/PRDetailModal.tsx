@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { getStatusBadgeColor, calculatePRTotals } from '../lib/utils';
 import { getLinkedDCNumbersForPR } from '../lib/storage';
@@ -37,6 +37,16 @@ export const PRDetailModal: React.FC = () => {
 
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isPRDetailOpen) {
+        setIsPRDetailOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPRDetailOpen, setIsPRDetailOpen]);
+
   if (!isPRDetailOpen || !selectedPR) return null;
 
   const totals = calculatePRTotals(selectedPR);
@@ -70,7 +80,12 @@ export const PRDetailModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pr-detail-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn"
+    >
       <div className="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl space-y-6 max-h-[92vh] flex flex-col printable-area text-slate-900">
         
         {/* Modal Header */}
@@ -81,7 +96,7 @@ export const PRDetailModal: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-slate-900 font-mono">
+                <h3 id="pr-detail-modal-title" className="text-lg font-bold text-slate-900 font-mono">
                   {selectedPR.prNumber}
                 </h3>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full border ${getStatusBadgeColor(selectedPR.status)}`}>
@@ -159,7 +174,9 @@ export const PRDetailModal: React.FC = () => {
             </button>
 
             <button
+              type="button"
               onClick={() => setIsPRDetailOpen(false)}
+              aria-label="Close dialog"
               className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             >
               <X className="w-5 h-5" />
@@ -252,6 +269,7 @@ export const PRDetailModal: React.FC = () => {
                     <th className="p-3 w-10 text-center no-print">
                       <input
                         type="checkbox"
+                        aria-label="Select all items for dispatch"
                         checked={selectedItemIds.length === selectedPR.items.length && selectedPR.items.length > 0}
                         onChange={handleToggleSelectAll}
                         className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
@@ -287,6 +305,7 @@ export const PRDetailModal: React.FC = () => {
                         <td className="p-3 text-center no-print">
                           <input
                             type="checkbox"
+                            aria-label={`Select item ${item.name} for dispatch`}
                             checked={isSelected}
                             onChange={() => handleToggleSelectItem(item.id)}
                             className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
@@ -338,6 +357,7 @@ export const PRDetailModal: React.FC = () => {
                           ) : (
                             <div className="relative inline-block no-print">
                               <select
+                                aria-label={`Fulfillment status or dispatch action for ${item.name}`}
                                 value={item.status}
                                 onChange={(e) => {
                                   const val = e.target.value;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   AlertTriangle, 
@@ -24,6 +24,16 @@ export const DuplicateWarningModal: React.FC = () => {
     setPendingExtractedData,
     addNewPR
   } = useApp();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isDuplicateWarningOpen) {
+        setIsDuplicateWarningOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDuplicateWarningOpen, setIsDuplicateWarningOpen]);
 
   if (!isDuplicateWarningOpen || !duplicateInfo) return null;
 
@@ -81,7 +91,12 @@ export const DuplicateWarningModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-fadeIn">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="duplicate-warning-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-xs animate-fadeIn"
+    >
       <div className="bg-white border border-amber-300 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 relative overflow-hidden text-slate-900">
         
         <div className="flex items-start justify-between border-b border-slate-100 pb-3">
@@ -90,7 +105,7 @@ export const DuplicateWarningModal: React.FC = () => {
               <AlertTriangle className="w-6 h-6 animate-pulse text-amber-700" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900">
+              <h3 id="duplicate-warning-modal-title" className="text-lg font-extrabold text-slate-900">
                 Duplicate PR Detected!
               </h3>
               <p className="text-xs text-amber-800 font-bold">
@@ -100,7 +115,9 @@ export const DuplicateWarningModal: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => setIsDuplicateWarningOpen(false)}
+            aria-label="Close dialog"
             className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   X, 
@@ -21,6 +21,16 @@ export const MobileAccessModal: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [isEditingUrl, setIsEditingUrl] = useState(false);
   const [customUrlInput, setCustomUrlInput] = useState(publicUrl);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileAccessOpen) {
+        setIsMobileAccessOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobileAccessOpen, setIsMobileAccessOpen]);
 
   if (!isMobileAccessOpen) return null;
 
@@ -45,12 +55,19 @@ export const MobileAccessModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="mobile-access-modal-title"
+      className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fadeIn"
+    >
       <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 relative my-auto">
         
         {/* Close Button */}
         <button
+          type="button"
           onClick={() => setIsMobileAccessOpen(false)}
+          aria-label="Close dialog"
           className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
@@ -67,7 +84,7 @@ export const MobileAccessModal: React.FC = () => {
               />
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-slate-900">
+              <h3 id="mobile-access-modal-title" className="text-base font-extrabold text-slate-900">
                 Access on Mobile, Tablet &amp; Laptop
               </h3>
               <p className="text-xs text-slate-500 font-medium">
@@ -109,11 +126,12 @@ export const MobileAccessModal: React.FC = () => {
               Live Public Access Link:
             </label>
             <button
+              type="button"
               onClick={() => {
                 setCustomUrlInput(currentUrl);
                 setIsEditingUrl(!isEditingUrl);
               }}
-              className="text-[11px] font-bold text-[#1e195b] hover:text-[#fd2729] flex items-center gap-1 cursor-pointer"
+              className="text-[11px] font-bold text-[#1e195b] hover:text-[#d91a1c] flex items-center gap-1 cursor-pointer"
             >
               <Edit2 className="w-3 h-3" />
               {isEditingUrl ? 'Cancel' : 'Change Domain'}
@@ -124,12 +142,14 @@ export const MobileAccessModal: React.FC = () => {
             <div className="flex items-center gap-2">
               <input
                 type="text"
+                aria-label="Custom portal domain URL"
                 value={customUrlInput}
                 onChange={(e) => setCustomUrlInput(e.target.value)}
                 placeholder="https://your-public-url.com"
-                className="flex-1 px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs font-mono font-semibold focus:outline-none focus:border-[#fd2729]"
+                className="flex-1 px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs font-mono font-semibold focus:outline-none focus:border-[#d91a1c]"
               />
               <button
+                type="button"
                 onClick={handleSaveCustomUrl}
                 className="px-3 py-2 rounded-xl bg-[#1e195b] text-white font-bold text-xs hover:bg-[#282070] cursor-pointer"
               >
@@ -142,11 +162,13 @@ export const MobileAccessModal: React.FC = () => {
                 {currentUrl}
               </div>
               <button
+                type="button"
                 onClick={handleCopy}
+                aria-label={copied ? 'URL copied to clipboard' : 'Copy link to clipboard'}
                 className={`px-3.5 py-2 rounded-xl font-extrabold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs ${
                   copied 
                     ? 'bg-emerald-600 text-white' 
-                    : 'bg-[#fd2729] hover:bg-[#e0191b] text-white shadow-md shadow-red-500/20'
+                    : 'bg-[#d91a1c] hover:bg-[#b91517] text-white shadow-md shadow-red-500/20'
                 }`}
               >
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}

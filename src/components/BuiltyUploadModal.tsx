@@ -93,6 +93,17 @@ export const BuiltyUploadModal: React.FC = () => {
     }
   }, [isBuiltyUploadOpen, targetBuiltyDC]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isBuiltyUploadOpen && !isScanning) {
+        setIsBuiltyUploadOpen(false);
+        setTargetBuiltyDC(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isBuiltyUploadOpen, isScanning, setIsBuiltyUploadOpen, setTargetBuiltyDC]);
+
   if (!isBuiltyUploadOpen) return null;
 
   const currentDraft = drafts[activeDraftIndex] || drafts[0];
@@ -260,7 +271,12 @@ export const BuiltyUploadModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="builty-upload-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn"
+    >
       <div className="bg-white border border-slate-200 rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-5 max-h-[92vh] flex flex-col text-slate-900">
         
         {/* Header */}
@@ -270,7 +286,7 @@ export const BuiltyUploadModal: React.FC = () => {
               <Package className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+              <h3 id="builty-upload-modal-title" className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
                 Goods Delivered Builty Picture & Automation
                 <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-black border border-amber-300">
                   DC # Linked
@@ -281,8 +297,10 @@ export const BuiltyUploadModal: React.FC = () => {
                   </span>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => { setIsBuiltyUploadOpen(false); setIsSettingsOpen(true); }}
                     className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-900 font-bold border border-amber-300 hover:bg-amber-100 flex items-center gap-1 cursor-pointer transition-colors"
+                    title="Click to configure an AI OCR provider"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" /> Configure OCR
                   </button>
@@ -295,7 +313,9 @@ export const BuiltyUploadModal: React.FC = () => {
           </div>
 
           <button
+            type="button"
             onClick={() => { setIsBuiltyUploadOpen(false); setTargetBuiltyDC(null); }}
+            aria-label="Close dialog"
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -306,6 +326,7 @@ export const BuiltyUploadModal: React.FC = () => {
         <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-3 flex-shrink-0">
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => {
                 setActiveMode('scan');
                 fileInputRef.current?.click();
@@ -321,6 +342,7 @@ export const BuiltyUploadModal: React.FC = () => {
             </button>
 
             <button
+              type="button"
               onClick={() => {
                 setActiveMode('manual');
                 if (drafts.length === 0) {
@@ -360,6 +382,7 @@ export const BuiltyUploadModal: React.FC = () => {
               accept="image/*,.pdf"
               multiple
               className="hidden"
+              aria-label="Upload builty picture or PDF"
             />
           </div>
 
@@ -409,6 +432,7 @@ export const BuiltyUploadModal: React.FC = () => {
                   <button
                     type="button"
                     onClick={(e) => handleRemoveDraft(idx, e)}
+                    aria-label={`Remove draft builty ${d.builtyNumber || idx + 1}`}
                     className="p-1 hover:text-rose-600 text-slate-400 rounded-md transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -509,6 +533,7 @@ export const BuiltyUploadModal: React.FC = () => {
                   
                   <div className="flex items-center gap-2">
                     <select
+                      aria-label="Target Delivery Challan (DC) to link"
                       value={currentDraft.selectedDCId}
                       onChange={(e) => {
                         const sel = dcs.find(x => x.id === e.target.value);
@@ -531,6 +556,7 @@ export const BuiltyUploadModal: React.FC = () => {
 
                     <input
                       type="text"
+                      aria-label="Type DC Number manually"
                       placeholder="Or type DC # (e.g. DC-674)"
                       value={currentDraft.dcNumber}
                       onChange={(e) => updateCurrentDraft(prev => ({ ...prev, dcNumber: e.target.value }))}
@@ -606,6 +632,7 @@ export const BuiltyUploadModal: React.FC = () => {
                   <label className="text-xs font-bold text-slate-700">Builty / Consignment #</label>
                   <input
                     type="text"
+                    aria-label="Builty or Consignment Number"
                     placeholder="e.g. 78412 or CN-491"
                     value={currentDraft.builtyNumber}
                     onChange={(e) => updateCurrentDraft(prev => ({ ...prev, builtyNumber: e.target.value }))}
@@ -618,6 +645,7 @@ export const BuiltyUploadModal: React.FC = () => {
                   <label className="text-xs font-bold text-slate-700">Goods Transport Adda / Company</label>
                   <input
                     type="text"
+                    aria-label="Goods Transport Adda or Company name"
                     placeholder="e.g. Tariq Goods Transport Rawalpindi"
                     value={currentDraft.addaName}
                     onChange={(e) => updateCurrentDraft(prev => ({ ...prev, addaName: e.target.value }))}
@@ -630,6 +658,7 @@ export const BuiltyUploadModal: React.FC = () => {
                   <label className="text-xs font-bold text-slate-700">Destination Station / City</label>
                   <input
                     type="text"
+                    aria-label="Destination Station or City"
                     placeholder="e.g. Khanewal / Sahiwal / Mankera"
                     value={currentDraft.destinationCity}
                     onChange={(e) => updateCurrentDraft(prev => ({ ...prev, destinationCity: e.target.value }))}
@@ -642,6 +671,7 @@ export const BuiltyUploadModal: React.FC = () => {
                   <label className="text-xs font-bold text-slate-700">Packages / Bundles / Cartons</label>
                   <input
                     type="text"
+                    aria-label="Packages, Bundles, or Cartons count and description"
                     placeholder="e.g. 3 Bundles Cable, 2 Cartons Lights"
                     value={currentDraft.packagesCount}
                     onChange={(e) => updateCurrentDraft(prev => ({ ...prev, packagesCount: e.target.value }))}
@@ -657,6 +687,7 @@ export const BuiltyUploadModal: React.FC = () => {
                   </label>
                   <input
                     type="number"
+                    aria-label="Freight Amount in PKR"
                     placeholder="e.g. 750"
                     value={currentDraft.freightCharges}
                     onChange={(e) => updateCurrentDraft(prev => ({ ...prev, freightCharges: e.target.value }))}
@@ -668,6 +699,7 @@ export const BuiltyUploadModal: React.FC = () => {
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-700">Freight Status (ادا / وصول)</label>
                   <select
+                    aria-label="Freight Status"
                     value={currentDraft.freightStatus}
                     onChange={(e) => updateCurrentDraft(prev => ({ ...prev, freightStatus: e.target.value as any }))}
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -683,6 +715,7 @@ export const BuiltyUploadModal: React.FC = () => {
                   <label className="text-xs font-bold text-slate-700">Builty Date</label>
                   <input
                     type="date"
+                    aria-label="Builty Date"
                     value={currentDraft.builtyDate}
                     onChange={(e) => updateCurrentDraft(prev => ({ ...prev, builtyDate: e.target.value }))}
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-mono font-bold text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -694,6 +727,7 @@ export const BuiltyUploadModal: React.FC = () => {
                   <label className="text-xs font-bold text-slate-700">Sender</label>
                   <input
                     type="text"
+                    aria-label="Consignment Sender"
                     value={currentDraft.sender}
                     onChange={(e) => updateCurrentDraft(prev => ({ ...prev, sender: e.target.value }))}
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -705,6 +739,7 @@ export const BuiltyUploadModal: React.FC = () => {
                   <label className="text-xs font-bold text-slate-700">Receiver / Farm Site</label>
                   <input
                     type="text"
+                    aria-label="Consignment Receiver or Farm Site"
                     value={currentDraft.receiver}
                     onChange={(e) => updateCurrentDraft(prev => ({ ...prev, receiver: e.target.value }))}
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
