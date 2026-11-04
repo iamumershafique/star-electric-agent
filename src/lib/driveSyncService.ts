@@ -31,7 +31,60 @@ export interface DriveFolderConfig {
 }
 
 const STORAGE_KEY_DRIVE_CONFIG = 'STAR_PORTAL_DRIVE_SYNC_CONFIG';
-const DEFAULT_FOLDER_ID = '1nVxz4_rtVUnYed8PEykDaQub61FdQHzL'; // Jadeed Group Master Drive Scans folder
+export const DEFAULT_FOLDER_ID = '1QirE97-gMrqZ5kQT_hZZGmRFB-efREro'; // Active Drive folder (DC 701-740)
+
+export const KNOWN_SCAN_FOLDERS = [
+  { id: '1QirE97-gMrqZ5kQT_hZZGmRFB-efREro', label: 'DC Scans 701-800 (Current / Active to DC-740)' },
+  { id: '1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW', label: 'DC Scans 601-700' },
+  { id: '1nVxz4_rtVUnYed8PEykDaQub61FdQHzL', label: 'Master Drive Scans Folder' }
+];
+
+export const RECENT_DRIVE_SCANS: DriveScannedFile[] = [
+  { id: '1fe36xeEiKP15ORQeeWNd_imEtw9WhJzx', name: 'DC 694.jpeg', dcNumber: 'DC-694', imageUrl: 'https://lh3.googleusercontent.com/d/1fe36xeEiKP15ORQeeWNd_imEtw9WhJzx=w1200', viewLink: 'https://drive.google.com/file/d/1fe36xeEiKP15ORQeeWNd_imEtw9WhJzx/view' },
+  { id: '1KPPeCPD9A6pjxhZ742LT2CR2VRcLWdEj', name: 'DC 695.jpeg', dcNumber: 'DC-695', imageUrl: 'https://lh3.googleusercontent.com/d/1KPPeCPD9A6pjxhZ742LT2CR2VRcLWdEj=w1200', viewLink: 'https://drive.google.com/file/d/1KPPeCPD9A6pjxhZ742LT2CR2VRcLWdEj/view' },
+  { id: '1upSa-gDI8rz23_CRCWCEPh6UsFWMxmiw', name: 'DC 696.jpeg', dcNumber: 'DC-696', imageUrl: 'https://lh3.googleusercontent.com/d/1upSa-gDI8rz23_CRCWCEPh6UsFWMxmiw=w1200', viewLink: 'https://drive.google.com/file/d/1upSa-gDI8rz23_CRCWCEPh6UsFWMxmiw/view' },
+  { id: '1XQfF0ooHyxI0G08Tl4UEhQxPQ_Go5xhl', name: 'DC 697.jpeg', dcNumber: 'DC-697', imageUrl: 'https://lh3.googleusercontent.com/d/1XQfF0ooHyxI0G08Tl4UEhQxPQ_Go5xhl=w1200', viewLink: 'https://drive.google.com/file/d/1XQfF0ooHyxI0G08Tl4UEhQxPQ_Go5xhl/view' },
+  { id: '16uhR8w7AkY2tlOqDXhfA3uwHGAysOpHc', name: 'DC 698.jpeg', dcNumber: 'DC-698', imageUrl: 'https://lh3.googleusercontent.com/d/16uhR8w7AkY2tlOqDXhfA3uwHGAysOpHc=w1200', viewLink: 'https://drive.google.com/file/d/16uhR8w7AkY2tlOqDXhfA3uwHGAysOpHc/view' },
+  { id: '1lvaRGoLLt8zWK_0vWJ3WFsrV1bNpihlk', name: 'DC 699.jpeg', dcNumber: 'DC-699', imageUrl: 'https://lh3.googleusercontent.com/d/1lvaRGoLLt8zWK_0vWJ3WFsrV1bNpihlk=w1200', viewLink: 'https://drive.google.com/file/d/1lvaRGoLLt8zWK_0vWJ3WFsrV1bNpihlk/view' },
+  { id: '1muwE0tfdSfYeqQy-tG1EWvnhVB1b1si4', name: 'DC 700.jpeg', dcNumber: 'DC-700', imageUrl: 'https://lh3.googleusercontent.com/d/1muwE0tfdSfYeqQy-tG1EWvnhVB1b1si4=w1200', viewLink: 'https://drive.google.com/file/d/1muwE0tfdSfYeqQy-tG1EWvnhVB1b1si4/view' },
+  { id: '1Zfxxs1VXr5fM9CiWee_mjJKWoPSa-2YF', name: 'DC 701.jpeg', dcNumber: 'DC-701', imageUrl: 'https://lh3.googleusercontent.com/d/1Zfxxs1VXr5fM9CiWee_mjJKWoPSa-2YF=w1200', viewLink: 'https://drive.google.com/file/d/1Zfxxs1VXr5fM9CiWee_mjJKWoPSa-2YF/view' },
+  { id: '1xh5VF3ut426iNOtGe1PgKQaSSiramX_g', name: 'DC 702.jpeg', dcNumber: 'DC-702', imageUrl: 'https://lh3.googleusercontent.com/d/1xh5VF3ut426iNOtGe1PgKQaSSiramX_g=w1200', viewLink: 'https://drive.google.com/file/d/1xh5VF3ut426iNOtGe1PgKQaSSiramX_g/view' },
+  { id: '1aswz1gWsI9SGsq_XrSqRtTTj7EivAXv4', name: 'DC 703.jpeg', dcNumber: 'DC-703', imageUrl: 'https://lh3.googleusercontent.com/d/1aswz1gWsI9SGsq_XrSqRtTTj7EivAXv4=w1200', viewLink: 'https://drive.google.com/file/d/1aswz1gWsI9SGsq_XrSqRtTTj7EivAXv4/view' },
+  { id: '1Pb0pmic4OyiFqwlC0AIiCZ2vrbFa01f7', name: 'DC 704.jpeg', dcNumber: 'DC-704', imageUrl: 'https://lh3.googleusercontent.com/d/1Pb0pmic4OyiFqwlC0AIiCZ2vrbFa01f7=w1200', viewLink: 'https://drive.google.com/file/d/1Pb0pmic4OyiFqwlC0AIiCZ2vrbFa01f7/view' },
+  { id: '1SkE7u49fHAxHSCaxItENMTnHapY4FVQb', name: 'DC 705.jpeg', dcNumber: 'DC-705', imageUrl: 'https://lh3.googleusercontent.com/d/1SkE7u49fHAxHSCaxItENMTnHapY4FVQb=w1200', viewLink: 'https://drive.google.com/file/d/1SkE7u49fHAxHSCaxItENMTnHapY4FVQb/view' },
+  { id: '1wP4jVvFDam97W_8W5LpAPBi5yTWBS4Ta', name: 'DC 706.jpeg', dcNumber: 'DC-706', imageUrl: 'https://lh3.googleusercontent.com/d/1wP4jVvFDam97W_8W5LpAPBi5yTWBS4Ta=w1200', viewLink: 'https://drive.google.com/file/d/1wP4jVvFDam97W_8W5LpAPBi5yTWBS4Ta/view' },
+  { id: '1Ar1nFTwzK5PHHXouy03SlFtfX9LThv_5', name: 'DC 707.jpg', dcNumber: 'DC-707', imageUrl: 'https://lh3.googleusercontent.com/d/1Ar1nFTwzK5PHHXouy03SlFtfX9LThv_5=w1200', viewLink: 'https://drive.google.com/file/d/1Ar1nFTwzK5PHHXouy03SlFtfX9LThv_5/view' },
+  { id: '1RxxiozXjdMtDh96UCVkHwK9p5eCdfmJX', name: 'DC 708.jpg', dcNumber: 'DC-708', imageUrl: 'https://lh3.googleusercontent.com/d/1RxxiozXjdMtDh96UCVkHwK9p5eCdfmJX=w1200', viewLink: 'https://drive.google.com/file/d/1RxxiozXjdMtDh96UCVkHwK9p5eCdfmJX/view' },
+  { id: '1OprRCkvq4Nx4udLv39Kd3lg-8GbAYHMG', name: 'DC 710.jpg', dcNumber: 'DC-710', imageUrl: 'https://lh3.googleusercontent.com/d/1OprRCkvq4Nx4udLv39Kd3lg-8GbAYHMG=w1200', viewLink: 'https://drive.google.com/file/d/1OprRCkvq4Nx4udLv39Kd3lg-8GbAYHMG/view' },
+  { id: '1QWbSDBsPCiU1Ez4IOtIUMTzjB-C1CjFK', name: 'DC 711.jpg', dcNumber: 'DC-711', imageUrl: 'https://lh3.googleusercontent.com/d/1QWbSDBsPCiU1Ez4IOtIUMTzjB-C1CjFK=w1200', viewLink: 'https://drive.google.com/file/d/1QWbSDBsPCiU1Ez4IOtIUMTzjB-C1CjFK/view' },
+  { id: '1y7_jYGniPdQtNpIVNG6wydCL4Vuz-1re', name: 'DC 712.jpg', dcNumber: 'DC-712', imageUrl: 'https://lh3.googleusercontent.com/d/1y7_jYGniPdQtNpIVNG6wydCL4Vuz-1re=w1200', viewLink: 'https://drive.google.com/file/d/1y7_jYGniPdQtNpIVNG6wydCL4Vuz-1re/view' },
+  { id: '16CPZLPHgdRhBtcVIWyro2Nkf-wUgb91M', name: 'DC 714.jpg', dcNumber: 'DC-714', imageUrl: 'https://lh3.googleusercontent.com/d/16CPZLPHgdRhBtcVIWyro2Nkf-wUgb91M=w1200', viewLink: 'https://drive.google.com/file/d/16CPZLPHgdRhBtcVIWyro2Nkf-wUgb91M/view' },
+  { id: '1uK9c_8Rlt0GutvhyG2Kwh5C_8xH5NjV_', name: 'DC 715.jpg', dcNumber: 'DC-715', imageUrl: 'https://lh3.googleusercontent.com/d/1uK9c_8Rlt0GutvhyG2Kwh5C_8xH5NjV_=w1200', viewLink: 'https://drive.google.com/file/d/1uK9c_8Rlt0GutvhyG2Kwh5C_8xH5NjV_/view' },
+  { id: '10WA4EE3hlSeNlLrT6Zz9zoNKdE-8qigv', name: 'DC 716.jpg', dcNumber: 'DC-716', imageUrl: 'https://lh3.googleusercontent.com/d/10WA4EE3hlSeNlLrT6Zz9zoNKdE-8qigv=w1200', viewLink: 'https://drive.google.com/file/d/10WA4EE3hlSeNlLrT6Zz9zoNKdE-8qigv/view' },
+  { id: '1TK0So8Bgnspclg1pvcDJcCxH_HtH7hjV', name: 'DC 718.jpeg', dcNumber: 'DC-718', imageUrl: 'https://lh3.googleusercontent.com/d/1TK0So8Bgnspclg1pvcDJcCxH_HtH7hjV=w1200', viewLink: 'https://drive.google.com/file/d/1TK0So8Bgnspclg1pvcDJcCxH_HtH7hjV/view' },
+  { id: '195n3it8DBFVFph0Am_KpHrFHWBLTfFxh', name: 'DC 719.jpg', dcNumber: 'DC-719', imageUrl: 'https://lh3.googleusercontent.com/d/195n3it8DBFVFph0Am_KpHrFHWBLTfFxh=w1200', viewLink: 'https://drive.google.com/file/d/195n3it8DBFVFph0Am_KpHrFHWBLTfFxh/view' },
+  { id: '1jVBgp-H4l4MaYUYjfCJg1PZgMq5H1YXg', name: 'DC 720.jpeg', dcNumber: 'DC-720', imageUrl: 'https://lh3.googleusercontent.com/d/1jVBgp-H4l4MaYUYjfCJg1PZgMq5H1YXg=w1200', viewLink: 'https://drive.google.com/file/d/1jVBgp-H4l4MaYUYjfCJg1PZgMq5H1YXg/view' },
+  { id: '1g3FwB5DNZwOwnyzcXXiIb675yIY5GK6g', name: 'DC 721.jpeg', dcNumber: 'DC-721', imageUrl: 'https://lh3.googleusercontent.com/d/1g3FwB5DNZwOwnyzcXXiIb675yIY5GK6g=w1200', viewLink: 'https://drive.google.com/file/d/1g3FwB5DNZwOwnyzcXXiIb675yIY5GK6g/view' },
+  { id: '1BfTNmYfe9Jbfjs0dTmp0kL2Q5qZc6Q4S', name: 'DC 722.jpg', dcNumber: 'DC-722', imageUrl: 'https://lh3.googleusercontent.com/d/1BfTNmYfe9Jbfjs0dTmp0kL2Q5qZc6Q4S=w1200', viewLink: 'https://drive.google.com/file/d/1BfTNmYfe9Jbfjs0dTmp0kL2Q5qZc6Q4S/view' },
+  { id: '1d-afbcjsreq_vJKI0QS92MOuBtp2a5JL', name: 'DC 723.jpg', dcNumber: 'DC-723', imageUrl: 'https://lh3.googleusercontent.com/d/1d-afbcjsreq_vJKI0QS92MOuBtp2a5JL=w1200', viewLink: 'https://drive.google.com/file/d/1d-afbcjsreq_vJKI0QS92MOuBtp2a5JL/view' },
+  { id: '187ngMXQUm62gsXSx8jM2nso-hKYlxjXD', name: 'DC 724.jpg', dcNumber: 'DC-724', imageUrl: 'https://lh3.googleusercontent.com/d/187ngMXQUm62gsXSx8jM2nso-hKYlxjXD=w1200', viewLink: 'https://drive.google.com/file/d/187ngMXQUm62gsXSx8jM2nso-hKYlxjXD/view' },
+  { id: '1kpspCKFHstwV9UNYNu1poZLtvfedxZhK', name: 'DC 725.jpg', dcNumber: 'DC-725', imageUrl: 'https://lh3.googleusercontent.com/d/1kpspCKFHstwV9UNYNu1poZLtvfedxZhK=w1200', viewLink: 'https://drive.google.com/file/d/1kpspCKFHstwV9UNYNu1poZLtvfedxZhK/view' },
+  { id: '1bNfAJ7ZiIj57N6nJaPXShEZlcOnWpn9Q', name: 'DC 726.jpg', dcNumber: 'DC-726', imageUrl: 'https://lh3.googleusercontent.com/d/1bNfAJ7ZiIj57N6nJaPXShEZlcOnWpn9Q=w1200', viewLink: 'https://drive.google.com/file/d/1bNfAJ7ZiIj57N6nJaPXShEZlcOnWpn9Q/view' },
+  { id: '1ZJNZ56KD79HhE49b5kPydVulw1hSisoq', name: 'DC 727.jpg', dcNumber: 'DC-727', imageUrl: 'https://lh3.googleusercontent.com/d/1ZJNZ56KD79HhE49b5kPydVulw1hSisoq=w1200', viewLink: 'https://drive.google.com/file/d/1ZJNZ56KD79HhE49b5kPydVulw1hSisoq/view' },
+  { id: '1bf41MApoFPABRqhS3_sjQmx6nT-_x9GT', name: 'DC 728.jpg', dcNumber: 'DC-728', imageUrl: 'https://lh3.googleusercontent.com/d/1bf41MApoFPABRqhS3_sjQmx6nT-_x9GT=w1200', viewLink: 'https://drive.google.com/file/d/1bf41MApoFPABRqhS3_sjQmx6nT-_x9GT/view' },
+  { id: '1M1hm6eE0yptvn0YgDMyBLDpeYJXJTyr4', name: 'DC 729.jpg', dcNumber: 'DC-729', imageUrl: 'https://lh3.googleusercontent.com/d/1M1hm6eE0yptvn0YgDMyBLDpeYJXJTyr4=w1200', viewLink: 'https://drive.google.com/file/d/1M1hm6eE0yptvn0YgDMyBLDpeYJXJTyr4/view' },
+  { id: '1VhaGbmChj5q_h3zgMhTXH5Gb0KxLzOzU', name: 'DC 730.jpg', dcNumber: 'DC-730', imageUrl: 'https://lh3.googleusercontent.com/d/1VhaGbmChj5q_h3zgMhTXH5Gb0KxLzOzU=w1200', viewLink: 'https://drive.google.com/file/d/1VhaGbmChj5q_h3zgMhTXH5Gb0KxLzOzU/view' },
+  { id: '1vz9HFsMFVvW9HawzfMYa8qsanptuPWj6', name: 'DC 731.jpg', dcNumber: 'DC-731', imageUrl: 'https://lh3.googleusercontent.com/d/1vz9HFsMFVvW9HawzfMYa8qsanptuPWj6=w1200', viewLink: 'https://drive.google.com/file/d/1vz9HFsMFVvW9HawzfMYa8qsanptuPWj6/view' },
+  { id: '1mmnxfietjHZxy7tdNcloToQL-4MNqkWF', name: 'DC 732.jpg', dcNumber: 'DC-732', imageUrl: 'https://lh3.googleusercontent.com/d/1mmnxfietjHZxy7tdNcloToQL-4MNqkWF=w1200', viewLink: 'https://drive.google.com/file/d/1mmnxfietjHZxy7tdNcloToQL-4MNqkWF/view' },
+  { id: '19G0z8IFyfXhQ7juohVnzOvEGGC70srCM', name: 'DC 733.jpg', dcNumber: 'DC-733', imageUrl: 'https://lh3.googleusercontent.com/d/19G0z8IFyfXhQ7juohVnzOvEGGC70srCM=w1200', viewLink: 'https://drive.google.com/file/d/19G0z8IFyfXhQ7juohVnzOvEGGC70srCM/view' },
+  { id: '1AEawC2ABEInk3RVO6PopDu2PCBh-oEK3', name: 'DC 734.jpg', dcNumber: 'DC-734', imageUrl: 'https://lh3.googleusercontent.com/d/1AEawC2ABEInk3RVO6PopDu2PCBh-oEK3=w1200', viewLink: 'https://drive.google.com/file/d/1AEawC2ABEInk3RVO6PopDu2PCBh-oEK3/view' },
+  { id: '1PwToiDzgTZhhMrOCY2bdj2-xwQf5TW7d', name: 'DC 735.jpeg', dcNumber: 'DC-735', imageUrl: 'https://lh3.googleusercontent.com/d/1PwToiDzgTZhhMrOCY2bdj2-xwQf5TW7d=w1200', viewLink: 'https://drive.google.com/file/d/1PwToiDzgTZhhMrOCY2bdj2-xwQf5TW7d/view' },
+  { id: '1EH0WRmcktcciDt7tA0ySWlHdIEsgZTbv', name: 'DC 736.jpeg', dcNumber: 'DC-736', imageUrl: 'https://lh3.googleusercontent.com/d/1EH0WRmcktcciDt7tA0ySWlHdIEsgZTbv=w1200', viewLink: 'https://drive.google.com/file/d/1EH0WRmcktcciDt7tA0ySWlHdIEsgZTbv/view' },
+  { id: '1FOM0ECTVzOa6gdKjCvOmsgTyOODMv9RS', name: 'DC 737.jpeg', dcNumber: 'DC-737', imageUrl: 'https://lh3.googleusercontent.com/d/1FOM0ECTVzOa6gdKjCvOmsgTyOODMv9RS=w1200', viewLink: 'https://drive.google.com/file/d/1FOM0ECTVzOa6gdKjCvOmsgTyOODMv9RS/view' },
+  { id: '1dANtqSPKK6d2lsbLgtTvCFcsiZCY9C60', name: 'DC 738.jpeg', dcNumber: 'DC-738', imageUrl: 'https://lh3.googleusercontent.com/d/1dANtqSPKK6d2lsbLgtTvCFcsiZCY9C60=w1200', viewLink: 'https://drive.google.com/file/d/1dANtqSPKK6d2lsbLgtTvCFcsiZCY9C60/view' },
+  { id: '1PYJid-7YuxPJ7Ne0UZTSAI8AtEYRBkXK', name: 'DC 739.jpeg', dcNumber: 'DC-739', imageUrl: 'https://lh3.googleusercontent.com/d/1PYJid-7YuxPJ7Ne0UZTSAI8AtEYRBkXK=w1200', viewLink: 'https://drive.google.com/file/d/1PYJid-7YuxPJ7Ne0UZTSAI8AtEYRBkXK/view' },
+  { id: '1d6Ixb6g-CZwlGTNcueVj7exIIkbjyWQa', name: 'DC 740.jpeg', dcNumber: 'DC-740', imageUrl: 'https://lh3.googleusercontent.com/d/1d6Ixb6g-CZwlGTNcueVj7exIIkbjyWQa=w1200', viewLink: 'https://drive.google.com/file/d/1d6Ixb6g-CZwlGTNcueVj7exIIkbjyWQa/view' }
+];
 
 export function getDriveFolderConfig(): DriveFolderConfig {
   if (typeof window === 'undefined') {

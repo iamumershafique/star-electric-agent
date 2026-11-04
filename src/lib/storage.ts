@@ -137,9 +137,9 @@ export const INITIAL_SITES: any[] = (seedImportsEnabled ? JADEED_FARM_SITES : []
 }));
 
 export const INITIAL_PRS: PRRecord[] = [];
-export const INITIAL_DCS: DCRecord[] = seedImportsEnabled ? [
+export const INITIAL_DCS: DCRecord[] = [
   ...JADEED_HISTORY_DCS
-] : [];
+];
 
 function normalizeStoredPR(value: unknown, index: number): PRRecord {
   const raw = value && typeof value === 'object' ? value as Partial<PRRecord> : {};
@@ -380,9 +380,10 @@ export function getDCs(): DCRecord[] {
     }
   }
 
-  // Auto-upgrade if storage contains older seed dataset (< 686 records)
-  // Ensures all 686 records from the Google Drive ledger (including DC 655) appear immediately!
-  if (list.length < 686) {
+  // Auto-upgrade if storage contains older seed dataset (< 740 records or missing DC 740)
+  // Ensures all 740 records from the Google Drive ledger appear immediately!
+  const hasDC740 = list.some(d => (d.dcNumber || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === 'dc740');
+  if (!hasDC740 || list.length < 740) {
     const existingMap = new Map(list.map(d => [d.dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(), d]));
     const merged = [...INITIAL_DCS];
     for (let i = 0; i < merged.length; i++) {

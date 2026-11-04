@@ -16807,5 +16807,2670 @@ export const JADEED_HISTORY_DCS: DCRecord[] = [
     "biltyNumber": "7786",
     "addaName": "Goods Transport (General)",
     "freightStatus": "Paid"
+  },
+  {
+    "id": "dc-jad-0687",
+    "dcNumber": "DC 687 (Missing Physical Page)",
+    "invoiceNumber": "DC 687",
+    "prNumber": "NO PR",
+    "date": "2026-09-25",
+    "siteName": "Voided / Unissued Page",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000687000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0687-1",
+        "itemName": "Voided Leaf / Physical Page Missing from Book",
+        "brand": "Other / General",
+        "quantity": 0,
+        "unit": "page"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Missing / voided page in physical delivery book.",
+    "prId": ""
+  },
+  {
+    "id": "dc-jad-0688",
+    "dcNumber": "DC 688 (Missing Physical Page)",
+    "invoiceNumber": "DC 688",
+    "prNumber": "NO PR",
+    "date": "2026-09-25",
+    "siteName": "Voided / Unissued Page",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000688000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0688-1",
+        "itemName": "Voided Leaf / Physical Page Missing from Book",
+        "brand": "Other / General",
+        "quantity": 0,
+        "unit": "page"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Missing / voided page in physical delivery book.",
+    "prId": ""
+  },
+  {
+    "id": "dc-jad-0689",
+    "dcNumber": "DC 689 (Missing Physical Page)",
+    "invoiceNumber": "DC 689",
+    "prNumber": "NO PR",
+    "date": "2026-09-25",
+    "siteName": "Voided / Unissued Page",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000689000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0689-1",
+        "itemName": "Voided Leaf / Physical Page Missing from Book",
+        "brand": "Other / General",
+        "quantity": 0,
+        "unit": "page"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Missing / voided page in physical delivery book.",
+    "prId": ""
+  },
+  {
+    "id": "dc-jad-0690",
+    "dcNumber": "DC 690 (Missing Physical Page)",
+    "invoiceNumber": "DC 690",
+    "prNumber": "NO PR",
+    "date": "2026-09-25",
+    "siteName": "Voided / Unissued Page",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000690000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0690-1",
+        "itemName": "Voided Leaf / Physical Page Missing from Book",
+        "brand": "Other / General",
+        "quantity": 0,
+        "unit": "page"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Missing / voided page in physical delivery book.",
+    "prId": ""
+  },
+  {
+    "id": "dc-jad-0691",
+    "dcNumber": "DC 691 (Missing Physical Page)",
+    "invoiceNumber": "DC 691",
+    "prNumber": "NO PR",
+    "date": "2026-09-25",
+    "siteName": "Voided / Unissued Page",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000691000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0691-1",
+        "itemName": "Voided Leaf / Physical Page Missing from Book",
+        "brand": "Other / General",
+        "quantity": 0,
+        "unit": "page"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Missing / voided page in physical delivery book.",
+    "prId": ""
+  },
+  {
+    "id": "dc-jad-0692",
+    "dcNumber": "DC 692 (Missing Physical Page)",
+    "invoiceNumber": "DC 692",
+    "prNumber": "NO PR",
+    "date": "2026-09-25",
+    "siteName": "Voided / Unissued Page",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000692000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0692-1",
+        "itemName": "Voided Leaf / Physical Page Missing from Book",
+        "brand": "Other / General",
+        "quantity": 0,
+        "unit": "page"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Missing / voided page in physical delivery book.",
+    "prId": ""
+  },
+  {
+    "id": "dc-jad-0693",
+    "dcNumber": "DC 693 (Missing Physical Page)",
+    "invoiceNumber": "DC 693",
+    "prNumber": "NO PR",
+    "date": "2026-09-25",
+    "siteName": "Voided / Unissued Page",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000693000,
+    "itemsShipped": [
+      {
+        "itemId": "item-jad-0693-1",
+        "itemName": "Voided Leaf / Physical Page Missing from Book",
+        "brand": "Other / General",
+        "quantity": 0,
+        "unit": "page"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Missing / voided page in physical delivery book.",
+    "prId": ""
+  },
+  {
+    "id": "dc-694",
+    "dcNumber": "DC-694",
+    "invoiceNumber": "DC-694",
+    "prNumber": "",
+    "date": "2026-10-01",
+    "siteName": "JM Farms Khanewal",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Nadeem Ahmed",
+    "vehicleNumber": "0334-1717773",
+    "biltyNumber": "",
+    "driveFileId": "1fe36xeEiKP15ORQeeWNd_imEtw9WhJzx",
+    "driveViewLink": "https://drive.google.com/file/d/1fe36xeEiKP15ORQeeWNd_imEtw9WhJzx/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1fe36xeEiKP15ORQeeWNd_imEtw9WhJzx=w1200",
+    "createdTimestamp": 1711000694000,
+    "itemsShipped": [
+      {
+        "itemId": "it-694-1",
+        "itemName": "Contactor 3-pole 100-250V AC/DC ABB France",
+        "brand": "Schneider / ABB",
+        "quantity": 180,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to JM Farms Khanewal",
+    "prId": ""
+  },
+  {
+    "id": "dc-695",
+    "dcNumber": "DC-695",
+    "invoiceNumber": "DC-695",
+    "prNumber": "",
+    "date": "2026-10-03",
+    "siteName": "Mankera 2 Farm",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Direct Delivery",
+    "vehicleNumber": "",
+    "biltyNumber": "",
+    "driveFileId": "1KPPeCPD9A6pjxhZ742LT2CR2VRcLWdEj",
+    "driveViewLink": "https://drive.google.com/file/d/1KPPeCPD9A6pjxhZ742LT2CR2VRcLWdEj/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1KPPeCPD9A6pjxhZ742LT2CR2VRcLWdEj=w1200",
+    "createdTimestamp": 1711000695000,
+    "itemsShipped": [
+      {
+        "itemId": "it-695-1",
+        "itemName": "Cable 1.5mm 7-core white Pakistan Cables (Total 8000m)",
+        "brand": "Pakistan Cables",
+        "quantity": 8000,
+        "unit": "Mtr"
+      }
+    ],
+    "remarks": "Delivered to Mankera 2 Farm",
+    "prId": ""
+  },
+  {
+    "id": "dc-696",
+    "dcNumber": "DC-696",
+    "invoiceNumber": "DC-696",
+    "prNumber": "PR-205",
+    "date": "2026-10-03",
+    "siteName": "Head Office Rawalpindi",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Mubashir",
+    "vehicleNumber": "",
+    "biltyNumber": "",
+    "driveFileId": "1upSa-gDI8rz23_CRCWCEPh6UsFWMxmiw",
+    "driveViewLink": "https://drive.google.com/file/d/1upSa-gDI8rz23_CRCWCEPh6UsFWMxmiw/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1upSa-gDI8rz23_CRCWCEPh6UsFWMxmiw=w1200",
+    "createdTimestamp": 1711000696000,
+    "itemsShipped": [
+      {
+        "itemId": "it-696-1",
+        "itemName": "Magnetic Contactor LC1D12 Schneider",
+        "brand": "Schneider / ABB",
+        "quantity": 3,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-696-2",
+        "itemName": "Overload Relay 12-18A Schneider",
+        "brand": "Schneider / ABB",
+        "quantity": 3,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-696-3",
+        "itemName": "Fuse 10Amp 10x38",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Head Office Rawalpindi",
+    "prId": "pr-205"
+  },
+  {
+    "id": "dc-697",
+    "dcNumber": "DC-697",
+    "invoiceNumber": "DC-697",
+    "prNumber": "PR-163",
+    "date": "2026-10-05",
+    "siteName": "Warehouse Rawat",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Nawaz",
+    "vehicleNumber": "STS-1500",
+    "biltyNumber": "",
+    "driveFileId": "1XQfF0ooHyxI0G08Tl4UEhQxPQ_Go5xhl",
+    "driveViewLink": "https://drive.google.com/file/d/1XQfF0ooHyxI0G08Tl4UEhQxPQ_Go5xhl/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1XQfF0ooHyxI0G08Tl4UEhQxPQ_Go5xhl=w1200",
+    "createdTimestamp": 1711000697000,
+    "itemsShipped": [
+      {
+        "itemId": "it-697-1",
+        "itemName": "Piano Switch Socket",
+        "brand": "Other / General",
+        "quantity": 200,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-697-2",
+        "itemName": "Two Pin Shoe",
+        "brand": "Other / General",
+        "quantity": 100,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-697-3",
+        "itemName": "Cable 7/29 S/C 2.5mm Pakistan Cables",
+        "brand": "Pakistan Cables",
+        "quantity": 5,
+        "unit": "Coil"
+      },
+      {
+        "itemId": "it-697-4",
+        "itemName": "Capacitor 3.5 uf",
+        "brand": "Other / General",
+        "quantity": 20,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-697-5",
+        "itemName": "Connector Strip 60Amp",
+        "brand": "Other / General",
+        "quantity": 20,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-697-6",
+        "itemName": "LED Bulb 18W 6500k E-27",
+        "brand": "Other / General",
+        "quantity": 500,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Warehouse Rawat",
+    "prId": "pr-163"
+  },
+  {
+    "id": "dc-698",
+    "dcNumber": "DC-698",
+    "invoiceNumber": "DC-698",
+    "prNumber": "PR-162",
+    "date": "2026-10-05",
+    "siteName": "Farm GP-1",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Nawaz",
+    "vehicleNumber": "STS-1500",
+    "biltyNumber": "",
+    "driveFileId": "16uhR8w7AkY2tlOqDXhfA3uwHGAysOpHc",
+    "driveViewLink": "https://drive.google.com/file/d/16uhR8w7AkY2tlOqDXhfA3uwHGAysOpHc/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/16uhR8w7AkY2tlOqDXhfA3uwHGAysOpHc=w1200",
+    "createdTimestamp": 1711000698000,
+    "itemsShipped": [
+      {
+        "itemId": "it-698-1",
+        "itemName": "Piano Switch Porcelain Type",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-698-2",
+        "itemName": "Fuse",
+        "brand": "Other / General",
+        "quantity": 3,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-698-3",
+        "itemName": "LED Bulb 18W 6500k E-27",
+        "brand": "Other / General",
+        "quantity": 12,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-698-4",
+        "itemName": "Capacitor 80-110 uf",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Farm GP-1 via Warehouse Rawat",
+    "prId": "pr-162"
+  },
+  {
+    "id": "dc-699",
+    "dcNumber": "DC-699",
+    "invoiceNumber": "DC-699",
+    "prNumber": "PR-162",
+    "date": "2026-10-05",
+    "siteName": "Hummak Farm",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Nawaz",
+    "vehicleNumber": "STS-1500",
+    "biltyNumber": "",
+    "driveFileId": "1lvaRGoLLt8zWK_0vWJ3WFsrV1bNpihlk",
+    "driveViewLink": "https://drive.google.com/file/d/1lvaRGoLLt8zWK_0vWJ3WFsrV1bNpihlk/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1lvaRGoLLt8zWK_0vWJ3WFsrV1bNpihlk=w1200",
+    "createdTimestamp": 1711000699000,
+    "itemsShipped": [
+      {
+        "itemId": "it-699-1",
+        "itemName": "Circuit Breaker 10 Amp 2-pole SIEMENS",
+        "brand": "Other / General",
+        "quantity": 4,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-699-2",
+        "itemName": "Circuit Breaker 16 Amp 2-pole Siemens",
+        "brand": "Other / General",
+        "quantity": 4,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Hummak Farm via Warehouse Rawat",
+    "prId": "pr-162"
+  },
+  {
+    "id": "dc-700",
+    "dcNumber": "DC-700",
+    "invoiceNumber": "DC-700",
+    "prNumber": "PR-162",
+    "date": "2026-10-05",
+    "siteName": "Balkasar Farm",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Nawaz",
+    "vehicleNumber": "STS-1500",
+    "biltyNumber": "",
+    "driveFileId": "1muwE0tfdSfYeqQy-tG1EWvnhVB1b1si4",
+    "driveViewLink": "https://drive.google.com/file/d/1muwE0tfdSfYeqQy-tG1EWvnhVB1b1si4/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1muwE0tfdSfYeqQy-tG1EWvnhVB1b1si4=w1200",
+    "createdTimestamp": 1711000700000,
+    "itemsShipped": [
+      {
+        "itemId": "it-700-1",
+        "itemName": "Connector Strip 30Amp",
+        "brand": "Other / General",
+        "quantity": 20,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Balkasar Farm via Warehouse Rawat",
+    "prId": "pr-162"
+  },
+  {
+    "id": "dc-701",
+    "dcNumber": "DC-701",
+    "invoiceNumber": "DC-701",
+    "prNumber": "PR-162",
+    "date": "2026-10-05",
+    "siteName": "Luckmor",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Nawaz",
+    "vehicleNumber": "STS-1500",
+    "biltyNumber": "",
+    "driveFileId": "1Zfxxs1VXr5fM9CiWee_mjJKWoPSa-2YF",
+    "driveViewLink": "https://drive.google.com/file/d/1Zfxxs1VXr5fM9CiWee_mjJKWoPSa-2YF/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1Zfxxs1VXr5fM9CiWee_mjJKWoPSa-2YF=w1200",
+    "createdTimestamp": 1711000701000,
+    "itemsShipped": [
+      {
+        "itemId": "it-701-1",
+        "itemName": "Circuit Breaker 63Amp 3-pole Siemens",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-701-2",
+        "itemName": "Limit Switch",
+        "brand": "Other / General",
+        "quantity": 12,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-701-3",
+        "itemName": "LED Bulb 200W 6500k",
+        "brand": "Other / General",
+        "quantity": 3,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Luckmor via Warehouse Rawat",
+    "prId": "pr-162"
+  },
+  {
+    "id": "dc-702",
+    "dcNumber": "DC-702",
+    "invoiceNumber": "DC-702",
+    "prNumber": "PR-162",
+    "date": "2026-10-05",
+    "siteName": "Panjwal Farm",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Nawaz",
+    "vehicleNumber": "STS-1500",
+    "biltyNumber": "",
+    "driveFileId": "1xh5VF3ut426iNOtGe1PgKQaSSiramX_g",
+    "driveViewLink": "https://drive.google.com/file/d/1xh5VF3ut426iNOtGe1PgKQaSSiramX_g/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1xh5VF3ut426iNOtGe1PgKQaSSiramX_g=w1200",
+    "createdTimestamp": 1711000702000,
+    "itemsShipped": [
+      {
+        "itemId": "it-702-1",
+        "itemName": "Circuit Breaker 20Amp Single Pole SIEMENS",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Panjwal Farm via Warehouse Rawat",
+    "prId": "pr-162"
+  },
+  {
+    "id": "dc-703",
+    "dcNumber": "DC-703",
+    "invoiceNumber": "DC-703",
+    "prNumber": "PR-162",
+    "date": "2026-10-05",
+    "siteName": "Farm P.D Khan",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Nawaz",
+    "vehicleNumber": "STS-1500",
+    "biltyNumber": "",
+    "driveFileId": "1aswz1gWsI9SGsq_XrSqRtTTj7EivAXv4",
+    "driveViewLink": "https://drive.google.com/file/d/1aswz1gWsI9SGsq_XrSqRtTTj7EivAXv4/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1aswz1gWsI9SGsq_XrSqRtTTj7EivAXv4=w1200",
+    "createdTimestamp": 1711000703000,
+    "itemsShipped": [
+      {
+        "itemId": "it-703-1",
+        "itemName": "Circuit Breaker 63Amp 4-pole",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Farm P.D Khan via Warehouse Rawat",
+    "prId": "pr-162"
+  },
+  {
+    "id": "dc-704",
+    "dcNumber": "DC-704",
+    "invoiceNumber": "DC-704",
+    "prNumber": "PR-162",
+    "date": "2026-10-05",
+    "siteName": "Farm Khwajgan",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Nawaz",
+    "vehicleNumber": "STS-1500",
+    "biltyNumber": "",
+    "driveFileId": "1Pb0pmic4OyiFqwlC0AIiCZ2vrbFa01f7",
+    "driveViewLink": "https://drive.google.com/file/d/1Pb0pmic4OyiFqwlC0AIiCZ2vrbFa01f7/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1Pb0pmic4OyiFqwlC0AIiCZ2vrbFa01f7=w1200",
+    "createdTimestamp": 1711000704000,
+    "itemsShipped": [
+      {
+        "itemId": "it-704-1",
+        "itemName": "Piano Socket Porcelain Type",
+        "brand": "Other / General",
+        "quantity": 12,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-704-2",
+        "itemName": "Cable 23/76 3-core Flexible cu/pvc/pvc coil",
+        "brand": "Pakistan Cables",
+        "quantity": 295,
+        "unit": "Ft"
+      }
+    ],
+    "remarks": "Delivered to Farm Khwajgan via Warehouse Rawat",
+    "prId": "pr-162"
+  },
+  {
+    "id": "dc-705",
+    "dcNumber": "DC-705",
+    "invoiceNumber": "DC-705",
+    "prNumber": "PR-162",
+    "date": "2026-10-05",
+    "siteName": "UGGI Farm",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Nawaz",
+    "vehicleNumber": "STS-1500",
+    "biltyNumber": "",
+    "driveFileId": "1SkE7u49fHAxHSCaxItENMTnHapY4FVQb",
+    "driveViewLink": "https://drive.google.com/file/d/1SkE7u49fHAxHSCaxItENMTnHapY4FVQb/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1SkE7u49fHAxHSCaxItENMTnHapY4FVQb=w1200",
+    "createdTimestamp": 1711000705000,
+    "itemsShipped": [
+      {
+        "itemId": "it-705-1",
+        "itemName": "Circuit Breaker 63Amp 3-pole SIEMENS",
+        "brand": "Other / General",
+        "quantity": 4,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to UGGI Farm via Warehouse Rawat",
+    "prId": "pr-162"
+  },
+  {
+    "id": "dc-706",
+    "dcNumber": "DC-706",
+    "invoiceNumber": "DC-706",
+    "prNumber": "",
+    "date": "2026-10-06",
+    "siteName": "Oil Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Jahanzeb Driver",
+    "vehicleNumber": "LES-9940",
+    "biltyNumber": "",
+    "driveFileId": "1wP4jVvFDam97W_8W5LpAPBi5yTWBS4Ta",
+    "driveViewLink": "https://drive.google.com/file/d/1wP4jVvFDam97W_8W5LpAPBi5yTWBS4Ta/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1wP4jVvFDam97W_8W5LpAPBi5yTWBS4Ta=w1200",
+    "createdTimestamp": 1711000706000,
+    "itemsShipped": [
+      {
+        "itemId": "it-706-1",
+        "itemName": "Cable 150mm S/C PVC/PVC Sheathed Copper",
+        "brand": "Pakistan Cables",
+        "quantity": 458,
+        "unit": "Mtr"
+      },
+      {
+        "itemId": "it-706-2",
+        "itemName": "Cable 150mm S/C PVC/PVC Sheathed Copper",
+        "brand": "Pakistan Cables",
+        "quantity": 458,
+        "unit": "Mtr"
+      },
+      {
+        "itemId": "it-706-3",
+        "itemName": "Cable 50mm 4-core PVC/PVC Sheathed Cu",
+        "brand": "Pakistan Cables",
+        "quantity": 160,
+        "unit": "Mtr"
+      }
+    ],
+    "remarks": "Delivered to Oil Mill Khanewal",
+    "prId": ""
+  },
+  {
+    "id": "dc-707",
+    "dcNumber": "DC-707",
+    "invoiceNumber": "DC-707",
+    "prNumber": "PR-597",
+    "date": "2026-10-06",
+    "siteName": "GP Hatchery Kot Momin",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Warehouse Delivery",
+    "vehicleNumber": "",
+    "driveFileId": "1Ar1nFTwzK5PHHXouy03SlFtfX9LThv_5",
+    "driveViewLink": "https://drive.google.com/file/d/1Ar1nFTwzK5PHHXouy03SlFtfX9LThv_5/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1Ar1nFTwzK5PHHXouy03SlFtfX9LThv_5=w1200",
+    "createdTimestamp": 1711000707000,
+    "itemsShipped": [
+      {
+        "itemId": "it-707-1",
+        "itemName": "LED Bulb 18W 6500K E-27",
+        "brand": "Other / General",
+        "quantity": 48,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-707-2",
+        "itemName": "Piano Socket - Switch / Button only",
+        "brand": "Other / General",
+        "quantity": 12,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-707-3",
+        "itemName": "Connector Strip 6 Amp",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-707-4",
+        "itemName": "Connector Strip 30 Amp",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-707-5",
+        "itemName": "Connector Strip 60 Amp",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-707-6",
+        "itemName": "Connector Strip 100 Amp",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-707-7",
+        "itemName": "LED Flood Light 50W 6500K Philips",
+        "brand": "Other / General",
+        "quantity": 4,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-707-8",
+        "itemName": "Bulb for Deep Freezor E14",
+        "brand": "Other / General",
+        "quantity": 4,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 15-10-2026 for GP Hatchery Kot Momin",
+    "prId": "pr-597"
+  },
+  {
+    "id": "dc-708",
+    "dcNumber": "DC-708",
+    "invoiceNumber": "DC-708",
+    "prNumber": "PR-89",
+    "date": "2026-10-07",
+    "siteName": "42/10/R",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1RxxiozXjdMtDh96UCVkHwK9p5eCdfmJX",
+    "driveViewLink": "https://drive.google.com/file/d/1RxxiozXjdMtDh96UCVkHwK9p5eCdfmJX/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1RxxiozXjdMtDh96UCVkHwK9p5eCdfmJX=w1200",
+    "createdTimestamp": 1711000708000,
+    "itemsShipped": [
+      {
+        "itemId": "it-708-1",
+        "itemName": "Cable Lugs 70mm Copper Imported",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-708-2",
+        "itemName": "Cable Lugs 95mm Copper Imported",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-708-3",
+        "itemName": "LED Bulb 50W 6500K E-27 Philips",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 15-10-2026 for 42/10/R",
+    "prId": "pr-89"
+  },
+  {
+    "id": "dc-jad-0709",
+    "dcNumber": "DC 709 (Missing Physical Page)",
+    "invoiceNumber": "DC 709",
+    "prNumber": "NO PR",
+    "date": "2026-10-07",
+    "siteName": "Voided / Unissued Page",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000709000,
+    "itemsShipped": [
+      {
+        "itemId": "it-jad-0709-1",
+        "itemName": "Voided Leaf / Physical Page Missing from Book",
+        "brand": "Other / General",
+        "quantity": 0,
+        "unit": "page"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Missing / voided page in physical delivery book.",
+    "prId": ""
+  },
+  {
+    "id": "dc-710",
+    "dcNumber": "DC-710",
+    "invoiceNumber": "DC-710",
+    "prNumber": "PR-89",
+    "date": "2026-10-07",
+    "siteName": "G.P 2",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1OprRCkvq4Nx4udLv39Kd3lg-8GbAYHMG",
+    "driveViewLink": "https://drive.google.com/file/d/1OprRCkvq4Nx4udLv39Kd3lg-8GbAYHMG/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1OprRCkvq4Nx4udLv39Kd3lg-8GbAYHMG=w1200",
+    "createdTimestamp": 1711000710000,
+    "itemsShipped": [
+      {
+        "itemId": "it-710-1",
+        "itemName": "Magnetic Contactor 3-pole LC1D65 Schneider",
+        "brand": "Schneider / ABB",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-710-2",
+        "itemName": "H.R.C Fuse 32 Amp",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 15-10-2026 for G.P 2",
+    "prId": "pr-89"
+  },
+  {
+    "id": "dc-711",
+    "dcNumber": "DC-711",
+    "invoiceNumber": "DC-711",
+    "prNumber": "PR-89",
+    "date": "2026-10-07",
+    "siteName": "G.P 3",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1QWbSDBsPCiU1Ez4IOtIUMTzjB-C1CjFK",
+    "driveViewLink": "https://drive.google.com/file/d/1QWbSDBsPCiU1Ez4IOtIUMTzjB-C1CjFK/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1QWbSDBsPCiU1Ez4IOtIUMTzjB-C1CjFK=w1200",
+    "createdTimestamp": 1711000711000,
+    "itemsShipped": [
+      {
+        "itemId": "it-711-1",
+        "itemName": "LED Bulb 18W 6500K Osaka",
+        "brand": "Other / General",
+        "quantity": 20,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-711-2",
+        "itemName": "Panel Light 220V Red",
+        "brand": "Other / General",
+        "quantity": 36,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 15-10-2026 for G.P 3",
+    "prId": "pr-89"
+  },
+  {
+    "id": "dc-712",
+    "dcNumber": "DC-712",
+    "invoiceNumber": "DC-712",
+    "prNumber": "PR-89",
+    "date": "2026-10-07",
+    "siteName": "Farm Mankera",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1y7_jYGniPdQtNpIVNG6wydCL4Vuz-1re",
+    "driveViewLink": "https://drive.google.com/file/d/1y7_jYGniPdQtNpIVNG6wydCL4Vuz-1re/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1y7_jYGniPdQtNpIVNG6wydCL4Vuz-1re=w1200",
+    "createdTimestamp": 1711000712000,
+    "itemsShipped": [
+      {
+        "itemId": "it-712-1",
+        "itemName": "Cable 1.5mm 2-core cu/pvc/pvc",
+        "brand": "Pakistan Cables",
+        "quantity": 2,
+        "unit": "Coil"
+      },
+      {
+        "itemId": "it-712-2",
+        "itemName": "Magnetic Contactor LC1D25 Schneider",
+        "brand": "Schneider / ABB",
+        "quantity": 15,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-712-3",
+        "itemName": "Magnetic Contactor LC1D50 Schneider",
+        "brand": "Schneider / ABB",
+        "quantity": 4,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-712-4",
+        "itemName": "Control Cable 0.75mm Black",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Coil"
+      },
+      {
+        "itemId": "it-712-5",
+        "itemName": "Control Cable 0.75mm Red",
+        "brand": "Other / General",
+        "quantity": 3,
+        "unit": "Coil"
+      },
+      {
+        "itemId": "it-712-6",
+        "itemName": "Control Cable 0.75mm Yellow",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Coil"
+      },
+      {
+        "itemId": "it-712-7",
+        "itemName": "Control Cable 0.75mm Blue",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Coil"
+      },
+      {
+        "itemId": "it-712-8",
+        "itemName": "LED Bulb 18W 6500K Osaka",
+        "brand": "Other / General",
+        "quantity": 100,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-712-9",
+        "itemName": "Phase Failure Relay Schneider",
+        "brand": "Schneider / ABB",
+        "quantity": 3,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 15-10-2026 for Farm Mankera",
+    "prId": "pr-89"
+  },
+  {
+    "id": "dc-jad-0713",
+    "dcNumber": "DC 713 (Missing Physical Page)",
+    "invoiceNumber": "DC 713",
+    "prNumber": "NO PR",
+    "date": "2026-10-07",
+    "siteName": "Voided / Unissued Page",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000713000,
+    "itemsShipped": [
+      {
+        "itemId": "it-jad-0713-1",
+        "itemName": "Voided Leaf / Physical Page Missing from Book",
+        "brand": "Other / General",
+        "quantity": 0,
+        "unit": "page"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Missing / voided page in physical delivery book.",
+    "prId": ""
+  },
+  {
+    "id": "dc-714",
+    "dcNumber": "DC-714",
+    "invoiceNumber": "DC-714",
+    "prNumber": "PR-89",
+    "date": "2026-10-07",
+    "siteName": "Farm Pirowal 2",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "16CPZLPHgdRhBtcVIWyro2Nkf-wUgb91M",
+    "driveViewLink": "https://drive.google.com/file/d/16CPZLPHgdRhBtcVIWyro2Nkf-wUgb91M/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/16CPZLPHgdRhBtcVIWyro2Nkf-wUgb91M=w1200",
+    "createdTimestamp": 1711000714000,
+    "itemsShipped": [
+      {
+        "itemId": "it-714-1",
+        "itemName": "Circuit Breaker 32 Amp 3-pole Siemens",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-714-2",
+        "itemName": "Circuit Breaker 40 Amp 3-pole Himel",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-714-3",
+        "itemName": "Connector Strip 100 Amp",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-714-4",
+        "itemName": "Connector Strip 30 Amp",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-714-5",
+        "itemName": "Motor Starter Breaker 4-6.3 Amp Himel",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 15-10-2026 for Farm Pirowal 2",
+    "prId": "pr-89"
+  },
+  {
+    "id": "dc-715",
+    "dcNumber": "DC-715",
+    "invoiceNumber": "DC-715",
+    "prNumber": "PR-89",
+    "date": "2026-10-07",
+    "siteName": "Area Office (For Mian Sahiban House)",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1uK9c_8Rlt0GutvhyG2Kwh5C_8xH5NjV_",
+    "driveViewLink": "https://drive.google.com/file/d/1uK9c_8Rlt0GutvhyG2Kwh5C_8xH5NjV_/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1uK9c_8Rlt0GutvhyG2Kwh5C_8xH5NjV_=w1200",
+    "createdTimestamp": 1711000715000,
+    "itemsShipped": [
+      {
+        "itemId": "it-715-1",
+        "itemName": "Piano Switch/Socket",
+        "brand": "Other / General",
+        "quantity": 24,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-715-2",
+        "itemName": "Panel Light Round 12W 6500K Osaka",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-715-3",
+        "itemName": "Three Pin Shoe / Plug Top",
+        "brand": "Other / General",
+        "quantity": 12,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-715-4",
+        "itemName": "Light Plug Pine Grey Aqua",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-715-5",
+        "itemName": "Two Pin Shoe",
+        "brand": "Other / General",
+        "quantity": 12,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-715-6",
+        "itemName": "Fan Dimmer Aqua",
+        "brand": "Other / General",
+        "quantity": 12,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-715-7",
+        "itemName": "Cable 23/76 2-core Flexible Copper",
+        "brand": "Pakistan Cables",
+        "quantity": 1,
+        "unit": "Coil"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 15-10-2026 for Area Office Mian Sahiban House",
+    "prId": "pr-89"
+  },
+  {
+    "id": "dc-716",
+    "dcNumber": "DC-716",
+    "invoiceNumber": "DC-716",
+    "prNumber": "PR-36",
+    "date": "2026-10-07",
+    "siteName": "Hatchery Khanewal",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "10WA4EE3hlSeNlLrT6Zz9zoNKdE-8qigv",
+    "driveViewLink": "https://drive.google.com/file/d/10WA4EE3hlSeNlLrT6Zz9zoNKdE-8qigv/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/10WA4EE3hlSeNlLrT6Zz9zoNKdE-8qigv=w1200",
+    "createdTimestamp": 1711000716000,
+    "itemsShipped": [
+      {
+        "itemId": "it-716-1",
+        "itemName": "Magnetic Contactor 3-pole 50 Amp PAK-26J TOGAMI",
+        "brand": "Schneider / ABB",
+        "quantity": 14,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 15-10-2026 for Hatchery Khanewal",
+    "prId": "pr-36"
+  },
+  {
+    "id": "dc-jad-0717",
+    "dcNumber": "DC 717 (Missing Physical Page)",
+    "invoiceNumber": "DC 717",
+    "prNumber": "NO PR",
+    "date": "2026-10-10",
+    "siteName": "Voided / Unissued Page",
+    "deliveryStatus": "Delivered",
+    "createdTimestamp": 1711000717000,
+    "itemsShipped": [
+      {
+        "itemId": "it-jad-0717-1",
+        "itemName": "Voided Leaf / Physical Page Missing from Book",
+        "brand": "Other / General",
+        "quantity": 0,
+        "unit": "page"
+      }
+    ],
+    "transportType": "Delivered",
+    "remarks": "Missing / voided page in physical delivery book.",
+    "prId": ""
+  },
+  {
+    "id": "dc-718",
+    "dcNumber": "DC-718",
+    "invoiceNumber": "DC-718",
+    "prNumber": "NO PR",
+    "noPrRequired": true,
+    "date": "2026-10-13",
+    "siteName": "J.T.C Islamabad",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1TK0So8Bgnspclg1pvcDJcCxH_HtH7hjV",
+    "driveViewLink": "https://drive.google.com/file/d/1TK0So8Bgnspclg1pvcDJcCxH_HtH7hjV/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1TK0So8Bgnspclg1pvcDJcCxH_HtH7hjV=w1200",
+    "createdTimestamp": 1711000718000,
+    "itemsShipped": [
+      {
+        "itemId": "it-718-1",
+        "itemName": "LED Down Light open 18W 6500K Roqis",
+        "brand": "Other / General",
+        "quantity": 100,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-718-2",
+        "itemName": "Cable 4mm 2-core std. pvc/pvc Pakistan Cables",
+        "brand": "Pakistan Cables",
+        "quantity": 90,
+        "unit": "Mtr"
+      },
+      {
+        "itemId": "it-718-3",
+        "itemName": "Down Light Box PVC 3\" Turk Plast",
+        "brand": "Other / General",
+        "quantity": 200,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-718-4",
+        "itemName": "PVC Socket 1\" White Turk Plast",
+        "brand": "Other / General",
+        "quantity": 200,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered directly to J.T.C Islamabad, signed Hamza",
+    "prId": ""
+  },
+  {
+    "id": "dc-719",
+    "dcNumber": "DC-719",
+    "invoiceNumber": "DC-719",
+    "prNumber": "PR-196",
+    "date": "2026-10-13",
+    "siteName": "Feed Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "195n3it8DBFVFph0Am_KpHrFHWBLTfFxh",
+    "driveViewLink": "https://drive.google.com/file/d/195n3it8DBFVFph0Am_KpHrFHWBLTfFxh/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/195n3it8DBFVFph0Am_KpHrFHWBLTfFxh=w1200",
+    "createdTimestamp": 1711000719000,
+    "itemsShipped": [
+      {
+        "itemId": "it-719-1",
+        "itemName": "Circuit Breaker 2-pole 63 Amp SIEMENS",
+        "brand": "Other / General",
+        "quantity": 4,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-719-2",
+        "itemName": "Current Transformer CT 100/5A Imported",
+        "brand": "Other / General",
+        "quantity": 3,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 15-10-2026 for Feed Mill Khanewal (PR#196, 203)",
+    "prId": "pr-196"
+  },
+  {
+    "id": "dc-720",
+    "dcNumber": "DC-720",
+    "invoiceNumber": "DC-720",
+    "prNumber": "PR-216",
+    "date": "2026-10-14",
+    "siteName": "Agri Farm Mankera",
+    "deliveryStatus": "Delivered",
+    "transportType": "Adda / Goods Transport",
+    "driverName": "Abdul Rauf / Qadeem",
+    "vehicleNumber": "CAV-7005",
+    "biltyNumber": "2152/1",
+    "isBuiltyAttached": true,
+    "addaName": "Super Pindi Peshawar Goods",
+    "driveFileId": "1jVBgp-H4l4MaYUYjfCJg1PZgMq5H1YXg",
+    "driveViewLink": "https://drive.google.com/file/d/1jVBgp-H4l4MaYUYjfCJg1PZgMq5H1YXg/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1jVBgp-H4l4MaYUYjfCJg1PZgMq5H1YXg=w1200",
+    "createdTimestamp": 1711000720000,
+    "itemsShipped": [
+      {
+        "itemId": "it-720-1",
+        "itemName": "Cable 10mm 2-core pvc/pvc Sheathed Al.",
+        "brand": "Other / General",
+        "quantity": 3034,
+        "unit": "Mtr"
+      }
+    ],
+    "remarks": "Vehicle: CAV-7005 | Driver: Abdul Rauf / Qadeem | Super Pindi Peshawar Goods Bilty# 2152/1",
+    "prId": "pr-216"
+  },
+  {
+    "id": "dc-721",
+    "dcNumber": "DC-721",
+    "invoiceNumber": "DC-721",
+    "prNumber": "NO PR",
+    "noPrRequired": true,
+    "date": "2026-10-22",
+    "siteName": "House 10, F-6 Islamabad",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driverName": "Zahid Sb (0325-9308747)",
+    "driveFileId": "1g3FwB5DNZwOwnyzcXXiIb675yIY5GK6g",
+    "driveViewLink": "https://drive.google.com/file/d/1g3FwB5DNZwOwnyzcXXiIb675yIY5GK6g/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1g3FwB5DNZwOwnyzcXXiIb675yIY5GK6g=w1200",
+    "createdTimestamp": 1711000721000,
+    "itemsShipped": [
+      {
+        "itemId": "it-721-1",
+        "itemName": "Exhaust Fan Plastic 10\" Pak Fans",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-721-2",
+        "itemName": "Circuit Breaker 16 Amp DP Siemens",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-721-3",
+        "itemName": "Open Box PVC 2-way D.B",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-721-4",
+        "itemName": "Light Plug Aqua",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to House 10, F-6 Islamabad (Received by Zahid Sb)",
+    "prId": ""
+  },
+  {
+    "id": "dc-722",
+    "dcNumber": "DC-722",
+    "invoiceNumber": "DC-722",
+    "prNumber": "PR-472",
+    "date": "2026-10-26",
+    "siteName": "Farm Mankera 1",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1BfTNmYfe9Jbfjs0dTmp0kL2Q5qZc6Q4S",
+    "driveViewLink": "https://drive.google.com/file/d/1BfTNmYfe9Jbfjs0dTmp0kL2Q5qZc6Q4S/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1BfTNmYfe9Jbfjs0dTmp0kL2Q5qZc6Q4S=w1200",
+    "createdTimestamp": 1711000722000,
+    "itemsShipped": [
+      {
+        "itemId": "it-722-1",
+        "itemName": "Power Factor Capacitor 50 KVAR",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm Mankera 1",
+    "prId": "pr-472"
+  },
+  {
+    "id": "dc-723",
+    "dcNumber": "DC-723",
+    "invoiceNumber": "DC-723",
+    "prNumber": "PR-95",
+    "date": "2026-10-26",
+    "siteName": "Farm G.P-2",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1d-afbcjsreq_vJKI0QS92MOuBtp2a5JL",
+    "driveViewLink": "https://drive.google.com/file/d/1d-afbcjsreq_vJKI0QS92MOuBtp2a5JL/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1d-afbcjsreq_vJKI0QS92MOuBtp2a5JL=w1200",
+    "createdTimestamp": 1711000723000,
+    "itemsShipped": [
+      {
+        "itemId": "it-723-1",
+        "itemName": "Industrial Plug/Socket 16 Amp 5-pin",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Set"
+      },
+      {
+        "itemId": "it-723-2",
+        "itemName": "Industrial Plug/Socket 32 Amp 5-pin",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Set"
+      },
+      {
+        "itemId": "it-723-3",
+        "itemName": "Circuit Breaker MCB 2 Amp S/Pole",
+        "brand": "Other / General",
+        "quantity": 3,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-723-4",
+        "itemName": "Circuit Breaker MCCB 30 Amp 3-pole Terasaki",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-723-5",
+        "itemName": "Aluminum Din Rail / Breaker Patti",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-723-6",
+        "itemName": "Connector Strip 100 Amp",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-723-7",
+        "itemName": "Control Cable 0.5mm Black",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-723-8",
+        "itemName": "Control Cable 0.5mm Blue",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-723-9",
+        "itemName": "Control Cable 0.5mm Red",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-723-10",
+        "itemName": "Control Cable 0.5mm Yellow",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-723-11",
+        "itemName": "Cable Lugs 16mm Copper Imported",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-723-12",
+        "itemName": "Digital Ampere Meter",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-723-13",
+        "itemName": "Distribution Box D.B 15\"x18\"",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-723-14",
+        "itemName": "Indication Light Blue",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-723-15",
+        "itemName": "Indication Light Red",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-723-16",
+        "itemName": "Indication Light Yellow",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm G.P-2",
+    "prId": "pr-95"
+  },
+  {
+    "id": "dc-724",
+    "dcNumber": "DC-724",
+    "invoiceNumber": "DC-724",
+    "prNumber": "PR-95",
+    "date": "2026-10-26",
+    "siteName": "Farm GP-2",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "187ngMXQUm62gsXSx8jM2nso-hKYlxjXD",
+    "driveViewLink": "https://drive.google.com/file/d/187ngMXQUm62gsXSx8jM2nso-hKYlxjXD/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/187ngMXQUm62gsXSx8jM2nso-hKYlxjXD=w1200",
+    "createdTimestamp": 1711000724000,
+    "itemsShipped": [
+      {
+        "itemId": "it-724-1",
+        "itemName": "Magnetic Contactor LC1D25",
+        "brand": "Schneider / ABB",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-724-2",
+        "itemName": "Phase Failure Relay RM22TR33",
+        "brand": "Schneider / ABB",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-724-3",
+        "itemName": "Cable Lugs 1.5mm Pin Type",
+        "brand": "Other / General",
+        "quantity": 20,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-724-4",
+        "itemName": "Selector Switch on/off",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-724-5",
+        "itemName": "Cable Lugs 2.5mm U-Type",
+        "brand": "Other / General",
+        "quantity": 100,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm GP-2",
+    "prId": "pr-95"
+  },
+  {
+    "id": "dc-725",
+    "dcNumber": "DC-725",
+    "invoiceNumber": "DC-725",
+    "prNumber": "PR-95",
+    "date": "2026-10-26",
+    "siteName": "Farm G.P-3",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1kpspCKFHstwV9UNYNu1poZLtvfedxZhK",
+    "driveViewLink": "https://drive.google.com/file/d/1kpspCKFHstwV9UNYNu1poZLtvfedxZhK/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1kpspCKFHstwV9UNYNu1poZLtvfedxZhK=w1200",
+    "createdTimestamp": 1711000725000,
+    "itemsShipped": [
+      {
+        "itemId": "it-725-1",
+        "itemName": "Industrial Plug/Socket 16 Amp 5-pin (Set)",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Set"
+      },
+      {
+        "itemId": "it-725-2",
+        "itemName": "Industrial Plug/Socket 32 Amp 5-pin (Set)",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Set"
+      },
+      {
+        "itemId": "it-725-3",
+        "itemName": "Cable Duct Slotted 25x40mm",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-725-4",
+        "itemName": "Connector Strip 100 Amp",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-725-5",
+        "itemName": "Control Cable 0.5mm Black",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "FT"
+      },
+      {
+        "itemId": "it-725-6",
+        "itemName": "Control Cable 0.5mm Blue",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "FT"
+      },
+      {
+        "itemId": "it-725-7",
+        "itemName": "Control Cable 0.5mm Red",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "FT"
+      },
+      {
+        "itemId": "it-725-8",
+        "itemName": "Control Cable 0.5mm Yellow",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "FT"
+      },
+      {
+        "itemId": "it-725-9",
+        "itemName": "Cable Lugs 16mm Copper Imported",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-725-10",
+        "itemName": "Distribution Box 15\"x18\"",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-725-11",
+        "itemName": "Digital Ampere Meter",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-725-12",
+        "itemName": "Indication Light Blue",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-725-13",
+        "itemName": "Indication Light Red",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-725-14",
+        "itemName": "Indication Light Yellow",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-725-15",
+        "itemName": "Magnetic Contactor LC1D25",
+        "brand": "Schneider / ABB",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-725-16",
+        "itemName": "Circuit Breaker MCB 2 Amp S/Pole",
+        "brand": "Other / General",
+        "quantity": 3,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm G.P-3",
+    "prId": "pr-95"
+  },
+  {
+    "id": "dc-726",
+    "dcNumber": "DC-726",
+    "invoiceNumber": "DC-726",
+    "prNumber": "PR-95",
+    "date": "2026-10-29",
+    "siteName": "Farm GP-3",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1bNfAJ7ZiIj57N6nJaPXShEZlcOnWpn9Q",
+    "driveViewLink": "https://drive.google.com/file/d/1bNfAJ7ZiIj57N6nJaPXShEZlcOnWpn9Q/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1bNfAJ7ZiIj57N6nJaPXShEZlcOnWpn9Q=w1200",
+    "createdTimestamp": 1711000726000,
+    "itemsShipped": [
+      {
+        "itemId": "it-726-1",
+        "itemName": "Circuit Breaker MCCB 30 Amp 3-pole Terasaki",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-726-2",
+        "itemName": "Phase Failure Relay RM22TR33",
+        "brand": "Schneider / ABB",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-726-3",
+        "itemName": "Cable Lugs 1.5mm Pin Type",
+        "brand": "Other / General",
+        "quantity": 20,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-726-4",
+        "itemName": "Selector Switch On/Off",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-726-5",
+        "itemName": "Cable Lugs 2.5mm U-Type",
+        "brand": "Other / General",
+        "quantity": 100,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm GP-3",
+    "prId": "pr-95"
+  },
+  {
+    "id": "dc-727",
+    "dcNumber": "DC-727",
+    "invoiceNumber": "DC-727",
+    "prNumber": "PR-95",
+    "date": "2026-10-29",
+    "siteName": "Farm GP-4",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1ZJNZ56KD79HhE49b5kPydVulw1hSisoq",
+    "driveViewLink": "https://drive.google.com/file/d/1ZJNZ56KD79HhE49b5kPydVulw1hSisoq/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1ZJNZ56KD79HhE49b5kPydVulw1hSisoq=w1200",
+    "createdTimestamp": 1711000727000,
+    "itemsShipped": [
+      {
+        "itemId": "it-727-1",
+        "itemName": "Industrial Plug/Socket 16 Amp 5-pin",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Set"
+      },
+      {
+        "itemId": "it-727-2",
+        "itemName": "Industrial Plug/Socket 32 Amp 5-pin",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Set"
+      },
+      {
+        "itemId": "it-727-3",
+        "itemName": "Circuit Breaker MCB 2 Amp S/Pole",
+        "brand": "Other / General",
+        "quantity": 3,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-727-4",
+        "itemName": "Circuit Breaker MCCB 30 Amp 3-pole Terasaki",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-727-5",
+        "itemName": "Aluminum Din Rail / Breaker Patti",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-727-6",
+        "itemName": "Connector Strip 100 Amp",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-727-7",
+        "itemName": "Control Cable 0.5mm Black",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-727-8",
+        "itemName": "Control Cable 0.5mm Blue",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-727-9",
+        "itemName": "Control Cable 0.5mm Red",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-727-10",
+        "itemName": "Control Cable 0.5mm Yellow",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-727-11",
+        "itemName": "Cable Lugs 16mm Copper Imported",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-727-12",
+        "itemName": "Digital Ampere Meter",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-727-13",
+        "itemName": "Distribution Box 15\"x18\"",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-727-14",
+        "itemName": "Indication Light Blue",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-727-15",
+        "itemName": "Indication Light Red",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-727-16",
+        "itemName": "Indication Light Yellow",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm GP-4",
+    "prId": "pr-95"
+  },
+  {
+    "id": "dc-728",
+    "dcNumber": "DC-728",
+    "invoiceNumber": "DC-728",
+    "prNumber": "PR-95",
+    "date": "2026-10-29",
+    "siteName": "Farm GP-4",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1bf41MApoFPABRqhS3_sjQmx6nT-_x9GT",
+    "driveViewLink": "https://drive.google.com/file/d/1bf41MApoFPABRqhS3_sjQmx6nT-_x9GT/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1bf41MApoFPABRqhS3_sjQmx6nT-_x9GT=w1200",
+    "createdTimestamp": 1711000728000,
+    "itemsShipped": [
+      {
+        "itemId": "it-728-1",
+        "itemName": "Magnetic Contactor LC1D25",
+        "brand": "Schneider / ABB",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-728-2",
+        "itemName": "Phase Failure Relay RM22TR33",
+        "brand": "Schneider / ABB",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-728-3",
+        "itemName": "Cable Lugs 1.5mm Pin Type",
+        "brand": "Other / General",
+        "quantity": 20,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-728-4",
+        "itemName": "Selector Switch On/Off",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-728-5",
+        "itemName": "Cable Lugs 2.5mm U-Type",
+        "brand": "Other / General",
+        "quantity": 100,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm GP-4",
+    "prId": "pr-95"
+  },
+  {
+    "id": "dc-729",
+    "dcNumber": "DC-729",
+    "invoiceNumber": "DC-729",
+    "prNumber": "PR-95",
+    "date": "2026-10-29",
+    "siteName": "Farm GP-5",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1M1hm6eE0yptvn0YgDMyBLDpeYJXJTyr4",
+    "driveViewLink": "https://drive.google.com/file/d/1M1hm6eE0yptvn0YgDMyBLDpeYJXJTyr4/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1M1hm6eE0yptvn0YgDMyBLDpeYJXJTyr4=w1200",
+    "createdTimestamp": 1711000729000,
+    "itemsShipped": [
+      {
+        "itemId": "it-729-1",
+        "itemName": "Digital Ampere Meter",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-729-2",
+        "itemName": "Indication Light Blue",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-729-3",
+        "itemName": "Indication Light Red",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-729-4",
+        "itemName": "Indication Light Yellow",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-729-5",
+        "itemName": "Industrial Plug/Socket 16 Amp 5-pin",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Set"
+      },
+      {
+        "itemId": "it-729-6",
+        "itemName": "Industrial Plug/Socket 32 Amp 5-pin",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Set"
+      },
+      {
+        "itemId": "it-729-7",
+        "itemName": "Cable Lugs 16mm Copper Imported",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-729-8",
+        "itemName": "Distribution Box 15\"x18\"",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-729-9",
+        "itemName": "Connector Strip 100 Amp",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-729-10",
+        "itemName": "Selector Switch On/Off",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-729-11",
+        "itemName": "Control Wire 0.5mm Black",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-729-12",
+        "itemName": "Control Wire 0.5mm Blue",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-729-13",
+        "itemName": "Control Wire 0.5mm Yellow",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-729-14",
+        "itemName": "Control Wire 0.5mm Red",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-729-15",
+        "itemName": "Circuit Breaker MCB 2 Amp S/Pole",
+        "brand": "Other / General",
+        "quantity": 3,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-729-16",
+        "itemName": "Magnetic Contactor LC1D25",
+        "brand": "Schneider / ABB",
+        "quantity": 1,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm GP-5",
+    "prId": "pr-95"
+  },
+  {
+    "id": "dc-730",
+    "dcNumber": "DC-730",
+    "invoiceNumber": "DC-730",
+    "prNumber": "PR-95",
+    "date": "2026-10-29",
+    "siteName": "Farm GP-5",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1VhaGbmChj5q_h3zgMhTXH5Gb0KxLzOzU",
+    "driveViewLink": "https://drive.google.com/file/d/1VhaGbmChj5q_h3zgMhTXH5Gb0KxLzOzU/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1VhaGbmChj5q_h3zgMhTXH5Gb0KxLzOzU=w1200",
+    "createdTimestamp": 1711000730000,
+    "itemsShipped": [
+      {
+        "itemId": "it-730-1",
+        "itemName": "Aluminum Din Rail / Breaker Patti",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-730-2",
+        "itemName": "Circuit Breaker MCCB 30 Amp 3-pole Terasaki",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-730-3",
+        "itemName": "Cable Lugs 1.5mm Pin Type",
+        "brand": "Other / General",
+        "quantity": 20,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-730-4",
+        "itemName": "Cable Lugs 2.5mm U-Type",
+        "brand": "Other / General",
+        "quantity": 100,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm GP-5",
+    "prId": "pr-95"
+  },
+  {
+    "id": "dc-731",
+    "dcNumber": "DC-731",
+    "invoiceNumber": "DC-731",
+    "prNumber": "PR-107",
+    "date": "2026-10-27",
+    "siteName": "Hatchery Khanewal",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1vz9HFsMFVvW9HawzfMYa8qsanptuPWj6",
+    "driveViewLink": "https://drive.google.com/file/d/1vz9HFsMFVvW9HawzfMYa8qsanptuPWj6/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1vz9HFsMFVvW9HawzfMYa8qsanptuPWj6=w1200",
+    "createdTimestamp": 1711000731000,
+    "itemsShipped": [
+      {
+        "itemId": "it-731-1",
+        "itemName": "Cable Lugs 0.75mm",
+        "brand": "Other / General",
+        "quantity": 200,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-731-2",
+        "itemName": "Cable Lugs 1mm",
+        "brand": "Other / General",
+        "quantity": 200,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-731-3",
+        "itemName": "Cable Lugs 1.5mm",
+        "brand": "Other / General",
+        "quantity": 200,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-731-4",
+        "itemName": "Cable 16mm Single Core Flexible Copper",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-731-5",
+        "itemName": "Cable Locking Strip 100mm",
+        "brand": "Other / General",
+        "quantity": 15,
+        "unit": "Pkt"
+      },
+      {
+        "itemId": "it-731-6",
+        "itemName": "Cable 10mm Single Core Flexible Copper",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-731-7",
+        "itemName": "Nut Bolt 3/16",
+        "brand": "Other / General",
+        "quantity": 100,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-731-8",
+        "itemName": "Cable Locking Strip 150mm",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Pkt"
+      },
+      {
+        "itemId": "it-731-9",
+        "itemName": "Cable Cutter",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Hatchery Khanewal",
+    "prId": "pr-107"
+  },
+  {
+    "id": "dc-732",
+    "dcNumber": "DC-732",
+    "invoiceNumber": "DC-732",
+    "prNumber": "PR-95",
+    "date": "2026-10-29",
+    "siteName": "Farm GPSK",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1mmnxfietjHZxy7tdNcloToQL-4MNqkWF",
+    "driveViewLink": "https://drive.google.com/file/d/1mmnxfietjHZxy7tdNcloToQL-4MNqkWF/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1mmnxfietjHZxy7tdNcloToQL-4MNqkWF=w1200",
+    "createdTimestamp": 1711000732000,
+    "itemsShipped": [
+      {
+        "itemId": "it-732-1",
+        "itemName": "Circuit Breaker MCB 2 Amp S/Pole",
+        "brand": "Other / General",
+        "quantity": 3,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-2",
+        "itemName": "Connector Strip 100 Amp",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-3",
+        "itemName": "Digital Ampere Meter",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-4",
+        "itemName": "Cable 2.5mm 4-core Flexible pvc/pvc Copper",
+        "brand": "Pakistan Cables",
+        "quantity": 150,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-732-5",
+        "itemName": "Distribution Box 15\"x18\"",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-6",
+        "itemName": "Control Cable 0.5mm Black",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-732-7",
+        "itemName": "Control Cable 0.5mm Blue",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-732-8",
+        "itemName": "Control Cable 0.5mm Red",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "RFT"
+      },
+      {
+        "itemId": "it-732-9",
+        "itemName": "Magnetic Contactor LC1D25 Schneider",
+        "brand": "Schneider / ABB",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-10",
+        "itemName": "Indication Light Green",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-11",
+        "itemName": "Indication Light Red",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-12",
+        "itemName": "Indication Light Yellow",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-13",
+        "itemName": "Selector Switch on/off",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-14",
+        "itemName": "Phase Failure Relay RM22TR33",
+        "brand": "Schneider / ABB",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-15",
+        "itemName": "Aluminum Din Rail Breaker Patti",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-16",
+        "itemName": "Circuit Breaker MCCB 30 Amp 3-pole Terasaki",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-732-17",
+        "itemName": "Control Cable Yellow 0.5mm",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "RFT"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm GPSK",
+    "prId": "pr-95"
+  },
+  {
+    "id": "dc-733",
+    "dcNumber": "DC-733",
+    "invoiceNumber": "DC-733",
+    "prNumber": "PR-215",
+    "date": "2026-10-29",
+    "siteName": "Farm Kalar Kahar",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "19G0z8IFyfXhQ7juohVnzOvEGGC70srCM",
+    "driveViewLink": "https://drive.google.com/file/d/19G0z8IFyfXhQ7juohVnzOvEGGC70srCM/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/19G0z8IFyfXhQ7juohVnzOvEGGC70srCM=w1200",
+    "createdTimestamp": 1711000733000,
+    "itemsShipped": [
+      {
+        "itemId": "it-733-1",
+        "itemName": "3/.029 S/Core Pakistan Cables (R+B) 2 coil",
+        "brand": "Pakistan Cables",
+        "quantity": 180,
+        "unit": "Mtr"
+      },
+      {
+        "itemId": "it-733-2",
+        "itemName": "7/.029 S/Core Pakistan Cables (R+B) 2 coil",
+        "brand": "Pakistan Cables",
+        "quantity": 180,
+        "unit": "Mtr"
+      },
+      {
+        "itemId": "it-733-3",
+        "itemName": "Bulb Holder E-27",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-733-4",
+        "itemName": "LED Bulb 18W 6500K",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-733-5",
+        "itemName": "LED Flood Light 50W 6500K Philips",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-733-6",
+        "itemName": "LED Flood Light 100W 6500K Philips",
+        "brand": "Other / General",
+        "quantity": 1,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm Kalar Kahar",
+    "prId": "pr-215"
+  },
+  {
+    "id": "dc-734",
+    "dcNumber": "DC-734",
+    "invoiceNumber": "DC-734",
+    "prNumber": "PR-95",
+    "date": "2026-10-29",
+    "siteName": "Farm Pirowal 1",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1AEawC2ABEInk3RVO6PopDu2PCBh-oEK3",
+    "driveViewLink": "https://drive.google.com/file/d/1AEawC2ABEInk3RVO6PopDu2PCBh-oEK3/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1AEawC2ABEInk3RVO6PopDu2PCBh-oEK3=w1200",
+    "createdTimestamp": 1711000734000,
+    "itemsShipped": [
+      {
+        "itemId": "it-734-1",
+        "itemName": "Cable 2.5mm 4-core Flexible pvc/pvc",
+        "brand": "Pakistan Cables",
+        "quantity": 180,
+        "unit": "Mtr"
+      },
+      {
+        "itemId": "it-734-2",
+        "itemName": "Cable 2.5mm 3-core Flexible pvc/pvc",
+        "brand": "Pakistan Cables",
+        "quantity": 180,
+        "unit": "Mtr"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 29-10-2026 for Farm Pirowal 1",
+    "prId": "pr-95"
+  },
+  {
+    "id": "dc-735",
+    "dcNumber": "DC-735",
+    "invoiceNumber": "DC-735",
+    "prNumber": "PR-96",
+    "date": "2026-10-30",
+    "siteName": "Warehouse Khanewal",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1PwToiDzgTZhhMrOCY2bdj2-xwQf5TW7d",
+    "driveViewLink": "https://drive.google.com/file/d/1PwToiDzgTZhhMrOCY2bdj2-xwQf5TW7d/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1PwToiDzgTZhhMrOCY2bdj2-xwQf5TW7d=w1200",
+    "createdTimestamp": 1711000735000,
+    "itemsShipped": [
+      {
+        "itemId": "it-735-1",
+        "itemName": "Cable 23/76 3-core Flexible pvc/pvc copper (10 coil)",
+        "brand": "Pakistan Cables",
+        "quantity": 2952,
+        "unit": "RFT"
+      }
+    ],
+    "remarks": "Received at Warehouse Rawat 30-10-2026 for Warehouse Khanewal",
+    "prId": "pr-96"
+  },
+  {
+    "id": "dc-736",
+    "dcNumber": "DC-736",
+    "invoiceNumber": "DC-736",
+    "prNumber": "PR-117",
+    "date": "2026-10-31",
+    "siteName": "Warehouse Rawat",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1EH0WRmcktcciDt7tA0ySWlHdIEsgZTbv",
+    "driveViewLink": "https://drive.google.com/file/d/1EH0WRmcktcciDt7tA0ySWlHdIEsgZTbv/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1EH0WRmcktcciDt7tA0ySWlHdIEsgZTbv=w1200",
+    "createdTimestamp": 1711000736000,
+    "itemsShipped": [
+      {
+        "itemId": "it-736-1",
+        "itemName": "Capacitor 60 uf",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-2",
+        "itemName": "Capacitor 2.2 uf",
+        "brand": "Other / General",
+        "quantity": 12,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-3",
+        "itemName": "Circuit Breaker MCCB E250SF 200 Amp TP TERASAKI",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-4",
+        "itemName": "Circuit Breaker MCB 63 Amp 2-pole Siemens",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-5",
+        "itemName": "Capacitor 2.2 uf",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-6",
+        "itemName": "Digital Ampere Meter",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-7",
+        "itemName": "Digital Volt Meter",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-8",
+        "itemName": "Circuit Breaker MCCB E100SF 50 Amp 3-pole Terasaki",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-9",
+        "itemName": "Circuit Breaker MCCB E100SF 100 Amp 3-pole Terasaki",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-10",
+        "itemName": "Push Button Green",
+        "brand": "Other / General",
+        "quantity": 12,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-11",
+        "itemName": "Push Button Red",
+        "brand": "Other / General",
+        "quantity": 12,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-12",
+        "itemName": "Porcelain Switch 20 Amp",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-13",
+        "itemName": "Capacitor 10 uf",
+        "brand": "Other / General",
+        "quantity": 3,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-14",
+        "itemName": "Motor Protection Breaker 4-6 Amp",
+        "brand": "Other / General",
+        "quantity": 2,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-15",
+        "itemName": "Magnetic Contactor LC1D12 Schneider",
+        "brand": "Schneider / ABB",
+        "quantity": 12,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-736-16",
+        "itemName": "Circuit Breaker 6 Amp 2-pole Siemens",
+        "brand": "Other / General",
+        "quantity": 8,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Warehouse Rawat",
+    "prId": "pr-117"
+  },
+  {
+    "id": "dc-737",
+    "dcNumber": "DC-737",
+    "invoiceNumber": "DC-737",
+    "prNumber": "PR-118",
+    "date": "2026-10-31",
+    "siteName": "Warehouse Rawat",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1FOM0ECTVzOa6gdKjCvOmsgTyOODMv9RS",
+    "driveViewLink": "https://drive.google.com/file/d/1FOM0ECTVzOa6gdKjCvOmsgTyOODMv9RS/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1FOM0ECTVzOa6gdKjCvOmsgTyOODMv9RS=w1200",
+    "createdTimestamp": 1711000737000,
+    "itemsShipped": [
+      {
+        "itemId": "it-737-1",
+        "itemName": "Two Pin Shoe",
+        "brand": "Other / General",
+        "quantity": 360,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-737-2",
+        "itemName": "Piano Switch",
+        "brand": "Other / General",
+        "quantity": 360,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-737-3",
+        "itemName": "Piano Socket",
+        "brand": "Other / General",
+        "quantity": 360,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-737-4",
+        "itemName": "Light Plug",
+        "brand": "Other / General",
+        "quantity": 200,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-737-5",
+        "itemName": "Power Plug",
+        "brand": "Other / General",
+        "quantity": 200,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-737-6",
+        "itemName": "Fan Dimmer Piano",
+        "brand": "Other / General",
+        "quantity": 150,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-737-7",
+        "itemName": "Limit Switch",
+        "brand": "Other / General",
+        "quantity": 90,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Warehouse Rawat",
+    "prId": "pr-118"
+  },
+  {
+    "id": "dc-738",
+    "dcNumber": "DC-738",
+    "invoiceNumber": "DC-738",
+    "prNumber": "PR-179",
+    "date": "2026-10-31",
+    "siteName": "Hatchery Rawat",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1dANtqSPKK6d2lsbLgtTvCFcsiZCY9C60",
+    "driveViewLink": "https://drive.google.com/file/d/1dANtqSPKK6d2lsbLgtTvCFcsiZCY9C60/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1dANtqSPKK6d2lsbLgtTvCFcsiZCY9C60=w1200",
+    "createdTimestamp": 1711000738000,
+    "itemsShipped": [
+      {
+        "itemId": "it-738-1",
+        "itemName": "Bulb 100W",
+        "brand": "Other / General",
+        "quantity": 50,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-738-2",
+        "itemName": "LED Bulb 20W 6500K Philips",
+        "brand": "Other / General",
+        "quantity": 30,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-738-3",
+        "itemName": "LED Bulb 13W 6500K Philips",
+        "brand": "Other / General",
+        "quantity": 48,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-738-4",
+        "itemName": "Capacitor 5 uf",
+        "brand": "Other / General",
+        "quantity": 6,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-738-5",
+        "itemName": "Fan Dimmer Piano",
+        "brand": "Other / General",
+        "quantity": 10,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Hatchery Rawat",
+    "prId": "pr-179"
+  },
+  {
+    "id": "dc-739",
+    "dcNumber": "DC-739",
+    "invoiceNumber": "DC-739",
+    "prNumber": "NO PR",
+    "noPrRequired": true,
+    "date": "2026-11-02",
+    "siteName": "Feed Mill Khanewal",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1PYJid-7YuxPJ7Ne0UZTSAI8AtEYRBkXK",
+    "driveViewLink": "https://drive.google.com/file/d/1PYJid-7YuxPJ7Ne0UZTSAI8AtEYRBkXK/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1PYJid-7YuxPJ7Ne0UZTSAI8AtEYRBkXK=w1200",
+    "createdTimestamp": 1711000739000,
+    "itemsShipped": [
+      {
+        "itemId": "it-739-1",
+        "itemName": "Magnetic Contactor LC1D150 Schneider",
+        "brand": "Schneider / ABB",
+        "quantity": 3,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-739-2",
+        "itemName": "Auxiliary LADN31 Schneider",
+        "brand": "Schneider / ABB",
+        "quantity": 4,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Feed Mill Khanewal",
+    "prId": ""
+  },
+  {
+    "id": "dc-740",
+    "dcNumber": "DC-740",
+    "invoiceNumber": "DC-740",
+    "prNumber": "PR-26",
+    "date": "2026-11-04",
+    "siteName": "Warehouse Khanewal",
+    "deliveryStatus": "Delivered",
+    "transportType": "Delivered",
+    "driveFileId": "1d6Ixb6g-CZwlGTNcueVj7exIIkbjyWQa",
+    "driveViewLink": "https://drive.google.com/file/d/1d6Ixb6g-CZwlGTNcueVj7exIIkbjyWQa/view",
+    "documentImage": "https://lh3.googleusercontent.com/d/1d6Ixb6g-CZwlGTNcueVj7exIIkbjyWQa=w1200",
+    "createdTimestamp": 1711000740000,
+    "itemsShipped": [
+      {
+        "itemId": "it-740-1",
+        "itemName": "Overload Relay 12-18A LRD21 Schneider",
+        "brand": "Schneider / ABB",
+        "quantity": 1,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-740-2",
+        "itemName": "Temperature Controller STC-100",
+        "brand": "Other / General",
+        "quantity": 4,
+        "unit": "Nos"
+      },
+      {
+        "itemId": "it-740-3",
+        "itemName": "Phase Failure Relay",
+        "brand": "Other / General",
+        "quantity": 5,
+        "unit": "Nos"
+      }
+    ],
+    "remarks": "Delivered to Warehouse Khanewal",
+    "prId": "pr-26"
   }
 ];

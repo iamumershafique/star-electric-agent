@@ -19,6 +19,8 @@ import {
   saveDriveFolderConfig, 
   parseDriveLinksText, 
   syncDriveScansWithAI, 
+  RECENT_DRIVE_SCANS,
+  KNOWN_SCAN_FOLDERS,
   type DriveFolderConfig, 
   type DriveScannedFile 
 } from '../lib/driveSyncService';
@@ -75,13 +77,8 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
         if (pastedLinks.trim()) {
           targetFiles = parseDriveLinksText(pastedLinks);
         } else {
-          // Default pre-mapped DC Scans 601-706 in Drive
-          // Construct files for newly published or modified scans
-          targetFiles = [
-            { id: '1fe36xeEiKP15ORQeeWNd_imEtw9WhJzx', name: 'DC 694.jpeg', dcNumber: 'DC-694', imageUrl: 'https://lh3.googleusercontent.com/d/1fe36xeEiKP15ORQeeWNd_imEtw9WhJzx=w1200', viewLink: 'https://drive.google.com/file/d/1fe36xeEiKP15ORQeeWNd_imEtw9WhJzx/view' },
-            { id: '1KPPeCPD9A6pjxhZ742LT2CR2VRcLWdEj', name: 'DC 695.jpeg', dcNumber: 'DC-695', imageUrl: 'https://lh3.googleusercontent.com/d/1KPPeCPD9A6pjxhZ742LT2CR2VRcLWdEj=w1200', viewLink: 'https://drive.google.com/file/d/1KPPeCPD9A6pjxhZ742LT2CR2VRcLWdEj/view' },
-            { id: '1k2d4Fp4RjN7784-y7t-s45-e6789-012', name: 'DC 696.jpeg', dcNumber: 'DC-696', imageUrl: 'https://lh3.googleusercontent.com/d/1k2d4Fp4RjN7784-y7t-s45-e6789-012=w1200', viewLink: 'https://drive.google.com/file/d/1k2d4Fp4RjN7784-y7t-s45-e6789-012/view' }
-          ];
+          // Pre-mapped DC Scans 694 to 740 in Google Drive
+          targetFiles = RECENT_DRIVE_SCANS;
         }
       }
 
@@ -223,11 +220,20 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
           </div>
 
           <div className="flex gap-2">
+            <select
+              value={config.folderId}
+              onChange={(e) => setConfig({ ...config, folderId: e.target.value })}
+              className="px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-semibold focus:outline-none focus:border-blue-500 shadow-2xs cursor-pointer max-w-[200px]"
+            >
+              {KNOWN_SCAN_FOLDERS.map(f => (
+                <option key={f.id} value={f.id}>{f.label}</option>
+              ))}
+            </select>
             <input
               type="text"
               value={config.folderId}
               onChange={(e) => setConfig({ ...config, folderId: e.target.value })}
-              placeholder="e.g. 1nVxz4_rtVUnYed8PEykDaQub61FdQHzL"
+              placeholder="e.g. 1QirE97-gMrqZ5kQT_hZZGmRFB-efREro"
               className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-mono font-semibold focus:outline-none focus:border-blue-500 shadow-2xs"
             />
             <button
@@ -341,3 +347,4 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
 };
 
 export default DriveSyncModal;
+

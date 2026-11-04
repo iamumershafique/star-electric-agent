@@ -32,6 +32,7 @@ const db = getFirestore(app);
 // Configuration
 const MASTER_FOLDER_ID = process.env.DRIVE_FOLDER_ID || '1nVxz4_rtVUnYed8PEykDaQub61FdQHzL';
 const SUBFOLDERS = [
+  '1QirE97-gMrqZ5kQT_hZZGmRFB-efREro', // DC Scan 701-800 (Active folder up to DC-740)
   '1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW', // DC Scan 601-700
   '1nVxz4_rtVUnYed8PEykDaQub61FdQHzL'  // Master Drive Folder
 ];
