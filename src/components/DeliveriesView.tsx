@@ -27,7 +27,8 @@ import {
   Loader2,
   Image as ImageIcon,
   ArrowDownUp,
-  ListChecks
+  ListChecks,
+  Cloud
 } from 'lucide-react';
 import { JADEED_DRIVE_LINKS } from '../data/jadeedHistoryData';
 
@@ -38,6 +39,7 @@ export const DeliveriesView: React.FC = () => {
   const { 
     dcs, 
     setIsDCUploadOpen, 
+    setIsDriveSyncOpen,
     setSelectedPR, 
     setIsPRDetailOpen, 
     prs, 
@@ -292,6 +294,18 @@ export const DeliveriesView: React.FC = () => {
           >
             <Package className="w-4 h-4 text-slate-500" /> 
             Scan Builty
+          </button>
+
+          {/* Drive AI Sync */}
+          <button
+            type="button"
+            onClick={() => setIsDriveSyncOpen(true)}
+            aria-label="Google Drive AI Sync"
+            className="px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors cursor-pointer border border-sky-300 bg-sky-50 text-sky-800 hover:bg-sky-100"
+            title="Auto-scan and update DCs directly from Google Drive scans using AI"
+          >
+            <Cloud className="w-4 h-4 text-sky-600" />
+            Drive AI Sync
           </button>
 
           {/* Issue DC */}

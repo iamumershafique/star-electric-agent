@@ -62,6 +62,8 @@ import {
 interface AppContextType {
   prs: PRRecord[];
   dcs: DCRecord[];
+  setDCs: React.Dispatch<React.SetStateAction<DCRecord[]>>;
+  saveDCToCloud: (dc: DCRecord) => Promise<void>;
   sites: SiteLocation[];
   activeTab: NavigationTab;
   setActiveTab: (tab: NavigationTab) => void;
@@ -85,6 +87,8 @@ interface AppContextType {
   setIsDCUploadOpen: (open: boolean) => void;
   isDuplicateWarningOpen: boolean;
   setIsDuplicateWarningOpen: (open: boolean) => void;
+  isDriveSyncOpen: boolean;
+  setIsDriveSyncOpen: (open: boolean) => void;
   isSettingsOpen: boolean;
   setIsSettingsOpen: (open: boolean) => void;
   isPRDetailOpen: boolean;
@@ -273,6 +277,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isPRReviewOpen, setIsPRReviewOpen] = useState(false);
   const [isDCUploadOpen, setIsDCUploadOpen] = useState(false);
   const [isDuplicateWarningOpen, setIsDuplicateWarningOpen] = useState(false);
+  const [isDriveSyncOpen, setIsDriveSyncOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isPRDetailOpen, setIsPRDetailOpen] = useState(false);
   const [isMasterResetOpen, setIsMasterResetOpen] = useState(false);
@@ -1013,6 +1018,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         prs,
         dcs,
+        setDCs,
+        saveDCToCloud,
         sites,
         activeTab,
         setActiveTab,
@@ -1032,6 +1039,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsDCUploadOpen,
         isDuplicateWarningOpen,
         setIsDuplicateWarningOpen,
+        isDriveSyncOpen,
+        setIsDriveSyncOpen,
         isSettingsOpen,
         setIsSettingsOpen,
         isPRDetailOpen,

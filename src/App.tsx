@@ -18,6 +18,7 @@ import { DCEditModal } from './components/DCEditModal';
 import { BuiltyUploadModal } from './components/BuiltyUploadModal';
 import { BuiltyPreviewModal } from './components/BuiltyPreviewModal';
 import { MobileAccessModal } from './components/MobileAccessModal';
+import { DriveSyncModal } from './components/DriveSyncModal';
 import { GeminiDiagnosticsView } from './components/GeminiDiagnosticsView';
 import { LoginView } from './components/LoginView';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -37,7 +38,7 @@ const MainContent: React.FC = () => {
 };
 
 const MainPortalLayout: React.FC = () => {
-  const { isAuthLoading, isAuthenticated } = useApp();
+  const { isAuthLoading, isAuthenticated, isDriveSyncOpen, setIsDriveSyncOpen } = useApp();
 
   if (isAuthLoading) {
     return (
@@ -70,6 +71,7 @@ const MainPortalLayout: React.FC = () => {
       <PRUploadModal />
       <PRReviewModal />
       <DCUploadModal />
+      <DriveSyncModal isOpen={isDriveSyncOpen} onClose={() => setIsDriveSyncOpen(false)} />
       <DuplicateWarningModal />
       <PRDetailModal />
       <SettingsModal />

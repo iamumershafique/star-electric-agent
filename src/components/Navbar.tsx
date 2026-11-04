@@ -1,10 +1,10 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import type { NavigationTab } from '../types';
-import { Plus, Settings, LogOut } from 'lucide-react';
+import { Plus, Settings, LogOut, Cloud } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { activeTab, setActiveTab, setIsPRUploadOpen, setIsDCUploadOpen, setIsSettingsOpen, prs, dcs, logout } = useApp();
+  const { activeTab, setActiveTab, setIsPRUploadOpen, setIsDCUploadOpen, setIsDriveSyncOpen, setIsSettingsOpen, prs, dcs, logout } = useApp();
 
   const pendingPRsCount = prs.filter(p => p.status === 'Pending').length;
   const unlinkedCount = dcs.filter(d => !d.prId || d.prNumber === 'NO PR').length;
@@ -59,6 +59,15 @@ export const Navbar: React.FC = () => {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsDriveSyncOpen(true)}
+            aria-label="Google Drive AI Sync"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-sky-300 bg-sky-50 px-2.5 py-1.5 text-sm font-medium text-sky-800 transition-colors hover:bg-sky-100"
+            title="Auto-scan and sync DCs directly from Google Drive"
+          >
+            <Cloud className="h-3.5 w-3.5 text-sky-600" /> <span className="hidden md:inline">Drive Sync</span>
+          </button>
           <button
             type="button"
             onClick={() => setIsDCUploadOpen(true)}

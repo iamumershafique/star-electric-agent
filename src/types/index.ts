@@ -99,6 +99,10 @@ export interface DCRecord {
   // Missing PR Resolution & Attachment Fields
   noPrRequired?: boolean;
   prDocumentImage?: string;
+  // Google Drive Integration & File Tracking
+  driveFileId?: string;
+  driveViewLink?: string;
+  driveLastModified?: string;
 }
 
 export interface DriveVerifiedDCUpdate {

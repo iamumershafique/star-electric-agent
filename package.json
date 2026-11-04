@@ -11,7 +11,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "dev:demo": "vite --config demo-preview/vite.config.ts",
-    "sites:merge": "tsx scripts/merge-sites.ts"
+    "sites:merge": "tsx scripts/merge-sites.ts",
+    "drive:watch": "node scripts/driveSyncDaemon.cjs"
   },
   "dependencies": {
     "@google/genai": "^2.22.0",

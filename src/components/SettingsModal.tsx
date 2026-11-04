@@ -21,7 +21,8 @@ import {
   Copy,
   Check,
   ShieldAlert,
-  Cloud
+  Cloud,
+  FolderSync
 } from 'lucide-react';
 import {
   getAgentRouterApiKey,
@@ -52,6 +53,7 @@ export const SettingsModal: React.FC = () => {
   const { 
     isSettingsOpen, 
     setIsSettingsOpen, 
+    setIsDriveSyncOpen,
     geminiApiKey, 
     updateGeminiApiKey, 
     exportBackupJSON,
@@ -1218,6 +1220,35 @@ export const SettingsModal: React.FC = () => {
           >
             <QrCode className="w-4 h-4" />
             <span>Open Mobile QR Code &amp; Scanner Screen</span>
+            <ExternalLink className="w-3.5 h-3.5 ml-auto opacity-70" />
+          </button>
+        </div>
+
+        {/* Google Drive AI Auto-Sync Section */}
+        <div className="space-y-3 bg-sky-50/70 p-4 rounded-xl border border-sky-200">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-slate-900 flex items-center gap-2">
+              <FolderSync className="w-4 h-4 text-sky-700" />
+              Google Drive AI Auto-Sync &amp; Ingestion
+            </label>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-300">
+              Gemini Vision AI
+            </span>
+          </div>
+
+          <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+            Automatically ingest Delivery Challan scans from Google Drive. If a DC scan is updated or a new photo is attached for an existing DC, Gemini AI re-scans the document and updates items automatically.
+          </p>
+
+          <button
+            onClick={() => {
+              setIsSettingsOpen(false);
+              setIsDriveSyncOpen(true);
+            }}
+            className="w-full py-2.5 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-2xs cursor-pointer"
+          >
+            <FolderSync className="w-4 h-4" />
+            <span>Open Google Drive AI Sync Manager</span>
             <ExternalLink className="w-3.5 h-3.5 ml-auto opacity-70" />
           </button>
         </div>
