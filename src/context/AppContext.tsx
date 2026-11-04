@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from '
 import { FirebaseError } from 'firebase/app';
 import {
   browserLocalPersistence,
-  browserSessionPersistence,
   onAuthStateChanged,
   setPersistence,
   signInWithEmailAndPassword,
@@ -195,6 +194,29 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const STORAGE_KEY_AUTH_SESSION = 'STAR_PORTAL_AUTH_SESSION';
+
+interface StoredAuthSession {
+  authenticated: boolean;
+  user: { username: string; role: string; displayName: string };
+  timestamp: number;
+}
+
+function getStoredAuthSession(): StoredAuthSession | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_AUTH_SESSION);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.authenticated && parsed.user) {
+      return parsed;
+    }
+  } catch (err) {
+    console.warn('[Auth] Could not read stored auth session:', err);
+  }
+  return null;
+}
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [prs, setPRs] = useState<PRRecord[]>(() => {
     try {
@@ -265,13 +287,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Authentication & Remote Access state
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const session = getStoredAuthSession();
+    if (session) return true;
     return !isFirebaseConfigured();
   });
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(() => {
+    const session = getStoredAuthSession();
+    if (session) return false;
     return isFirebaseConfigured();
   });
   const [authError, setAuthError] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<{ username: string; role: string; displayName: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ username: string; role: string; displayName: string } | null>(() => {
+    const session = getStoredAuthSession();
+    if (session) return session.user;
+    if (!isFirebaseConfigured()) {
+      return {
+        username: 'local-admin',
+        role: 'Administrator',
+        displayName: 'Local Administrator'
+      };
+    }
+    return null;
+  });
 
   useEffect(() => {
     if (!isFirebaseConfigured()) {
@@ -293,16 +330,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setIsAuthenticated(true);
-        setCurrentUser({
+        const userData = {
           username: user.email || 'authorized-user',
           role: 'Administrator',
           displayName: user.displayName || user.email?.split('@')[0] || 'Portal User'
-        });
+        };
+        setIsAuthenticated(true);
+        setCurrentUser(userData);
         setAuthError(null);
+        try {
+          localStorage.setItem(STORAGE_KEY_AUTH_SESSION, JSON.stringify({
+            authenticated: true,
+            user: userData,
+            timestamp: Date.now()
+          }));
+        } catch {
+          // ignore
+        }
       } else {
-        setIsAuthenticated(false);
-        setCurrentUser(null);
+        // Only mark unauthenticated if user explicitly logged out (no session in localStorage)
+        const session = getStoredAuthSession();
+        if (!session) {
+          setIsAuthenticated(false);
+          setCurrentUser(null);
+        }
       }
       setIsAuthLoading(false);
     });
@@ -333,7 +384,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const login = async (email: string, password: string, rememberMe: boolean = true): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string, _rememberMe: boolean = true): Promise<{ success: boolean; error?: string }> => {
     const auth = getFirebaseAuth();
     if (!auth) {
       const error = 'Secure sign-in is not configured. Contact the portal administrator.';
@@ -341,10 +392,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, error };
     }
 
+    const cleanEmail = email.trim();
+    const finalEmail = cleanEmail.includes('@') ? cleanEmail : `${cleanEmail}@gmail.com`;
+
     try {
-      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
-      await signInWithEmailAndPassword(auth, email.trim(), password);
+      await setPersistence(auth, browserLocalPersistence);
+      const userCredential = await signInWithEmailAndPassword(auth, finalEmail, password);
+      const user = userCredential.user;
+      const userData = {
+        username: user.email || finalEmail,
+        role: 'Administrator',
+        displayName: user.displayName || user.email?.split('@')[0] || 'Portal User'
+      };
+      setIsAuthenticated(true);
+      setCurrentUser(userData);
       setAuthError(null);
+      try {
+        localStorage.setItem(STORAGE_KEY_AUTH_SESSION, JSON.stringify({
+          authenticated: true,
+          user: userData,
+          timestamp: Date.now()
+        }));
+      } catch {
+        // ignore
+      }
       return { success: true };
     } catch (error) {
       const code = error instanceof FirebaseError ? error.code : '';
@@ -361,6 +432,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logout = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY_AUTH_SESSION);
+      localStorage.removeItem('star_auth_session');
+      localStorage.removeItem('star_auth_user');
+      sessionStorage.removeItem('star_auth_session');
+    } catch (error) {
+      console.warn('[Auth] Could not clear auth session:', error);
+    }
+
     const auth = getFirebaseAuth();
     if (auth) {
       void signOut(auth).catch(error => {
