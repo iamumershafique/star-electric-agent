@@ -69,11 +69,24 @@ export const PRUploadModal: React.FC = () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB
+
   const addFiles = async (newFiles: File[]) => {
     setErrorMsg(null);
     const newItems: FilePreviewItem[] = [];
+    const rejectedFiles: string[] = [];
 
     for (const file of newFiles) {
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        rejectedFiles.push(`${file.name} (exceeds 25 MB)`);
+        continue;
+      }
+      const isAllowedType = file.type.startsWith('image/') || file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      if (!isAllowedType) {
+        rejectedFiles.push(`${file.name} (unsupported format; images and PDFs only)`);
+        continue;
+      }
+
       try {
         const base64 = await fileToBase64(file);
         const sizeFormatted = file.size > 1024 * 1024 
@@ -89,7 +102,12 @@ export const PRUploadModal: React.FC = () => {
         });
       } catch (err) {
         console.error('Error reading file:', file.name, err);
+        rejectedFiles.push(`${file.name} (failed to read)`);
       }
+    }
+
+    if (rejectedFiles.length > 0) {
+      setErrorMsg(`Some files were rejected: ${rejectedFiles.join(', ')}`);
     }
 
     setFiles(prev => [...prev, ...newItems]);

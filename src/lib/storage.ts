@@ -1152,10 +1152,28 @@ export function saveMultiplePRsInStorage(records: PRRecord[]): PRRecord[] {
   return linkRes.updatedPRs;
 }
 
-export function deletePR(prId: string): PRRecord[] {
+export function deletePR(prId: string): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[] } {
   const prs = getPRs().filter(p => p.id !== prId);
   saveAllPRs(prs);
-  return prs;
+
+  const dcs = getDCs();
+  let dcChanged = false;
+  const updatedDCs: DCRecord[] = dcs.map(dc => {
+    if (dc.prId === prId) {
+      dcChanged = true;
+      return {
+        ...dc,
+        prId: '',
+        prNumber: ''
+      };
+    }
+    return dc;
+  });
+  if (dcChanged) {
+    saveAllDCs(updatedDCs);
+  }
+
+  return { updatedPRs: prs, updatedDCs };
 }
 
 export function deleteDC(dcId: string): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[] } {
@@ -1753,8 +1771,14 @@ export function mergeDuplicatePRsInStorage(
   primary.status = computePRStatus(mergedItems);
 
   // Re-point any DCs that were linked to duplicate PR
+  // Guard against empty / 'NO PR' matching which would corrupt all unlinked DCs across the database
+  const dupPrNum = duplicate.prNumber?.trim();
+  const isSpecialNoPR = !dupPrNum || dupPrNum.toUpperCase() === 'NO PR' || dupPrNum.toUpperCase() === 'WITHOUT PR';
+
   dcs = dcs.map(dc => {
-    if (dc.prId === duplicate.id || dc.prNumber === duplicate.prNumber) {
+    const matchesId = Boolean(dc.prId && dc.prId === duplicate.id);
+    const matchesNumber = Boolean(!isSpecialNoPR && dc.prNumber && dupPrNum && dc.prNumber.trim().toUpperCase() === dupPrNum.toUpperCase());
+    if (matchesId || matchesNumber) {
       return {
         ...dc,
         prId: primary.id,
@@ -1850,8 +1874,12 @@ export function mergeDuplicateDCsInStorage(
   if (!primary.prDocumentImage && duplicate.prDocumentImage) {
     primary.prDocumentImage = duplicate.prDocumentImage;
   }
-  primary.driverName = 'Nawaz';
-  primary.vehicleNumber = 'STS-1500';
+  if (!primary.driverName && duplicate.driverName) {
+    primary.driverName = duplicate.driverName;
+  }
+  if (!primary.vehicleNumber && duplicate.vehicleNumber) {
+    primary.vehicleNumber = duplicate.vehicleNumber;
+  }
 
   const updatedDCs = dcs.filter(d => d.id !== duplicateDcId).map(d => d.id === primaryDcId ? primary : d);
   saveAllDCs(updatedDCs);
@@ -1917,11 +1945,6 @@ export function getGeminiApiKey(): string {
     // ignore
   }
 
-  // 4. Global window fallback
-  if ((window as any).__GEMINI_API_KEY__) {
-    return cleanApiKey(String((window as any).__GEMINI_API_KEY__));
-  }
-
   return '';
 }
 
@@ -1931,12 +1954,10 @@ export function saveGeminiApiKey(key: string): void {
   if (!clean) {
     localStorage.removeItem(STORAGE_KEY_API_KEY);
     localStorage.removeItem('gemini_api_key');
-    delete (window as any).__GEMINI_API_KEY__;
     return;
   }
   localStorage.setItem(STORAGE_KEY_API_KEY, clean);
   localStorage.setItem('gemini_api_key', clean);
-  (window as any).__GEMINI_API_KEY__ = clean;
 }
 
 export function getOpenAIApiKey(): string {
@@ -2046,9 +2067,9 @@ export function saveOllamaModel(model: string): void {
 }
 
 // Security protected Master Reset (Wipes database to 100% empty slate)
-export function masterResetWithPassword(password: string): { success: boolean; prs: PRRecord[]; dcs: DCRecord[]; error?: string } {
-  if (password.trim() !== '2214') {
-    return { success: false, prs: getPRs(), dcs: getDCs(), error: 'Incorrect Security Password (2214 required).' };
+export function masterResetWithPassword(confirmationPhrase: string): { success: boolean; prs: PRRecord[]; dcs: DCRecord[]; error?: string } {
+  if (confirmationPhrase.trim() !== 'DELETE-ALL-DATA') {
+    return { success: false, prs: getPRs(), dcs: getDCs(), error: 'Incorrect confirmation phrase. Type DELETE-ALL-DATA to confirm.' };
   }
   localStorage.setItem(STORAGE_KEY_PRS, JSON.stringify([]));
   localStorage.setItem(STORAGE_KEY_DCS, JSON.stringify([]));

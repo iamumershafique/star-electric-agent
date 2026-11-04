@@ -83,6 +83,33 @@ function parseJsonFromText(rawText: string): JsonObject {
   throw new Error('Ollama vision model did not return a valid JSON extraction.');
 }
 
+function sanitizeAndValidateEndpoint(rawEndpoint: string): string {
+  const clean = (rawEndpoint || 'http://localhost:11434').trim().replace(/\/+$/, '');
+  let parsed: URL;
+  try {
+    parsed = new URL(clean);
+  } catch {
+    throw new Error('Invalid Ollama endpoint URL format.');
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error('Ollama endpoint must use http:// or https:// protocol.');
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+  // Prevent SSRF / internal metadata probing
+  if (
+    hostname === '169.254.169.254' ||
+    hostname === 'metadata.google.internal' ||
+    hostname === '0.0.0.0' ||
+    hostname.endsWith('.internal')
+  ) {
+    throw new Error('Access to internal cloud metadata IP or reserved network is forbidden.');
+  }
+
+  return clean;
+}
+
 async function requestOllamaVision(
   endpoint: string,
   model: string,
@@ -90,7 +117,7 @@ async function requestOllamaVision(
   prompt: string
 ): Promise<JsonObject> {
   const rawBase64 = cleanBase64(file.base64);
-  const baseEndpoint = (endpoint || 'http://localhost:11434').replace(/\/+$/, '');
+  const baseEndpoint = sanitizeAndValidateEndpoint(endpoint);
   const apiUrl = `${baseEndpoint}/api/generate`;
 
   const response = await fetch(apiUrl, {
@@ -128,8 +155,9 @@ export async function validateOllamaEndpoint(
   endpoint: string,
   model?: string
 ): Promise<{ valid: boolean; model?: string; message: string }> {
-  const base = (endpoint || 'http://localhost:11434').replace(/\/+$/, '');
+  let base = endpoint || 'http://localhost:11434';
   try {
+    base = sanitizeAndValidateEndpoint(endpoint);
     const res = await fetch(`${base}/api/tags`, { method: 'GET' });
     if (!res.ok) {
       return { valid: false, message: `Ollama returned status ${res.status}` };

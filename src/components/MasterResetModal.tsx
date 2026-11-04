@@ -47,7 +47,7 @@ export const MasterResetModal: React.FC = () => {
         setIsMasterResetOpen(false);
       }, 1500);
     } else {
-      setErrorMsg(res.error || 'Incorrect Security Password (2214 required)');
+      setErrorMsg(res.error || 'Confirmation phrase incorrect. Type DELETE-ALL-DATA to confirm.');
     }
   };
 
@@ -70,7 +70,7 @@ export const MasterResetModal: React.FC = () => {
               <h3 id="master-reset-modal-title" className="text-lg font-extrabold text-slate-900">
                 Master Reset Database
               </h3>
-              <p className="text-xs text-rose-800 font-bold">Security Password Authorization Required</p>
+              <p className="text-xs text-rose-800 font-bold">Explicit Authorization Required</p>
             </div>
           </div>
 
@@ -86,7 +86,7 @@ export const MasterResetModal: React.FC = () => {
 
         {/* Warning Banner */}
         <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 text-xs space-y-1 font-medium">
-          <p className="font-bold text-rose-900">⚠️ Warning: Master Reset Operation</p>
+          <p className="font-bold text-rose-900">⚠️ Warning: Irreversible Data Deletion</p>
           <p>
             Executing a Master Reset will permanently wipe all Purchase Requisitions, Delivery Challans, and Invoices, leaving a 100% fresh, blank database for live production data.
           </p>
@@ -96,20 +96,17 @@ export const MasterResetModal: React.FC = () => {
         <form onSubmit={handleExecuteReset} className="space-y-4">
           <div>
             <label className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5 mb-1.5">
-              <KeyRound className="w-4 h-4 text-rose-600" /> Enter Security Password
+              <KeyRound className="w-4 h-4 text-rose-600" /> Type confirmation phrase: <code className="bg-rose-100 text-rose-800 px-1 py-0.5 rounded font-mono text-[11px]">DELETE-ALL-DATA</code>
             </label>
             <input
-              type="password"
-              aria-label="Master Reset Security Password"
+              type="text"
+              aria-label="Master Reset Confirmation Phrase"
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
-              placeholder="Enter password (2214)"
+              placeholder="Type DELETE-ALL-DATA"
               autoFocus
               className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 font-mono font-bold text-sm focus:outline-none focus:border-rose-500 shadow-2xs"
             />
-            <span className="text-[10px] text-slate-500 font-bold mt-1 block">
-              Authorized Password: <strong className="text-slate-900 font-mono">2214</strong>
-            </span>
           </div>
 
           {errorMsg && (

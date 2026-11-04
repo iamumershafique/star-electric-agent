@@ -46,7 +46,16 @@ export function normalizeDateToISO(dateString: string): string {
 }
 
 export function generateId(prefix: string = 'ID'): string {
-  return `${prefix}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `${prefix}-${crypto.randomUUID().replace(/-/g, '').substring(0, 10).toUpperCase()}`;
+  }
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const bytes = new Uint8Array(5);
+    crypto.getRandomValues(bytes);
+    const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+    return `${prefix}-${hex}`;
+  }
+  return `${prefix}-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 }
 
 export function computeItemStatus(requested: number, fulfilled: number): ItemStatus {

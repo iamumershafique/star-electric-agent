@@ -1298,8 +1298,8 @@ export const SettingsModal: React.FC = () => {
               <ShieldAlert className="w-4 h-4 text-rose-600" />
               Master Database Reset
             </label>
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200">
-              Password: 2214
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-200">
+              Danger Zone
             </span>
           </div>
 

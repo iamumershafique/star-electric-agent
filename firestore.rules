@@ -1,8 +1,44 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isValidPR(data) {
+      return data.prNumber is string 
+        && data.prNumber.size() > 0 
+        && data.prNumber.size() <= 100
+        && (!('items' in data) || data.items is list);
+    }
+
+    function isValidDC(data) {
+      return data.dcNumber is string 
+        && data.dcNumber.size() > 0 
+        && data.dcNumber.size() <= 100
+        && (!('itemsShipped' in data) || data.itemsShipped is list);
+    }
+
+    // Purchase Requests Collection
+    match /star_prs/{prId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidPR(request.resource.data);
+      allow update: if isAuthenticated() && isValidPR(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+
+    // Delivery Challans Collection
+    match /star_dcs/{dcId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidDC(request.resource.data);
+      allow update: if isAuthenticated() && isValidDC(request.resource.data);
+      allow delete: if isAuthenticated();
+    }
+
+    // Deny all other access by default
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

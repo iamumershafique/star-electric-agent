@@ -12,10 +12,6 @@ export function getActiveGeminiApiKey(apiKey?: string): string {
       const v = cleanApiKey(window.localStorage.getItem(k));
       if (v) return v;
     }
-    if ((window as any).__GEMINI_API_KEY__) {
-      const v = cleanApiKey(String((window as any).__GEMINI_API_KEY__));
-      if (v) return v;
-    }
   }
 
   try {

@@ -1,4 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { FirebaseError } from 'firebase/app';
+import {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  onAuthStateChanged,
+  setPersistence,
+  signInWithEmailAndPassword,
+  signOut
+} from 'firebase/auth';
+import { getFirebaseAuth, isFirebaseConfigured } from '../lib/firebase';
 import type { PRRecord, DCRecord, GeminiExtractionResult, SiteLocation, LineItem, NavigationTab, GeminiBuiltyExtractionResult, BuiltyPreviewInfo } from '../types';
 import { 
   getPRs, 
@@ -102,6 +112,7 @@ interface AppContextType {
   // Authentication & Remote Mobile Access
   isAuthenticated: boolean;
   isAuthLoading: boolean;
+  authError: string | null;
   currentUser: { username: string; role: string; displayName: string } | null;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
@@ -253,22 +264,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedBuiltyPreview, setSelectedBuiltyPreview] = useState<BuiltyPreviewInfo | null>(null);
 
   // Authentication & Remote Access state
-  const [isAuthenticated] = useState(true);
-  const [isAuthLoading] = useState(false);
-  const [currentUser] = useState<{ username: string; role: string; displayName: string } | null>({
-    username: 'public-user',
-    role: 'Authorized user',
-    displayName: 'Public Portal User'
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return !isFirebaseConfigured();
   });
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(() => {
+    return isFirebaseConfigured();
+  });
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ username: string; role: string; displayName: string } | null>(null);
 
   useEffect(() => {
-    try {
-      localStorage.removeItem('star_auth_session');
-      localStorage.removeItem('star_auth_user');
-      sessionStorage.removeItem('star_auth_session');
-    } catch (error) {
-      console.warn('[Auth] Could not clear legacy browser login flags:', error);
+    if (!isFirebaseConfigured()) {
+      setIsAuthenticated(true);
+      setIsAuthLoading(false);
+      setCurrentUser({
+        username: 'local-admin',
+        role: 'Administrator',
+        displayName: 'Local Administrator'
+      });
+      return;
     }
+
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      setIsAuthLoading(false);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsAuthenticated(true);
+        setCurrentUser({
+          username: user.email || 'authorized-user',
+          role: 'Administrator',
+          displayName: user.displayName || user.email?.split('@')[0] || 'Portal User'
+        });
+        setAuthError(null);
+      } else {
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+      }
+      setIsAuthLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const [isMobileAccessOpen, setIsMobileAccessOpen] = useState(false);
@@ -276,12 +315,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const saved = localStorage.getItem('star_public_url');
       if (saved) return saved;
-      if (typeof window !== 'undefined' && !window.location.origin.includes('localhost') && !window.location.origin.includes('127.0.0.1')) {
+      if (typeof window !== 'undefined') {
         return window.location.origin;
       }
-      return 'https://technique-wool-appeals-interesting.trycloudflare.com';
+      return '';
     } catch {
-      return 'https://technique-wool-appeals-interesting.trycloudflare.com';
+      return '';
     }
   });
 
@@ -294,12 +333,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const login = async (_email: string, _password: string, _rememberMe: boolean = true): Promise<{ success: boolean; error?: string }> => {
-    return { success: true };
+  const login = async (email: string, password: string, rememberMe: boolean = true): Promise<{ success: boolean; error?: string }> => {
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      const error = 'Secure sign-in is not configured. Contact the portal administrator.';
+      setAuthError(error);
+      return { success: false, error };
+    }
+
+    try {
+      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      setAuthError(null);
+      return { success: true };
+    } catch (error) {
+      const code = error instanceof FirebaseError ? error.code : '';
+      const message = code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password'
+        ? 'Email or password is incorrect.'
+        : code === 'auth/operation-not-allowed'
+          ? 'Email and password sign-in is disabled for this Firebase project.'
+          : error instanceof Error
+            ? error.message
+            : 'Sign-in failed. Please try again.';
+      setAuthError(message);
+      return { success: false, error: message };
+    }
   };
 
   const logout = () => {
-    // No-op
+    const auth = getFirebaseAuth();
+    if (auth) {
+      void signOut(auth).catch(error => {
+        console.error('[Auth] Error signing out:', error);
+      });
+    }
+    setIsAuthenticated(false);
+    setCurrentUser(null);
   };
 
   // Active selections
@@ -331,9 +400,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const initialKey = getGeminiApiKey();
     setGeminiApiKeyState(initialKey);
-    if (typeof window !== 'undefined' && initialKey) {
-      (window as any).__GEMINI_API_KEY__ = initialKey;
-    }
 
     let unsubPR: (() => void) | null = null;
     let unsubDC: (() => void) | null = null;
@@ -463,9 +529,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     saveGeminiApiKey(key);
     const active = getGeminiApiKey();
     setGeminiApiKeyState(active);
-    if (typeof window !== 'undefined') {
-      (window as any).__GEMINI_API_KEY__ = active;
-    }
   };
 
   const verifyAndCheckDuplicate = (prNumber: string) => {
@@ -522,9 +585,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deletePR = (id: string) => {
-    const updated = deletePRFromStorage(id);
-    setPRs(updated);
+    const { updatedPRs, updatedDCs } = deletePRFromStorage(id);
+    setPRs(updatedPRs);
+    setDCs(updatedDCs);
     deletePRFromCloud(id).catch(() => {});
+    updatedDCs.filter(dc => dc.prId === id).forEach(dc => {
+      saveDCToCloud(dc).catch(() => {});
+    });
     if (selectedPR?.id === id) {
       setSelectedPR(null);
       setIsPRDetailOpen(false);
@@ -818,13 +885,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const importBackupJSON = (jsonStr: string): boolean => {
     try {
       const parsed = JSON.parse(jsonStr);
-      if (parsed.prs && Array.isArray(parsed.prs)) {
-        setPRs(parsed.prs);
-        localStorage.setItem('STAR_ELECTRIC_PRS_V2', JSON.stringify(parsed.prs));
+      if (!parsed || typeof parsed !== 'object') return false;
+
+      const rawPRs = Array.isArray(parsed.prs) ? parsed.prs : [];
+      const rawDCs = Array.isArray(parsed.dcs) ? parsed.dcs : [];
+
+      if (rawPRs.length === 0 && rawDCs.length === 0) return false;
+
+      // Validate & sanitize PR records
+      const validPRs: PRRecord[] = rawPRs.filter((p: any) => 
+        p && typeof p === 'object' && typeof p.prNumber === 'string' && p.prNumber.trim().length > 0
+      ).map((p: any) => ({
+        ...p,
+        id: typeof p.id === 'string' && p.id ? p.id : `pr-import-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        prNumber: String(p.prNumber).trim(),
+        items: Array.isArray(p.items) ? p.items : [],
+        fulfillmentLogs: Array.isArray(p.fulfillmentLogs) ? p.fulfillmentLogs : []
+      }));
+
+      // Validate & sanitize DC records
+      const validDCs: DCRecord[] = rawDCs.filter((d: any) => 
+        d && typeof d === 'object' && typeof d.dcNumber === 'string' && d.dcNumber.trim().length > 0
+      ).map((d: any) => ({
+        ...d,
+        id: typeof d.id === 'string' && d.id ? d.id : `dc-import-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        dcNumber: String(d.dcNumber).trim(),
+        itemsShipped: Array.isArray(d.itemsShipped) ? d.itemsShipped : []
+      }));
+
+      if (validPRs.length > 0) {
+        saveAllPRs(validPRs);
+        setPRs(getPRs());
       }
-      if (parsed.dcs && Array.isArray(parsed.dcs)) {
-        setDCs(parsed.dcs);
-        localStorage.setItem('STAR_ELECTRIC_DCS_V2', JSON.stringify(parsed.dcs));
+      if (validDCs.length > 0) {
+        saveAllDCs(validDCs);
+        setDCs(getDCs());
       }
       return true;
     } catch (e) {
@@ -926,6 +1021,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         pushAllToCloud,
         isAuthenticated,
         isAuthLoading,
+        authError,
         currentUser,
         login,
         logout,

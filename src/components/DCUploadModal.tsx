@@ -222,9 +222,26 @@ export const DCUploadModal: React.FC = () => {
     }));
   };
 
+  const MAX_DC_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
+
   const handleDCFileScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const filesList = Array.from(e.target.files || []);
-    if (filesList.length === 0) return;
+    const rawFilesList = Array.from(e.target.files || []);
+    if (rawFilesList.length === 0) return;
+
+    const filesList = rawFilesList.filter(f => {
+      const isAllowed = f.type.startsWith('image/') || f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf');
+      return isAllowed && f.size <= MAX_DC_FILE_SIZE;
+    });
+
+    const rejected = rawFilesList.filter(f => !filesList.includes(f));
+    if (filesList.length === 0) {
+      setErrorMsg('All selected files were rejected. Only images and PDFs under 25 MB are accepted.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    if (rejected.length > 0) {
+      setErrorMsg(`Skipped ${rejected.length} invalid file(s) exceeding 25 MB or with unsupported format.`);
+    }
 
     setIsScanning(true);
     setScanProgress({

@@ -19,6 +19,7 @@ import { BuiltyUploadModal } from './components/BuiltyUploadModal';
 import { BuiltyPreviewModal } from './components/BuiltyPreviewModal';
 import { MobileAccessModal } from './components/MobileAccessModal';
 import { GeminiDiagnosticsView } from './components/GeminiDiagnosticsView';
+import { LoginView } from './components/LoginView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const MainContent: React.FC = () => {
@@ -36,14 +37,18 @@ const MainContent: React.FC = () => {
 };
 
 const MainPortalLayout: React.FC = () => {
-  const { isAuthLoading } = useApp();
+  const { isAuthLoading, isAuthenticated } = useApp();
 
   if (isAuthLoading) {
     return (
       <main className="min-h-dvh grid place-items-center bg-slate-50 text-slate-700">
-        <p role="status" className="font-semibold">Loading portal...</p>
+        <p role="status" className="font-semibold">Checking security authentication...</p>
       </main>
     );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginView />;
   }
 
   return (
