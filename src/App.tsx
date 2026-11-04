@@ -4,7 +4,6 @@ import { Navbar } from './components/Navbar';
 import { Dashboard } from './components/Dashboard';
 import { LedgerView } from './components/LedgerView';
 import { DeliveriesView } from './components/DeliveriesView';
-import { BrandAnalytics } from './components/BrandAnalytics';
 import { PRUploadModal } from './components/PRUploadModal';
 import { PRReviewModal } from './components/PRReviewModal';
 import { DCUploadModal } from './components/DCUploadModal';
@@ -31,7 +30,6 @@ const MainContent: React.FC = () => {
       {activeTab === 'search' && <SearchAuditView />}
       {activeTab === 'ledger' && <LedgerView />}
       {activeTab === 'deliveries' && <DeliveriesView />}
-      {activeTab === 'brands' && <BrandAnalytics />}
       {activeTab === 'gemini-audit' && <GeminiDiagnosticsView />}
     </main>
   );
@@ -59,7 +57,7 @@ const MainPortalLayout: React.FC = () => {
           © {new Date().getFullYear()} STAR ELECTRIC ENTERPRISES — Saddar, Rawalpindi.
         </p>
         <p className="mt-0.5 text-[11px] text-slate-500 font-medium">
-          Dedicated Supply Chain Portal for <strong className="text-blue-700 font-bold">Jadeed Group Poultry Farms Pakistan</strong> • Powered by Google Gemini AI
+          Supply chain portal for Jadeed Group Poultry Farms Pakistan
         </p>
       </footer>
 

@@ -21,7 +21,7 @@ const STORAGE_KEY_OLLAMA_MODEL = 'STAR_ELECTRIC_OLLAMA_MODEL';
 const STORAGE_KEY_PREFERRED_OCR_PROVIDER = 'STAR_ELECTRIC_PREFERRED_OCR_PROVIDER';
 const STORAGE_KEY_DRIVE_IMPORT_VERSION = 'STAR_ELECTRIC_DRIVE_IMPORT_VERSION';
 const STORAGE_KEY_PR_EVIDENCE_VERSION = 'STAR_ELECTRIC_PR_EVIDENCE_VERSION';
-export const DRIVE_IMPORT_VERSION = 'jadeed-ledger-686-scans-v3-confirmed-pr-links-only';
+export const DRIVE_IMPORT_VERSION = 'jadeed-ledger-686-scans-v4-prod-scans';
 export const PR_EVIDENCE_VERSION = 'jadeed-scans-37-66-194-v2-separate-dc-images';
 
 const dcSequenceNumber = (dcNumber: string): number | undefined => {
@@ -31,8 +31,8 @@ const dcSequenceNumber = (dcNumber: string): number | undefined => {
 
 const seedImportsEnabled = import.meta.env.DEV;
 const driveLedgerByDC = new Map((seedImportsEnabled ? JADEED_DRIVE_DC_LEDGER : []).map(entry => [entry.dcNumber, entry]));
-const driveScansByDC = new Map((seedImportsEnabled ? JADEED_DRIVE_DC_SCANS : []).map(entry => [entry.dcNumber, entry]));
-const driveDCScanImageUrls = new Set((seedImportsEnabled ? JADEED_DRIVE_DC_SCANS : []).map(entry => entry.imageUrl));
+const driveScansByDC = new Map(JADEED_DRIVE_DC_SCANS.map(entry => [entry.dcNumber, entry]));
+const driveDCScanImageUrls = new Set(JADEED_DRIVE_DC_SCANS.map(entry => entry.imageUrl));
 const driveBuiltyByDC = new Map((seedImportsEnabled ? JADEED_DRIVE_BULTIES : []).map(entry => [entry.dcNumber, entry]));
 const verifiedScanPRs = seedImportsEnabled ? JADEED_DRIVE_SCAN_PR_VERIFICATIONS : [];
 

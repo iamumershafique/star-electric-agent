@@ -1,5 +1,7 @@
 # React + TypeScript + Vite
 
+**Live portal:** [Open Star Electric Portal](https://star-agent-jpf.web.app)
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:
@@ -44,6 +46,21 @@ Before making the app available:
 5. After reviewing the migrated data, deploy the authentication-gated Firestore rules and Hosting. In Windows PowerShell, run `$env:PORTAL_DATA_RELEASE_APPROVED = 'true'` followed by `npm.cmd run deploy:firebase`; on macOS/Linux, run `PORTAL_DATA_RELEASE_APPROVED=true npm run deploy:firebase`.
 
 Do not publish the app until all five steps are complete. The normal deploy command is blocked unless the data-release approval flag is explicitly set. Firestore data is restricted to authenticated users by [firestore.rules](./firestore.rules).
+
+## Automatic Hosting deployment and Firestore sync
+
+Authenticated portal changes to PRs and DCs are already saved to Firestore, and the app listens for real-time Firestore updates. This syncs business records; it does not import records or deploy application code.
+
+The [Firebase deployment workflow](./.github/workflows/firebase-hosting.yml) builds and deploys Hosting and Firestore rules on pushes to `main` (or when manually run in GitHub Actions). It does not import or overwrite Firestore business records. Before enabling it, configure these repository settings:
+
+1. Add the `FIREBASE_SERVICE_ACCOUNT` Actions secret with a service-account JSON key for project `star-agent-jpf`. Grant that service account the Firebase Hosting and Firestore rules deployment permissions it needs.
+2. Set the `PORTAL_DATA_RELEASE_APPROVED` Actions variable to `true` only after production records have been reviewed and verified, as described above.
+
+Until both settings are configured, automatic production deployment will fail safely.
+
+### Automatic pull requests
+
+The [auto pull request workflow](./.github/workflows/auto-pr.yml) opens a PR into `main` whenever any other branch is pushed (UI and feature changes). Merging it triggers the deployment above. In GitHub, enable Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests" for this to work.
 
 ## Claude PR/DC database audit
 

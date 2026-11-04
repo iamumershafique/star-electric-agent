@@ -252,38 +252,25 @@ export const SearchAuditView: React.FC = () => {
     <div className="space-y-5 w-full text-slate-900">
       
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#140f43] via-[#1e195b] to-[#261f6d] rounded-2xl p-5 shadow-md text-white border border-[#2b2278] flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded bg-[#d91a1c] text-white font-extrabold text-[10px] uppercase tracking-wider shadow-xs">
-              Audit & Search Hub
-            </span>
-            <span className="text-blue-200 text-xs font-bold flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Complete Supply Chain Audit
-            </span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-            Global Search, Traceability & Material Delivery Verification
-          </h2>
-          <p className="text-blue-100/90 text-xs mt-0.5 font-medium">
-            Filter historical dispatches by Date Range, Item Description, Brand, PR #, DC #, and Jadeed Farm Location.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-950">Search</h1>
+          <p className="mt-1 text-sm text-slate-500">Filter dispatches by date, item, brand, PR, DC or location.</p>
         </div>
-
         <button
           type="button"
           onClick={handleResetFilters}
           aria-label="Reset all search filters"
-          className="px-4 py-2.5 rounded-xl bg-[#d91a1c] hover:bg-[#b91517] text-white font-extrabold text-xs shadow-md shadow-red-500/25 flex items-center gap-1.5 transition-all self-start md:self-auto shrink-0 cursor-pointer border border-red-400/30"
+          className="inline-flex cursor-pointer items-center gap-1.5 self-start rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 sm:self-auto"
         >
-          <RotateCcw className="w-3.5 h-3.5" /> Reset All Filters
+          <RotateCcw className="h-3.5 w-3.5" /> Reset filters
         </button>
       </div>
 
-      <details className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <details className="bg-white border border-slate-300 rounded-xl overflow-hidden">
         <summary className="cursor-pointer list-none p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50">
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-indigo-600" />
               Record Integrity Audit
             </h3>
@@ -298,7 +285,7 @@ export const SearchAuditView: React.FC = () => {
             <span className="text-slate-500">{auditReport.findings.length ? 'View findings' : 'No findings'}</span>
           </div>
         </summary>
-        <div className="border-t border-slate-200 p-4 sm:p-5 space-y-2">
+        <div className="border-t border-slate-300 p-4 sm:p-5 space-y-2">
           {auditReport.findings.length === 0 ? (
             <p className="text-sm font-semibold text-emerald-800">No data integrity issues were found.</p>
           ) : (
@@ -307,10 +294,10 @@ export const SearchAuditView: React.FC = () => {
                 Findings are read-only. Resolve them from the corresponding requisition or delivery record.
                 {auditReport.findings.length > 100 && ` Showing the first 100 of ${auditReport.findings.length}.`}
               </p>
-              <ul className="max-h-96 overflow-y-auto divide-y divide-slate-100">
+              <ul className="max-h-96 overflow-y-auto divide-y divide-slate-200">
                 {auditReport.findings.slice(0, 100).map(finding => (
                   <li key={finding.id} className="py-2 flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3 text-xs">
-                    <span className={`shrink-0 font-extrabold ${
+                    <span className={`shrink-0 font-semibold ${
                       finding.severity === 'High' ? 'text-rose-700' :
                       finding.severity === 'Medium' ? 'text-amber-800' : 'text-slate-600'
                     }`}>
@@ -326,9 +313,9 @@ export const SearchAuditView: React.FC = () => {
       </details>
 
       {/* Multi-Dimensional Filter Bar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-          <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+      <div className="bg-white border border-slate-300 rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+          <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
             <Filter className="w-4 h-4 text-amber-600" />
             Multi-Dimensional Audit Filter Controls
           </h3>
@@ -349,7 +336,7 @@ export const SearchAuditView: React.FC = () => {
               aria-label="Filter by dispatch start date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
+              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-slate-500"
             />
           </div>
 
@@ -363,7 +350,7 @@ export const SearchAuditView: React.FC = () => {
               aria-label="Filter by dispatch end date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
+              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-slate-500"
             />
           </div>
 
@@ -378,7 +365,7 @@ export const SearchAuditView: React.FC = () => {
               value={itemQuery}
               onChange={(e) => setItemQuery(e.target.value)}
               placeholder="e.g. 50mm Cable, Breaker"
-              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
+              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-slate-500"
             />
           </div>
 
@@ -391,7 +378,7 @@ export const SearchAuditView: React.FC = () => {
               aria-label="Filter by brand category"
               value={brandFilter}
               onChange={(e) => setBrandFilter(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
+              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-slate-500"
             >
               <option value="ALL">All Brands</option>
               {BRAND_CATEGORIES.map(b => (
@@ -411,7 +398,7 @@ export const SearchAuditView: React.FC = () => {
               value={prNumberQuery}
               onChange={(e) => setPrNumberQuery(e.target.value)}
               placeholder="e.g. PR-JAD-2026-614"
-              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 font-mono text-xs font-bold focus:outline-none focus:border-amber-500"
+              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 font-mono text-xs font-bold focus:outline-none focus:border-slate-500"
             />
           </div>
 
@@ -432,7 +419,7 @@ export const SearchAuditView: React.FC = () => {
 
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
           <div>
             <label className="text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
               <Building2 className="w-3 h-3 text-blue-600" /> Jadeed Group Farm Location / Site
@@ -441,7 +428,7 @@ export const SearchAuditView: React.FC = () => {
               aria-label="Filter by farm location or site"
               value={siteFilter}
               onChange={(e) => setSiteFilter(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
+              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-slate-500"
             >
               <option value="ALL">All Farm Locations ({sites.length} Sites)</option>
               {sites.map(s => (
@@ -458,7 +445,7 @@ export const SearchAuditView: React.FC = () => {
               aria-label="Filter by fulfillment status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
+              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-slate-500"
             >
               <option value="ALL">All Statuses (Pending, In-Progress, Fulfilled)</option>
               <option value="Pending">🔴 Pending (Not Delivered)</option>
@@ -471,9 +458,9 @@ export const SearchAuditView: React.FC = () => {
 
       {/* Matched DC Instant Card Inspector (if DC # query typed) */}
       {matchedDC && (
-        <div className="bg-emerald-50 border border-emerald-300 rounded-2xl p-4 shadow-sm space-y-3">
+        <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-emerald-200">
-            <h3 className="text-xs font-extrabold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-xs font-semibold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
               <Truck className="w-4 h-4 text-emerald-700" />
               Matched Delivery Challan Inspector: {matchedDC.dcNumber}
             </h3>
@@ -517,9 +504,9 @@ export const SearchAuditView: React.FC = () => {
             <span className="text-[10px] text-slate-500 uppercase font-bold">Items Dispatched under this DC:</span>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
               {matchedDC.itemsShipped.map((item, idx) => (
-                <div key={idx} className="p-2 rounded-lg bg-white border border-slate-200 text-xs flex justify-between items-center">
+                <div key={idx} className="p-2 rounded-lg bg-white border border-slate-300 text-xs flex justify-between items-center">
                   <span className="font-bold text-slate-900">{item.itemName}</span>
-                  <span className="font-mono font-extrabold text-emerald-800">{item.quantity} {item.unit}</span>
+                  <span className="font-mono font-semibold text-emerald-800">{item.quantity} {item.unit}</span>
                 </div>
               ))}
             </div>
@@ -528,9 +515,9 @@ export const SearchAuditView: React.FC = () => {
       )}
 
       {/* Material Delivery Verification Tool */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-          <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+      <div className="bg-white border border-slate-300 rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+          <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
             <PackageCheck className="w-4 h-4 text-emerald-600" />
             Material Delivery Verification & Status Checker (میٹریل ڈلیوری چیکر)
           </h3>
@@ -546,7 +533,7 @@ export const SearchAuditView: React.FC = () => {
               value={verifyItemQuery}
               onChange={(e) => setVerifyItemQuery(e.target.value)}
               placeholder="e.g. 50mm Cu Cable"
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-amber-500"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold focus:outline-none focus:border-slate-500"
             />
           </div>
 
@@ -558,14 +545,14 @@ export const SearchAuditView: React.FC = () => {
               value={verifyPrQuery}
               onChange={(e) => setVerifyPrQuery(e.target.value)}
               placeholder="e.g. PR-JAD-2026-614"
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 font-mono text-xs font-bold focus:outline-none focus:border-amber-500"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 font-mono text-xs font-bold focus:outline-none focus:border-slate-500"
             />
           </div>
 
           <div className="flex items-end">
             <button
               onClick={handleRunVerification}
-              className="w-full py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 transition-all"
+              className="w-full py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
             >
               <Search className="w-4 h-4" /> Verify Material Delivery Status
             </button>
@@ -580,7 +567,7 @@ export const SearchAuditView: React.FC = () => {
               ? 'bg-amber-50 border-amber-300 text-amber-950'
               : 'bg-rose-50 border-rose-300 text-rose-950'
           }`}>
-            <div className="flex items-center gap-2 text-sm font-extrabold">
+            <div className="flex items-center gap-2 text-sm font-semibold">
               {verificationResult.status === 'FOUND_DELIVERED' ? (
                 <>
                   <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -623,10 +610,10 @@ export const SearchAuditView: React.FC = () => {
       </div>
 
       {/* Item Supply Traceability Report Table */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+      <div className="bg-white border border-slate-300 rounded-xl p-4 space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
           <div>
-            <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
               <Zap className="w-4 h-4 text-amber-500" />
               Item Supply Traceability & Dispatch Timeline ({filteredFulfillmentLogs.length})
             </h3>
@@ -635,11 +622,11 @@ export const SearchAuditView: React.FC = () => {
         </div>
 
         {filteredFulfillmentLogs.length === 0 ? (
-          <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-xl text-slate-500 text-xs font-semibold">
+          <div className="p-8 text-center bg-slate-50 border border-slate-300 rounded-xl text-slate-500 text-xs font-semibold">
             No dispatch logs found matching the selected filter criteria.
           </div>
         ) : (
-          <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+          <div className="border border-slate-300 rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-xs text-slate-800">
               <thead className="bg-slate-100 text-slate-700 uppercase font-bold text-[10px]">
@@ -654,7 +641,7 @@ export const SearchAuditView: React.FC = () => {
                   <th className="p-3">Transport / Bilty / Driver Details</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
+              <tbody className="divide-y divide-slate-300 bg-white">
                 {filteredFulfillmentLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-3 font-mono font-bold text-slate-900 shrink-0">
@@ -691,11 +678,11 @@ export const SearchAuditView: React.FC = () => {
                       </button>
                     </td>
                     <td className="p-3 text-center">
-                      <span className="font-mono font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300 text-[11px]">
+                      <span className="font-mono font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300 text-[11px]">
                         {log.dcNumber}
                       </span>
                     </td>
-                    <td className="p-3 text-center font-mono font-extrabold text-emerald-700">
+                    <td className="p-3 text-center font-mono font-semibold text-emerald-700">
                       {log.quantityShipped}
                     </td>
                     <td className="p-3">
