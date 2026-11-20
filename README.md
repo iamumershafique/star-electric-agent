@@ -33,6 +33,12 @@ If you are developing a production application, we recommend enabling type-aware
 
 See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
 
+## Data safety before release
+
+Phase 1 safety work is in progress. The browser device backup is **not a complete disaster-recovery backup**: cloud-only and external scans are not included, and restoring it does not restore Firestore. Do not deploy until Firestore, Storage, and referenced Drive scans have been backed up and a restore verified in an isolated project. See [the Phase 1 safety checklist](./docs/phase-1-safety.md) for limitations and steps.
+
+The application now requires confirmed Firebase authentication by default. Explicit local-only mode is available only in Vite development builds, as described in the safety checklist. Historical seed DCs are no longer automatically inserted or reconciled into the ledger.
+
 ## Secure Firebase access
 
 The portal uses Firebase Authentication with email/password accounts created by an administrator. It does not provide public account registration or demo credentials.
@@ -42,35 +48,30 @@ Before making the app available:
 1. Configure `VITE_FIREBASE_API_KEY` and `VITE_FIREBASE_APP_ID` in a local `.env.local` file using the Firebase Web app settings.
 2. In Firebase Console, enable the Email/Password sign-in provider and create accounts only for authorized users.
 3. Enable the Cloud Firestore API and create the default Firestore database for the project.
-4. Import and verify the intended business records in Firestore. The current database is empty; do not copy unverified sample records.
+4. Inspect the actual Firestore dataset read-only and verify the intended business records and backups before any migration. Do not copy unverified sample records.
 5. After reviewing the migrated data, deploy the authentication-gated Firestore rules and Hosting. In Windows PowerShell, run `$env:PORTAL_DATA_RELEASE_APPROVED = 'true'` followed by `npm.cmd run deploy:firebase`; on macOS/Linux, run `PORTAL_DATA_RELEASE_APPROVED=true npm run deploy:firebase`.
 
 Do not publish the app until all five steps are complete. The normal deploy command is blocked unless the data-release approval flag is explicitly set. Firestore data is restricted to authenticated users by [firestore.rules](./firestore.rules).
 
-## Automatic Hosting deployment and Firestore sync
+## Automatic Firebase Hosting deployment
 
-Authenticated portal changes to PRs and DCs are already saved to Firestore, and the app listens for real-time Firestore updates. This syncs business records; it does not import records or deploy application code.
+The [Hosting workflow](./.github/workflows/firebase-hosting.yml) runs when a commit reaches `main` or is manually dispatched on `main`. It checks approval, installs the locked dependencies, runs tests and lint, validates the Firebase web configuration, builds, and checks that the triggering commit is still the latest `main` commit before deploying **Hosting only** to `star-agent-jpf`. It does not upload business records, scans, Firestore rules, or Storage rules. A commit arriving during deployment can still allow an older build to deploy briefly; the later queued run will replace it if its checks pass.
 
-The [Firebase deployment workflow](./.github/workflows/firebase-hosting.yml) builds and deploys Hosting and Firestore rules on pushes to `main` (or when manually run in GitHub Actions). It does not import or overwrite Firestore business records. Before enabling it, configure these repository settings:
+The workflow intentionally does not deploy this working branch. Production data safety and restore validation remain incomplete, so deployment is blocked until an administrator completes the [safety checklist](./docs/phase-1-safety.md) and explicitly enables the release gate. Set up GitHub Actions as follows:
 
-1. Add the `FIREBASE_SERVICE_ACCOUNT` Actions secret with a service-account JSON key for project `star-agent-jpf`. Grant that service account the Firebase Hosting and Firestore rules deployment permissions it needs.
-2. Set the `PORTAL_DATA_RELEASE_APPROVED` Actions variable to `true` only after production records have been reviewed and verified, as described above.
+1. Add a `FIREBASE_SERVICE_ACCOUNT` repository secret with a service-account JSON key for `star-agent-jpf` authorized for Firebase Hosting deployment. Never commit this key or a business-data backup.
+2. Add the correct `VITE_FIREBASE_API_KEY` and `VITE_FIREBASE_APP_ID` as Actions repository variables (or secrets). Firebase Web configuration is embedded in the public client; it is not a service-account key.
+3. After a recoverable backup and release review, set the Actions repository variable `PORTAL_DATA_RELEASE_APPROVED` to `true`. Leave it unset while the safety work remains unfinished.
+4. Review and merge changes into `main` when ready. Check the Actions run and live Hosting version; a branch push alone does not deploy. A workflow run cannot operate until the required secrets, variables, and permissions are configured.
 
-Until both settings are configured, automatic production deployment will fail safely.
-
-### Automatic pull requests
-
-The [auto pull request workflow](./.github/workflows/auto-pr.yml) opens a PR into `main` whenever any other branch is pushed (UI and feature changes). Merging it triggers the deployment above. In GitHub, enable Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests" for this to work.
+An app deployment is **not** a data backup or migration. PR/DC cloud operations have known limitations; see [sync safety](./docs/phase-2-sync.md). Firestore and Storage security rules need separate review and an explicitly authorized deployment. Feature branches named `arena/*` do not automatically open pull requests.
 
 ## Claude PR/DC database audit
 
 An administrator can configure an Anthropic Claude API key or an AgentRouter token in Portal Settings and run **Claude Full PR/DC Audit** from **AI Assistant → Overview & AI Audit**. AgentRouter takes precedence when configured and uses its OpenAI-compatible chat completions endpoint with the exact vision-capable model ID entered in Settings. AgentRouter supports image scans in this audit; PDF scans are reported but not sent through this endpoint. Record details and scans are sent to AgentRouter and may be forwarded to the selected provider; charges use the AgentRouter account. Direct Anthropic uses Claude Haiku 4.5. The lower-cost model can miss details, so verify findings against original documents. API usage may incur charges. Keys are kept in that browser's local storage; do not use shared devices.
 
 The audit is read-only. It reports document types, printed references, and discrepancies. A DC-to-PR suggestion is offered only when the scan is classified as a delivery challan, Claude reads a PR number explicitly printed on it, that number exactly matches one unambiguous PR in the portal, and model confidence is at least 80%. Review the original scan and explicitly approve each suggestion before it changes the portal. Missing/unavailable scans and uncertain classifications are reported rather than guessed. Do not treat model findings as verified accounting records.
-To publish: `npm run deploy:staging` first — it puts the build on a temporary preview URL (rules and
-data untouched) so it can be checked against the real ledger — then `PORTAL_DATA_RELEASE_APPROVED=true
-npm run deploy:firebase` for production. Step-by-step commands, a verification checklist and the
-rollback command are in [docs/deploy-runbook.md](./docs/deploy-runbook.md).
+Do not test unreleased code against the real ledger until the safety checklist is complete. Use an isolated Firebase project and synthetic records for testing.
 
 ## Local AI with Ollama (OCR and PR/DC audit)
 

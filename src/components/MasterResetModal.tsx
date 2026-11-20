@@ -40,7 +40,7 @@ export const MasterResetModal: React.FC = () => {
     const res = performMasterReset(passwordInput);
 
     if (res.success) {
-      setSuccessMsg('Master Reset Successful! Database has been wiped to a 100% fresh empty state.');
+      setSuccessMsg('Local cached records cleared. Cloud records and stored scans were not deleted.');
       setPasswordInput('');
       setTimeout(() => {
         setSuccessMsg(null);
@@ -88,7 +88,7 @@ export const MasterResetModal: React.FC = () => {
         <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 text-xs space-y-1 font-medium">
           <p className="font-bold text-rose-900">⚠️ Warning: Irreversible Data Deletion</p>
           <p>
-            Executing a Master Reset will permanently wipe all Purchase Requisitions, Delivery Challans, and Invoices, leaving a 100% fresh, blank database for live production data.
+            This clears only the PR and DC cache on this device. It does not delete cloud records or stored scans; cloud records may reappear. Export and verify a backup before proceeding.
           </p>
         </div>
 

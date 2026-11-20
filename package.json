@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "deploy:firebase": "node -e \"if (process.env.PORTAL_DATA_RELEASE_APPROVED !== 'true') { console.error('Hosting release blocked: verify and migrate portal records before setting PORTAL_DATA_RELEASE_APPROVED=true.'); process.exit(1); }\" && npm run build && npx -y firebase-tools@latest deploy --only firestore:rules && npx -y firebase-tools@latest deploy --only hosting",
-    "deploy:staging": "npm run build && npx -y firebase-tools@latest hosting:channel:deploy preview --expires 7d",
+    "deploy:firebase": "node -e \"if (process.env.PORTAL_DATA_RELEASE_APPROVED !== 'true') { console.error('Hosting release blocked: verify and migrate portal records before setting PORTAL_DATA_RELEASE_APPROVED=true.'); process.exit(1); }\" && npm run validate:firebase && npm run build && npx -y firebase-tools@latest deploy --only firestore:rules && npx -y firebase-tools@latest deploy --only hosting",
+    "deploy:staging": "npm run validate:firebase && npm run build && npx -y firebase-tools@latest hosting:channel:deploy preview --expires 7d",
     "lint": "oxlint",
     "preview": "vite preview",
     "dev:demo": "vite --config demo-preview/vite.config.ts",
     "sites:merge": "tsx scripts/merge-sites.ts",
-    "drive:watch": "node scripts/driveSyncDaemon.cjs"
+    "drive:watch": "node scripts/driveSyncDaemon.cjs",
+    "validate:firebase": "node scripts/validateFirebaseConfig.mjs",
+    "test": "vitest run",
+    "backup:inspect": "tsx scripts/inspect-backup.ts"
   },
   "dependencies": {
     "@google/genai": "^2.22.0",
@@ -26,18 +29,23 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "autoprefixer": "^10.6.1",
+    "fake-indexeddb": "^6.2.8",
     "firebase-admin": "^14.5.0",
     "firebase-tools": "^15.31.0",
+    "jsdom": "^31.0.1",
     "oxlint": "^1.81.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "~6.0.2",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "vitest": "^5.1.1",
+    "yaml": "^2.9.1"
   }
 }

@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { FirebaseError } from 'firebase/app';
 import {
   browserLocalPersistence,
+  browserSessionPersistence,
   onAuthStateChanged,
   setPersistence,
   signInWithEmailAndPassword,
@@ -41,22 +42,18 @@ import {
   attachPRImageToDCInStorage,
   saveAllPRs,
   saveAllDCs,
-  DRIVE_IMPORT_VERSION,
-  PR_EVIDENCE_VERSION,
-  getVerifiedDriveDCUpdates,
-  getDriveVerifiedPRFulfillmentUpdates,
   INITIAL_SITES
 } from '../lib/storage';
-import { initImageMemory } from '../lib/imageStorage';
+import { getImageFromMemorySync, initImageMemory } from '../lib/imageStorage';
+import { createDeviceBackup, verifyDeviceBackup, restoreDeviceBackup, type BackupSummary } from '../lib/deviceBackup';
+import { createSessionSyncTracker, type CloudSyncIssue } from '../lib/cloudSyncTracker';
 import {
   subscribeToCloudPRs,
   subscribeToCloudDCs,
-  savePRToCloud,
-  saveDCToCloud,
-  syncDriveVerifiedDCFieldsToCloud,
-  syncDriveVerifiedPRFulfillmentToCloud,
-  deletePRFromCloud,
-  deleteDCFromCloud
+  savePRToCloud as writePRToCloud,
+  saveDCToCloud as writeDCToCloud,
+  deletePRFromCloud as removePRFromCloud,
+  deleteDCFromCloud as removeDCFromCloud
 } from '../lib/firestoreService';
 
 interface AppContextType {
@@ -64,6 +61,11 @@ interface AppContextType {
   dcs: DCRecord[];
   setDCs: React.Dispatch<React.SetStateAction<DCRecord[]>>;
   saveDCToCloud: (dc: DCRecord) => Promise<void>;
+  cloudSyncIssues: CloudSyncIssue[];
+  syncTrackingUnavailable: boolean;
+  localPersistenceFailed: boolean;
+  isLocalOnlyMode: boolean;
+  acknowledgeCloudSyncIssue: (id: string) => void;
   sites: SiteLocation[];
   activeTab: NavigationTab;
   setActiveTab: (tab: NavigationTab) => void;
@@ -191,8 +193,10 @@ interface AppContextType {
   markAllMissingPRsNoRequired: () => { count: number };
   attachPRImageToDC: (dcId: string, base64Image: string, prNumber?: string) => void;
   resetData: () => void;
-  exportBackupJSON: () => void;
-  importBackupJSON: (jsonStr: string) => boolean;
+  exportBackupJSON: () => Promise<BackupSummary>;
+  inspectBackupJSON: (jsonStr: string) => Promise<BackupSummary>;
+  importBackupJSON: (jsonStr: string) => Promise<BackupSummary>;
+  canRestoreLocalBackup: boolean;
   pushAllToCloud: () => Promise<void>;
 }
 
@@ -200,42 +204,26 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const STORAGE_KEY_AUTH_SESSION = 'STAR_PORTAL_AUTH_SESSION';
 
-interface StoredAuthSession {
-  authenticated: boolean;
-  user: { username: string; role: string; displayName: string };
-  timestamp: number;
-}
-
-function getStoredAuthSession(): StoredAuthSession | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_AUTH_SESSION);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && parsed.authenticated && parsed.user) {
-      return parsed;
-    }
-  } catch (err) {
-    console.warn('[Auth] Could not read stored auth session:', err);
-  }
-  return null;
-}
+// This opt-in is intentionally unavailable in production builds.
+const localMode = import.meta.env.DEV && import.meta.env.VITE_ALLOW_LOCAL_MODE === 'true' && !isFirebaseConfigured();
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [prs, setPRs] = useState<PRRecord[]>(() => {
-    try {
-      return getPRs();
-    } catch {
-      return [];
-    }
-  });
-  const [dcs, setDCs] = useState<DCRecord[]>(() => {
-    try {
-      return getDCs();
-    } catch {
-      return [];
-    }
-  });
+  const [syncTracker] = useState(createSessionSyncTracker);
+  const syncSnapshot = useSyncExternalStore(syncTracker.subscribe, syncTracker.getSnapshot, syncTracker.getSnapshot);
+  const [localPersistenceFailed, setLocalPersistenceFailed] = useState(false);
+  useEffect(() => {
+    const onFailure = () => setLocalPersistenceFailed(true);
+    window.addEventListener('star-ledger-local-save-failed', onFailure);
+    return () => window.removeEventListener('star-ledger-local-save-failed', onFailure);
+  }, []);
+  // Tracked warnings are not a retry queue. Do not claim success until Firestore acknowledges a write.
+  const savePRToCloud = (pr: PRRecord): Promise<void> => localMode ? Promise.resolve() : syncTracker.track(`Save PR ${pr.prNumber}`, () => writePRToCloud(pr));
+  const saveDCToCloud = (dc: DCRecord): Promise<void> => localMode ? Promise.resolve() : syncTracker.track(`Save DC ${dc.dcNumber}`, () => writeDCToCloud(dc));
+  const deletePRFromCloud = (id: string): Promise<void> => localMode ? Promise.resolve() : syncTracker.track(`Delete PR ${id}`, () => removePRFromCloud(id));
+  const deleteDCFromCloud = (id: string): Promise<void> => localMode ? Promise.resolve() : syncTracker.track(`Delete DC ${id}`, () => removeDCFromCloud(id));
+  // A malformed cache must stop the app rather than be replaced by a cloud snapshot.
+  const [prs, setPRs] = useState<PRRecord[]>(getPRs);
+  const [dcs, setDCs] = useState<DCRecord[]>(getDCs);
   
   // Dynamically derive sites from PR records, DC records, and master Jadeed site locations
   const sites = useMemo<SiteLocation[]>(() => {
@@ -291,79 +279,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedBuiltyPreview, setSelectedBuiltyPreview] = useState<BuiltyPreviewInfo | null>(null);
 
   // Authentication & Remote Access state
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    const session = getStoredAuthSession();
-    if (session) return true;
-    return !isFirebaseConfigured();
-  });
-  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(() => {
-    const session = getStoredAuthSession();
-    if (session) return false;
-    return isFirebaseConfigured();
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [currentUser, setCurrentUser] = useState<{ username: string; role: string; displayName: string } | null>(() => {
-    const session = getStoredAuthSession();
-    if (session) return session.user;
-    if (!isFirebaseConfigured()) {
-      return {
-        username: 'local-admin',
-        role: 'Administrator',
-        displayName: 'Local Administrator'
-      };
-    }
-    return null;
-  });
+  const [currentUser, setCurrentUser] = useState<{ username: string; role: string; displayName: string } | null>(null);
 
   useEffect(() => {
-    if (!isFirebaseConfigured()) {
+    if (localMode) {
       setIsAuthenticated(true);
+      setCurrentUser({ username: 'local-admin', role: 'Administrator', displayName: 'Local Administrator (development only)' });
       setIsAuthLoading(false);
-      setCurrentUser({
-        username: 'local-admin',
-        role: 'Administrator',
-        displayName: 'Local Administrator'
-      });
       return;
     }
-
-    const auth = getFirebaseAuth();
+    if (!isFirebaseConfigured()) {
+      setAuthError('Secure sign-in is not configured. Contact the portal administrator.');
+      setIsAuthLoading(false);
+      return;
+    }
+    let auth;
+    try {
+      auth = getFirebaseAuth();
+    } catch (error) {
+      console.error('[Auth] Could not initialize Firebase Auth:', error);
+      setAuthError('Secure sign-in could not be initialized. Contact the portal administrator.');
+      setIsAuthLoading(false);
+      return;
+    }
     if (!auth) {
+      setAuthError('Secure sign-in could not be initialized. Contact the portal administrator.');
       setIsAuthLoading(false);
       return;
     }
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const userData = {
-          username: user.email || 'authorized-user',
-          role: 'Administrator',
-          displayName: user.displayName || user.email?.split('@')[0] || 'Portal User'
-        };
-        setIsAuthenticated(true);
-        setCurrentUser(userData);
-        setAuthError(null);
-        try {
-          localStorage.setItem(STORAGE_KEY_AUTH_SESSION, JSON.stringify({
-            authenticated: true,
-            user: userData,
-            timestamp: Date.now()
-          }));
-        } catch {
-          // ignore
-        }
-      } else {
-        // Only mark unauthenticated if user explicitly logged out (no session in localStorage)
-        const session = getStoredAuthSession();
-        if (!session) {
-          setIsAuthenticated(false);
-          setCurrentUser(null);
-        }
-      }
+    return onAuthStateChanged(auth, user => {
+      setIsAuthenticated(!!user);
+      setCurrentUser(user ? {
+        username: user.email || 'authorized-user',
+        role: 'Administrator',
+        displayName: user.displayName || user.email?.split('@')[0] || 'Portal User'
+      } : null);
+      if (user) setAuthError(null);
+      setIsAuthLoading(false);
+    }, error => {
+      console.error('[Auth] Authentication state error:', error);
+      setIsAuthenticated(false);
+      setCurrentUser(null);
+      setAuthError('Unable to verify sign-in. Please try again.');
       setIsAuthLoading(false);
     });
-
-    return () => unsubscribe();
   }, []);
 
   const [isMobileAccessOpen, setIsMobileAccessOpen] = useState(false);
@@ -389,7 +351,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const login = async (email: string, password: string, _rememberMe: boolean = true): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string, rememberMe: boolean = true): Promise<{ success: boolean; error?: string }> => {
     const auth = getFirebaseAuth();
     if (!auth) {
       const error = 'Secure sign-in is not configured. Contact the portal administrator.';
@@ -401,7 +363,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const finalEmail = cleanEmail.includes('@') ? cleanEmail : `${cleanEmail}@gmail.com`;
 
     try {
-      await setPersistence(auth, browserLocalPersistence);
+      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
       const userCredential = await signInWithEmailAndPassword(auth, finalEmail, password);
       const user = userCredential.user;
       const userData = {
@@ -412,15 +374,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsAuthenticated(true);
       setCurrentUser(userData);
       setAuthError(null);
-      try {
-        localStorage.setItem(STORAGE_KEY_AUTH_SESSION, JSON.stringify({
-          authenticated: true,
-          user: userData,
-          timestamp: Date.now()
-        }));
-      } catch {
-        // ignore
-      }
       return { success: true };
     } catch (error) {
       const code = error instanceof FirebaseError ? error.code : '';
@@ -469,64 +422,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [geminiApiKey, setGeminiApiKeyState] = useState<string>(() => getGeminiApiKey());
 
   useEffect(() => {
-    // 0. Initialize persistent image memory cache from IndexedDB
-    initImageMemory().then(() => {
-      // Re-hydrate PRs and DCs once image memory cache is ready
-      const rehydratedPRs = getPRs();
-      const rehydratedDCs = getDCs();
-      if (rehydratedPRs.length > 0) setPRs(rehydratedPRs);
-      if (rehydratedDCs.length > 0) setDCs(rehydratedDCs);
+    if (!isAuthenticated) return;
+
+    let cancelled = false;
+    // Hydrate current records, not a stale snapshot captured before cloud updates.
+    void initImageMemory().then(() => {
+      if (cancelled) return;
+      const hydrate = (image: string | undefined) => image?.startsWith('indexeddb:')
+        ? getImageFromMemorySync(image.slice('indexeddb:'.length)) || image : image;
+      setPRs(prev => prev.map(pr => ({ ...pr, documentImage: hydrate(pr.documentImage) })));
+      setDCs(prev => prev.map(dc => ({ ...dc, documentImage: hydrate(dc.documentImage), builtyImage: hydrate(dc.builtyImage), prDocumentImage: hydrate(dc.prDocumentImage) })));
     });
-
-    // 1. Initial reconciliation & loading (guarantees all 600+ DCs and linked PRs appear immediately)
-    const initLink = autoLinkPRsAndDCsInStorage();
-    setPRs(initLink.updatedPRs);
-    setDCs(initLink.updatedDCs);
-
-    const initialKey = getGeminiApiKey();
-    setGeminiApiKeyState(initialKey);
 
     let unsubPR: (() => void) | null = null;
     let unsubDC: (() => void) | null = null;
 
-    if (isAuthenticated) {
-      // Sync only fields verified in Drive, leaving user-managed DC details untouched.
-      const cloudDriveImportVersionKey = 'STAR_ELECTRIC_DRIVE_CLOUD_IMPORT_VERSION';
-      if (localStorage.getItem(cloudDriveImportVersionKey) !== DRIVE_IMPORT_VERSION) {
-        void syncDriveVerifiedDCFieldsToCloud(getVerifiedDriveDCUpdates(initLink.updatedDCs))
-          .then(synced => {
-            if (synced) {
-              try {
-                localStorage.setItem(cloudDriveImportVersionKey, DRIVE_IMPORT_VERSION);
-              } catch (error) {
-                console.error('Failed to record the Drive cloud sync version', error);
-              }
-            }
-          })
-          .catch(error => {
-            console.error('Failed to sync Drive-verified DC data to Firestore', error);
-          });
-      }
-
-      const cloudPREvidenceVersionKey = 'STAR_ELECTRIC_PR_EVIDENCE_CLOUD_VERSION';
-      if (localStorage.getItem(cloudPREvidenceVersionKey) !== PR_EVIDENCE_VERSION) {
-        void syncDriveVerifiedPRFulfillmentToCloud(getDriveVerifiedPRFulfillmentUpdates(initLink.updatedPRs))
-          .then(synced => {
-            if (synced) {
-              try {
-                localStorage.setItem(cloudPREvidenceVersionKey, PR_EVIDENCE_VERSION);
-              } catch (error) {
-                console.error('Failed to record the scanned PR cloud sync version', error);
-              }
-            }
-          })
-          .catch(error => {
-            console.error('Failed to sync scanned PR item evidence to Firestore', error);
-          });
-      }
-
+    if (!localMode) {
       // Subscribe only while Firebase confirms an authenticated user.
-      unsubPR = subscribeToCloudPRs((cloudPRs) => {
+      unsubPR = subscribeToCloudPRs((cloudPRs, metadata) => {
+        if (!metadata.fromCache) syncTracker.resolveListener('Live PR updates stopped');
         if (cloudPRs && cloudPRs.length > 0) {
           setPRs(prev => {
             const map = new Map<string, PRRecord>();
@@ -551,9 +465,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return merged;
           });
         }
-      });
+      }, () => syncTracker.reportFailure('Live PR updates stopped'));
 
-      unsubDC = subscribeToCloudDCs((cloudDCs) => {
+      unsubDC = subscribeToCloudDCs((cloudDCs, metadata) => {
+        if (!metadata.fromCache) syncTracker.resolveListener('Live DC updates stopped');
         if (cloudDCs && cloudDCs.length > 0) {
           setDCs(prev => {
             // If cloud has older partial dataset and local has full 600+, keep full 600+ and update fields
@@ -601,14 +516,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             return merged;
           });
         }
-      });
+      }, () => syncTracker.reportFailure('Live DC updates stopped'));
     }
 
     return () => {
+      cancelled = true;
       unsubPR?.();
       unsubDC?.();
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, syncTracker]);
 
   const updateGeminiApiKey = (key: string) => {
     saveGeminiApiKey(key);
@@ -937,80 +853,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDCs(newDCs);
   };
 
-  const exportBackupJSON = () => {
-    const backup = {
-      version: '1.0',
-      timestamp: new Date().toISOString(),
-      client: 'Jadeed Group',
-      supplier: 'Star Electric Enterprises Saddar Rawalpindi',
-      prs,
-      dcs
-    };
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backup, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `StarElectric_JadeedDB_Backup_${new Date().toISOString().split('T')[0]}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+  const exportBackupJSON = async (): Promise<BackupSummary> => {
+    const { json, summary } = await createDeviceBackup(prs, dcs);
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    try {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `StarElectric_DeviceBackup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } finally {
+      window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+    return summary;
   };
+
+  const inspectBackupJSON = async (jsonStr: string): Promise<BackupSummary> =>
+    (await verifyDeviceBackup(jsonStr)).summary;
 
   const pushAllToCloud = async (): Promise<void> => {
-    if (!isAuthenticated) {
-      console.error('Cannot push to cloud: User is not authenticated.');
-      return;
-    }
-    console.log(`Pushing ${prs.length} PRs and ${dcs.length} DCs to Firebase...`);
-    const prPromises = prs.map(pr => savePRToCloud(pr).catch(e => console.error('Failed to sync PR:', e)));
-    const dcPromises = dcs.map(dc => saveDCToCloud(dc).catch(e => console.error('Failed to sync DC:', e)));
-    await Promise.all([...prPromises, ...dcPromises]);
-    console.log('Finished pushing all data to Firebase.');
+    throw new Error('Bulk push is disabled until conflict-safe reconciliation is available. It could overwrite newer cloud data.');
   };
 
-  const importBackupJSON = (jsonStr: string): boolean => {
-    try {
-      const parsed = JSON.parse(jsonStr);
-      if (!parsed || typeof parsed !== 'object') return false;
-
-      const rawPRs = Array.isArray(parsed.prs) ? parsed.prs : [];
-      const rawDCs = Array.isArray(parsed.dcs) ? parsed.dcs : [];
-
-      if (rawPRs.length === 0 && rawDCs.length === 0) return false;
-
-      // Validate & sanitize PR records
-      const validPRs: PRRecord[] = rawPRs.filter((p: any) => 
-        p && typeof p === 'object' && typeof p.prNumber === 'string' && p.prNumber.trim().length > 0
-      ).map((p: any) => ({
-        ...p,
-        id: typeof p.id === 'string' && p.id ? p.id : `pr-import-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        prNumber: String(p.prNumber).trim(),
-        items: Array.isArray(p.items) ? p.items : [],
-        fulfillmentLogs: Array.isArray(p.fulfillmentLogs) ? p.fulfillmentLogs : []
-      }));
-
-      // Validate & sanitize DC records
-      const validDCs: DCRecord[] = rawDCs.filter((d: any) => 
-        d && typeof d === 'object' && typeof d.dcNumber === 'string' && d.dcNumber.trim().length > 0
-      ).map((d: any) => ({
-        ...d,
-        id: typeof d.id === 'string' && d.id ? d.id : `dc-import-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        dcNumber: String(d.dcNumber).trim(),
-        itemsShipped: Array.isArray(d.itemsShipped) ? d.itemsShipped : []
-      }));
-
-      if (validPRs.length > 0) {
-        saveAllPRs(validPRs);
-        setPRs(getPRs());
-      }
-      if (validDCs.length > 0) {
-        saveAllDCs(validDCs);
-        setDCs(getDCs());
-      }
-      return true;
-    } catch (e) {
-      console.error('Invalid backup JSON file', e);
-      return false;
-    }
+  const importBackupJSON = async (jsonStr: string): Promise<BackupSummary> => {
+    if (!localMode) throw new Error('Restore is permitted only in an isolated development-only local session with Firebase unconfigured.');
+    const { payload, summary } = await verifyDeviceBackup(jsonStr);
+    if (summary.missingLocalReferences > 0) throw new Error('This backup has missing local scan references and cannot be restored as a complete device backup.');
+    await restoreDeviceBackup(payload);
+    await initImageMemory();
+    setPRs(getPRs());
+    setDCs(getDCs());
+    return summary;
   };
 
   return (
@@ -1020,6 +894,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         dcs,
         setDCs,
         saveDCToCloud,
+        cloudSyncIssues: syncSnapshot.issues,
+        syncTrackingUnavailable: syncSnapshot.trackingUnavailable,
+        localPersistenceFailed,
+        isLocalOnlyMode: localMode,
+        acknowledgeCloudSyncIssue: (id: string) => syncTracker.acknowledge(id),
         sites,
         activeTab,
         setActiveTab,
@@ -1106,7 +985,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         attachPRImageToDC,
         resetData,
         exportBackupJSON,
+        inspectBackupJSON,
         importBackupJSON,
+        canRestoreLocalBackup: localMode,
         pushAllToCloud,
         isAuthenticated,
         isAuthLoading,

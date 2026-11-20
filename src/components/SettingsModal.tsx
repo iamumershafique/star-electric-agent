@@ -57,11 +57,12 @@ export const SettingsModal: React.FC = () => {
     geminiApiKey, 
     updateGeminiApiKey, 
     exportBackupJSON,
+    inspectBackupJSON,
     importBackupJSON,
+    canRestoreLocalBackup,
     setIsMasterResetOpen,
     setIsMobileAccessOpen,
-    publicUrl,
-    pushAllToCloud
+    publicUrl
   } = useApp();
 
   const [inputKey, setInputKey] = useState(geminiApiKey || '');
@@ -88,7 +89,6 @@ export const SettingsModal: React.FC = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [isTestingOpenAI, setIsTestingOpenAI] = useState(false);
   const [isTestingClaude, setIsTestingClaude] = useState(false);
-  const [isPushingData, setIsPushingData] = useState(false);
   const [isTestingAgentRouter, setIsTestingAgentRouter] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [testResult, setTestResult] = useState<{
@@ -109,6 +109,7 @@ export const SettingsModal: React.FC = () => {
     message: string;
   }>({ status: 'idle', message: '' });
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [isBackupBusy, setIsBackupBusy] = useState(false);
 
   const currentPortalUrl = publicUrl || (typeof window !== 'undefined' ? window.location.origin : 'https://star-agent-jpf.web.app');
 
@@ -458,21 +459,41 @@ export const SettingsModal: React.FC = () => {
     setOllamaTestResult({ status: 'idle', message: 'Ollama disconnected. Portal will use Gemini or OpenAI if configured.' });
   };
 
-  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const content = event.target?.result as string;
-        const success = importBackupJSON(content);
-        if (success) {
-          setImportStatus('Database imported successfully!');
-        } else {
-          setImportStatus('Failed to import backup file. Invalid format.');
-        }
-      };
-      reader.readAsText(file);
-    }
+  const formatBackupSummary = (summary: { prs: number; dcs: number; localScans: number; missingLocalReferences: number; externalReferences: number }) =>
+    `${summary.prs} PRs, ${summary.dcs} DCs, ${summary.localScans} local scan files; ${summary.missingLocalReferences} missing local references, ${summary.externalReferences} external image references.`;
+
+  const handleBackupExport = async () => {
+    setIsBackupBusy(true);
+    try {
+      const summary = await exportBackupJSON();
+      setImportStatus(`Device backup downloaded. ${formatBackupSummary(summary)} External references and cloud-only scans are not included.`);
+    } catch (error) {
+      setImportStatus(`Backup failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally { setIsBackupBusy(false); }
+  };
+
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+    setIsBackupBusy(true);
+    try {
+      const content = await file.text();
+      const summary = await inspectBackupJSON(content);
+      const description = formatBackupSummary(summary);
+      if (!canRestoreLocalBackup) {
+        setImportStatus(`Checksum verified. ${description} Restore is restricted to an empty isolated development-only profile; Firebase is not restored.`);
+      } else if (summary.missingLocalReferences > 0) {
+        setImportStatus(`Checksum verified, but restore blocked: ${description}`);
+      } else if (window.confirm(`Checksum verified. ${description}\n\nRestore to this empty isolated development profile only? External references are not backed up. Firebase will not be changed.`)) {
+        await importBackupJSON(content);
+        setImportStatus(`Device restore complete. ${description} Firebase was not changed.`);
+      } else {
+        setImportStatus(`Checksum verified; no restore performed. ${description}`);
+      }
+    } catch (error) {
+      setImportStatus(`Backup verification or restore failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally { input.value = ''; setIsBackupBusy(false); }
   };
 
   const hasLinkedKey = Boolean(geminiApiKey && geminiApiKey.trim());
@@ -1260,34 +1281,10 @@ export const SettingsModal: React.FC = () => {
             Cloud Synchronization
           </label>
           <p className="text-[11px] text-slate-600 font-medium">
-            Push all locally stored PRs and Delivery Challans to Firebase. Use this if your records are missing on other devices.
+            Bulk push is temporarily disabled because an old local copy can overwrite newer cloud records. Individual saves are tracked, but links, scans, offline recovery and conflict handling still require verification.
           </p>
-          <button
-            onClick={async () => {
-              setIsPushingData(true);
-              try {
-                await pushAllToCloud();
-                alert('Successfully pushed all local data to Firebase!');
-              } catch (e) {
-                alert('Error pushing data to Firebase. Make sure you are logged in.');
-              } finally {
-                setIsPushingData(false);
-              }
-            }}
-            disabled={isPushingData}
-            className="w-full py-2 px-3 rounded-lg bg-purple-600 hover:bg-purple-700 active:bg-purple-800 disabled:opacity-50 text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-2xs cursor-pointer"
-          >
-            {isPushingData ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Syncing to Firebase...</span>
-              </>
-            ) : (
-              <>
-                <Cloud className="w-4 h-4" />
-                <span>Push All Data to Firebase</span>
-              </>
-            )}
+          <button type="button" disabled className="w-full py-2 px-3 rounded-lg bg-slate-300 text-slate-700 text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed">
+            <Cloud className="w-4 h-4" /> Bulk push unavailable
           </button>
         </div>
 
@@ -1298,20 +1295,21 @@ export const SettingsModal: React.FC = () => {
             Database Backup &amp; Portability
           </label>
           <p className="text-[11px] text-slate-600 font-medium">
-            Export database JSON for offline archiving or restore data from a previous backup file.
+            Exports visible PRs and DCs plus scans stored on this device, with a checksum. Cloud-only scans and external links are not included. This is not a complete cloud backup. Verification does not change records; restore is limited to an empty, isolated development-only profile and never changes Firebase.
           </p>
 
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={exportBackupJSON}
+              onClick={handleBackupExport}
+              disabled={isBackupBusy}
               className="px-3 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5 text-emerald-600" /> Export JSON
+              <Download className="w-3.5 h-3.5 text-emerald-600" /> Export Device Backup
             </button>
 
             <label className="px-3 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs">
-              <Upload className="w-3.5 h-3.5 text-blue-600" /> Import JSON
-              <input type="file" accept=".json" onChange={handleFileImport} aria-label="Import JSON database backup file" className="hidden" />
+              <Upload className="w-3.5 h-3.5 text-blue-600" /> Verify / Restore
+              <input type="file" accept=".json" disabled={isBackupBusy} onChange={handleFileImport} aria-label="Import JSON database backup file" className="hidden" />
             </label>
           </div>
 
@@ -1335,7 +1333,7 @@ export const SettingsModal: React.FC = () => {
           </div>
 
           <p className="text-[11px] text-rose-800 leading-relaxed font-medium">
-            Permanently wipes all Purchase Requisitions, Delivery Challans, and Invoices back to a 100% clean slate for live production data.
+            Clears the local PR and DC cache on this device only. Cloud records and stored scans are not deleted and may reappear.
           </p>
 
           <button

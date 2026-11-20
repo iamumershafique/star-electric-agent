@@ -250,21 +250,52 @@ export async function getImageFromMemory(
   }
 }
 
-/**
- * Get all stored image records in memory
- */
+/** Read a complete local snapshot; backup must not silently ignore IndexedDB errors. */
 export async function getAllStoredImages(): Promise<StoredImageRecord[]> {
-  try {
-    const db = await getDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readonly');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.getAll();
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const request = tx.objectStore(STORE_NAME).getAll();
+    let records: StoredImageRecord[] = [];
+    request.onsuccess = () => { records = request.result as StoredImageRecord[]; };
+    tx.oncomplete = () => resolve(records);
+    tx.onerror = () => reject(tx.error || new Error('Could not read local scans.'));
+    tx.onabort = () => reject(tx.error || new Error('Reading local scans was aborted.'));
+  });
+}
 
-      req.onsuccess = () => resolve((req.result as StoredImageRecord[]) || []);
-      req.onerror = () => resolve([]);
+/** Restore to an empty image store only. No cloud uploads are performed. */
+export async function restoreImagesToEmptyStore(records: StoredImageRecord[]): Promise<void> {
+  const db = await getDB();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    let notEmpty = false;
+    const count = store.count();
+    count.onsuccess = () => {
+      if (count.result !== 0) { notEmpty = true; tx.abort(); return; }
+      records.forEach(record => store.add(record));
+    };
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('Could not restore local scans.'));
+    tx.onabort = () => reject(new Error(notEmpty ? 'The local scan store is not empty. Use a clean, isolated browser profile.' : 'Restoring local scans was aborted.'));
+  });
+}
+
+/** Remove only records that still match this attempted restore. */
+export async function rollbackRestoredImages(records: StoredImageRecord[]): Promise<void> {
+  const db = await getDB();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    records.forEach(record => {
+      const request = store.get(record.id);
+      request.onsuccess = () => {
+        if (JSON.stringify(request.result) === JSON.stringify(record)) store.delete(record.id);
+      };
     });
-  } catch {
-    return [];
-  }
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('Could not roll back local scans.'));
+    tx.onabort = () => reject(tx.error || new Error('Scan rollback was aborted.'));
+  });
 }

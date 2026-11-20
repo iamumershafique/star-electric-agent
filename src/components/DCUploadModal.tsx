@@ -512,7 +512,7 @@ export const DCUploadModal: React.FC = () => {
       const remaining = drafts.filter((_, i) => i !== activeDraftIndex);
       setDrafts(remaining);
       setActiveDraftIndex(0);
-      setScanAnalysisNote(`✓ Successfully recorded ${cleanDC}. ${remaining.length} DC(s) remaining to review.`);
+      setScanAnalysisNote(`Added ${cleanDC} in this session. Check the cloud sync warning after closing this window. ${remaining.length} DC(s) remaining to review.`);
     } else {
       setIsDCUploadOpen(false);
       setActiveTab('deliveries');

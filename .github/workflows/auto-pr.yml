@@ -4,6 +4,7 @@ on:
   push:
     branches-ignore:
       - main
+      - 'arena/**' # Arena sessions require an explicit request before opening a PR.
 
 permissions:
   contents: read
