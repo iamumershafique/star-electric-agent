@@ -1,4 +1,5 @@
 import { getScanUrlFromCloud, uploadScanToCloud } from './cloudImages';
+import { isFirebaseConfigured } from './firebase';
 
 async function fetchCloudImage(keys: string[]): Promise<string | undefined> {
   for (const key of keys) {
@@ -130,14 +131,19 @@ export async function saveImageToMemory(
   type: 'pr' | 'dc' | 'builty',
   identifier: string,
   dataUrl: string,
-  meta?: { referenceNumber?: string; siteName?: string; fileName?: string }
+  meta?: { referenceNumber?: string; siteName?: string; fileName?: string; uploadToCloud?: boolean }
 ): Promise<void> {
   if (!identifier || !dataUrl) return;
 
   const primaryKey = normalizeImageKey(type, identifier);
   inMemoryCache.set(primaryKey, dataUrl);
 
-  void uploadScanToCloud(primaryKey, dataUrl);
+  if (meta?.uploadToCloud !== false && isFirebaseConfigured() && dataUrl.startsWith('data:')) {
+    const upload = uploadScanToCloud(primaryKey, dataUrl);
+    // Attach a handler immediately, even if the UI event listener is not mounted.
+    void upload.catch(error => console.warn('[ImageMemory] Cloud scan upload failed:', error));
+    if (typeof window !== 'undefined') queueMicrotask(() => window.dispatchEvent(new CustomEvent('star-ledger-scan-upload', { detail: { key: primaryKey, upload } })));
+  }
 
   const refNum = meta?.referenceNumber || identifier;
   const refKey = normalizeImageKey(type, refNum);
@@ -155,16 +161,17 @@ export async function saveImageToMemory(
       updatedAt: Date.now()
     };
 
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
-      const req = store.put(record);
-
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
+      store.put(record);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error || new Error('IndexedDB scan write failed.'));
+      tx.onabort = () => reject(tx.error || new Error('IndexedDB scan write was aborted.'));
     });
   } catch (err) {
     console.warn('[ImageMemory] Could not persist image to IndexedDB:', err);
+    if (typeof window !== 'undefined') queueMicrotask(() => window.dispatchEvent(new Event('star-ledger-scan-save-failed')));
   }
 }
 

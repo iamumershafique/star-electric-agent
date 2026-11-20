@@ -39,32 +39,15 @@ Phase 1 safety work is in progress. The browser device backup is **not a complet
 
 The application now requires confirmed Firebase authentication by default. Explicit local-only mode is available only in Vite development builds, as described in the safety checklist. Historical seed DCs are no longer automatically inserted or reconciled into the ledger.
 
-## Secure Firebase access
+## Firebase access and deployment
 
-The portal uses Firebase Authentication with email/password accounts created by an administrator. It does not provide public account registration or demo credentials.
+The selected policy is **viewer: read only; editor: create and edit; administrator: also delete**. Proposed Firestore and Storage rules and client safeguards require a signed Firebase custom claim `portalRole`; users without a valid role are denied. These changes are **not deployed**. Existing accounts must be reviewed and assigned roles before rollout or they will lose access. Follow the [role migration runbook](./docs/role-migration.md), including an isolated emulator/project test and a verified backup. Never commit service-account keys or business-data backups.
 
-Before making the app available:
+The [Hosting workflow](./.github/workflows/firebase-hosting.yml) runs on commits to `main` or manual dispatch on `main`. It requires repository variables `PORTAL_DATA_RELEASE_APPROVED=true` and `PORTAL_ROLES_MIGRATED=true`, correct `VITE_FIREBASE_API_KEY` / `VITE_FIREBASE_APP_ID` variables or secrets, and the `FIREBASE_SERVICE_ACCOUNT` Hosting deployment secret. It runs application and rules-emulator tests, lint, validates the production project ID, builds, and deploys **Hosting only** to `star-agent-jpf`. A newer commit arriving after the latest-commit check can briefly allow an older build to deploy; a later queued run replaces it if checks pass. Pushing this working branch does not deploy or open a PR.
 
-1. Configure `VITE_FIREBASE_API_KEY` and `VITE_FIREBASE_APP_ID` in a local `.env.local` file using the Firebase Web app settings.
-2. In Firebase Console, enable the Email/Password sign-in provider and create accounts only for authorized users.
-3. Enable the Cloud Firestore API and create the default Firestore database for the project.
-4. Inspect the actual Firestore dataset read-only and verify the intended business records and backups before any migration. Do not copy unverified sample records.
-5. After reviewing the migrated data, deploy the authentication-gated Firestore rules and Hosting. In Windows PowerShell, run `$env:PORTAL_DATA_RELEASE_APPROVED = 'true'` followed by `npm.cmd run deploy:firebase`; on macOS/Linux, run `PORTAL_DATA_RELEASE_APPROVED=true npm run deploy:firebase`.
+Firestore and Storage rules require a separate, explicitly approved `npm run deploy:rules`; it is gated and runs emulator tests first. `npm run deploy:firebase` deploys Hosting only and has separate data and role-migration gates. `npm run deploy:staging` requires an explicitly configured isolated non-production Firebase project and refuses `star-agent-jpf`. Release flags are human approvals, not proof of backups, correct account assignments, or safety.
 
-Do not publish the app until all five steps are complete. The normal deploy command is blocked unless the data-release approval flag is explicitly set. Firestore data is restricted to authenticated users by [firestore.rules](./firestore.rules).
-
-## Automatic Firebase Hosting deployment
-
-The [Hosting workflow](./.github/workflows/firebase-hosting.yml) runs when a commit reaches `main` or is manually dispatched on `main`. It checks approval, installs the locked dependencies, runs tests and lint, validates the Firebase web configuration, builds, and checks that the triggering commit is still the latest `main` commit before deploying **Hosting only** to `star-agent-jpf`. It does not upload business records, scans, Firestore rules, or Storage rules. A commit arriving during deployment can still allow an older build to deploy briefly; the later queued run will replace it if its checks pass.
-
-The workflow intentionally does not deploy this working branch. Production data safety and restore validation remain incomplete, so deployment is blocked until an administrator completes the [safety checklist](./docs/phase-1-safety.md) and explicitly enables the release gate. Set up GitHub Actions as follows:
-
-1. Add a `FIREBASE_SERVICE_ACCOUNT` repository secret with a service-account JSON key for `star-agent-jpf` authorized for Firebase Hosting deployment. Never commit this key or a business-data backup.
-2. Add the correct `VITE_FIREBASE_API_KEY` and `VITE_FIREBASE_APP_ID` as Actions repository variables (or secrets). Firebase Web configuration is embedded in the public client; it is not a service-account key.
-3. After a recoverable backup and release review, set the Actions repository variable `PORTAL_DATA_RELEASE_APPROVED` to `true`. Leave it unset while the safety work remains unfinished.
-4. Review and merge changes into `main` when ready. Check the Actions run and live Hosting version; a branch push alone does not deploy. A workflow run cannot operate until the required secrets, variables, and permissions are configured.
-
-An app deployment is **not** a data backup or migration. PR/DC cloud operations have known limitations; see [sync safety](./docs/phase-2-sync.md). Firestore and Storage security rules need separate review and an explicitly authorized deployment. Feature branches named `arena/*` do not automatically open pull requests.
+An app deployment is **not** a data backup or migration. See [data safety](./docs/phase-1-safety.md), [delivery limitations](./docs/delivery-rules.md), and [sync safety](./docs/phase-2-sync.md). No production release should proceed until those outstanding issues are addressed.
 
 ## Claude PR/DC database audit
 

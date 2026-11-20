@@ -6,14 +6,14 @@
 - An administrator should arrange independent backups of the actual Firestore database **and** Cloud Storage scans, plus any Drive files referenced by URL. Confirm the project and bucket before taking any action.
 - Restore a copy into an isolated test project and verify record counts, PR/DC links, quantities, and representative PR, DC, and builty scans. Do not restore over production. Record the backup date and results.
 - This repository change has not created or verified a production backup. Do not enable a production release on the assumption that it has.
-- Review the intended Firebase users and Firestore/Storage rules. Current Firestore rules allow every authenticated user to read, modify, and delete every PR and DC; a role policy and its enforcement still need an explicit business decision.
+- The chosen policy is viewer read-only, editor create/edit, and administrator delete. Role-aware rules and client safeguards are prepared but **not deployed**. Existing accounts need individually reviewed role assignments before rollout; see [role migration](./role-migration.md). Current live rules have not been inspected or changed as part of this work.
 - Existing cloud and browser records are not deleted by the Phase 1 changes. Historical seed records are no longer automatically added to a new browser; any future migration must be reviewed and run explicitly.
 
 ## Firebase Web configuration
 
 Copy `.env.example` to `.env.local` and set `VITE_FIREBASE_API_KEY` and `VITE_FIREBASE_APP_ID` to the correct Firebase Web app settings. These identify the Firebase project; access control is enforced by Firebase Auth and security rules, not by keeping the Web API key secret. Never put service-account private keys in frontend configuration or commit them.
 
-For GitHub production deployments, configure `VITE_FIREBASE_API_KEY` and `VITE_FIREBASE_APP_ID` as repository variables (or secrets), along with the deployment service-account secret and release-approval variable described in the README. The workflow fails before building if the Web values are missing. Local staging and production deployment commands check them too. This validation checks presence, not whether values identify the correct project: verify the project separately.
+For GitHub production deployments, configure `VITE_FIREBASE_API_KEY` and `VITE_FIREBASE_APP_ID` as repository variables (or secrets), along with the deployment service-account secret and release-approval variable described in the README. The workflow fails before building if the Web values are missing. Local staging and production deployment commands check them too. Production validation checks the configured project ID as well as presence, not whether the API key and app ID belong to that project: verify the Firebase Web settings separately.
 
 By default, an unconfigured app remains at the sign-in screen. For an isolated local development-only session, `VITE_ALLOW_LOCAL_MODE=true` explicitly enables local mode if Firebase is unconfigured. Vite production builds do not enable this mode. Browser storage can remain on a device after sign-out; use separate OS/browser profiles on shared computers.
 

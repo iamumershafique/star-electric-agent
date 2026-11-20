@@ -34,17 +34,23 @@ jobs:
       - name: Verify production release approval
         env:
           PORTAL_DATA_RELEASE_APPROVED: ${{ vars.PORTAL_DATA_RELEASE_APPROVED }}
-        run: |
-          if [ "$PORTAL_DATA_RELEASE_APPROVED" != "true" ]; then
-            echo "::error::Release blocked: verify backups and production data before setting PORTAL_DATA_RELEASE_APPROVED=true."
-            exit 1
-          fi
+          PORTAL_ROLES_MIGRATED: ${{ vars.PORTAL_ROLES_MIGRATED }}
+        run: node scripts/check-release.mjs hosting
+
+      - name: Set up Java for rules emulator tests
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
 
       - name: Install locked dependencies
         run: npm ci
 
       - name: Test
         run: npm test
+
+      - name: Test Firebase security rules in emulators
+        run: npm run test:rules
 
       - name: Lint
         run: npm run lint
@@ -53,7 +59,7 @@ jobs:
         env:
           VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY || secrets.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID || secrets.VITE_FIREBASE_APP_ID }}
-        run: npm run validate:firebase
+        run: npm run validate:firebase:production
 
       - name: Build portal
         env:

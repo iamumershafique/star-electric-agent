@@ -2,14 +2,14 @@ import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
-// Default configuration for project star-agent-jpf
-// Environment variables can override any of these fields
+// Production defaults; explicit Vite variables allow an isolated test project.
+const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID || 'star-agent-jpf';
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || (typeof window !== 'undefined' ? (window as any).__FIREBASE_API_KEY__ : '') || '',
-  authDomain: "star-agent-jpf.firebaseapp.com",
-  projectId: "star-agent-jpf",
-  storageBucket: "star-agent-jpf.firebasestorage.app",
-  messagingSenderId: "531307346524",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`,
+  projectId,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || `${projectId}.firebasestorage.app`,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || (projectId === 'star-agent-jpf' ? '531307346524' : ''),
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
 };
 

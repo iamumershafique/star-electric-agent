@@ -148,14 +148,15 @@ export function getPRs(): PRRecord[] {
   });
 }
 
-export function saveAllPRs(prs: PRRecord[]): boolean {
+export function saveAllPRs(prs: PRRecord[], options: { uploadImages?: boolean } = {}): boolean {
   // Save heavy base64 document images into persistent IndexedDB store
   // and keep lightweight indexeddb references in localStorage to protect quota limit
   const sanitized = prs.map(p => {
     if (p.documentImage && p.documentImage.startsWith('data:')) {
       saveImageToMemory('pr', p.prNumber || p.id, p.documentImage, {
         referenceNumber: p.prNumber,
-        siteName: p.siteName
+        siteName: p.siteName,
+        uploadToCloud: options.uploadImages
       });
       const refKey = normalizeImageKey('pr', p.prNumber || p.id);
       return { ...p, documentImage: `indexeddb:${refKey}` };
@@ -517,7 +518,7 @@ export function attachPRImageToDCInStorage(
   return { updatedPRs: prs, updatedDCs };
 }
 
-export function saveAllDCs(dcs: DCRecord[]): boolean {
+export function saveAllDCs(dcs: DCRecord[], options: { uploadImages?: boolean } = {}): boolean {
   // Save heavy base64 images into persistent IndexedDB store
   // and keep lightweight indexeddb references in localStorage to protect quota limit
   const sanitized = dcs.map(d => {
@@ -525,21 +526,24 @@ export function saveAllDCs(dcs: DCRecord[]): boolean {
     if (copy.documentImage && copy.documentImage.startsWith('data:')) {
       saveImageToMemory('dc', copy.dcNumber || copy.id, copy.documentImage, {
         referenceNumber: copy.dcNumber,
-        siteName: copy.siteName
+        siteName: copy.siteName,
+        uploadToCloud: options.uploadImages
       });
       copy.documentImage = `indexeddb:${normalizeImageKey('dc', copy.dcNumber || copy.id)}`;
     }
     if (copy.builtyImage && copy.builtyImage.startsWith('data:')) {
       saveImageToMemory('builty', copy.dcNumber || copy.biltyNumber || copy.id, copy.builtyImage, {
         referenceNumber: copy.biltyNumber || copy.dcNumber,
-        siteName: copy.siteName
+        siteName: copy.siteName,
+        uploadToCloud: options.uploadImages
       });
       copy.builtyImage = `indexeddb:${normalizeImageKey('builty', copy.dcNumber || copy.id)}`;
     }
     if (copy.prDocumentImage && copy.prDocumentImage.startsWith('data:')) {
       saveImageToMemory('pr', copy.prNumber || copy.prId || copy.id, copy.prDocumentImage, {
         referenceNumber: copy.prNumber,
-        siteName: copy.siteName
+        siteName: copy.siteName,
+        uploadToCloud: options.uploadImages
       });
       copy.prDocumentImage = `indexeddb:${normalizeImageKey('pr', copy.prNumber || copy.id)}`;
     }

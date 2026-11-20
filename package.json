@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "deploy:firebase": "node -e \"if (process.env.PORTAL_DATA_RELEASE_APPROVED !== 'true') { console.error('Hosting release blocked: verify and migrate portal records before setting PORTAL_DATA_RELEASE_APPROVED=true.'); process.exit(1); }\" && npm run validate:firebase && npm run build && npx -y firebase-tools@latest deploy --only firestore:rules && npx -y firebase-tools@latest deploy --only hosting",
-    "deploy:staging": "npm run validate:firebase && npm run build && npx -y firebase-tools@latest hosting:channel:deploy preview --expires 7d",
+    "deploy:firebase": "node scripts/check-release.mjs hosting && npm run validate:firebase:production && npm run build && firebase deploy --only hosting --project star-agent-jpf --non-interactive",
+    "deploy:staging": "node scripts/check-preview.mjs && npm run validate:firebase && npm run build && node scripts/deploy-preview.mjs",
     "lint": "oxlint",
     "preview": "vite preview",
     "dev:demo": "vite --config demo-preview/vite.config.ts",
@@ -15,7 +15,11 @@
     "drive:watch": "node scripts/driveSyncDaemon.cjs",
     "validate:firebase": "node scripts/validateFirebaseConfig.mjs",
     "test": "vitest run",
-    "backup:inspect": "tsx scripts/inspect-backup.ts"
+    "backup:inspect": "tsx scripts/inspect-backup.ts",
+    "roles:manage": "node scripts/manage-role.mjs",
+    "test:rules": "firebase emulators:exec --project demo-star-electric --only firestore,storage \"node --test rules-tests/security.mjs\"",
+    "deploy:rules": "node scripts/check-release.mjs rules && npm run test:rules && firebase deploy --only firestore:rules,storage --project star-agent-jpf --non-interactive",
+    "validate:firebase:production": "node scripts/validateFirebaseConfig.mjs --project star-agent-jpf"
   },
   "dependencies": {
     "@google/genai": "^2.22.0",
@@ -28,6 +32,7 @@
     "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^24.13.3",

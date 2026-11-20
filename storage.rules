@@ -1,16 +1,18 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    function roleIs(role) {
+      return request.auth != null && 'portalRole' in request.auth.token && request.auth.token.portalRole == role;
+    }
+    function canRead() { return roleIs('viewer') || roleIs('editor') || roleIs('admin'); }
+    function canEdit() { return roleIs('editor') || roleIs('admin'); }
+    function isAdmin() { return roleIs('admin'); }
     match /scans/{file} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-                   && request.resource.size < 25 * 1024 * 1024
-                   && (request.resource.contentType.matches('image/.*') || request.resource.contentType == 'application/pdf');
+      allow read: if canRead();
+      allow create, update: if canEdit() && request.resource.size < 25 * 1024 * 1024
+        && (request.resource.contentType.matches('image/.*') || request.resource.contentType == 'application/pdf');
+      allow delete: if isAdmin();
     }
-
-    // Deny all other access by default
-    match /{allPaths=**} {
-      allow read, write: if false;
-    }
+    match /{allPaths=**} { allow read, write: if false; }
   }
 }

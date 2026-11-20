@@ -17,13 +17,23 @@ describe('Firestore failures', () => {
   });
   it('passes cache metadata along with snapshots so a cached result is not treated as server recovery', () => {
     mock.db = {}; mock.configured = true;
-    mock.onSnapshot.mockImplementation((_ref, update) => {
-      update({ metadata: { fromCache: true }, forEach: () => {} });
+    mock.onSnapshot.mockImplementation((_ref, _options, update) => {
+      update({ metadata: { fromCache: true, hasPendingWrites: false }, forEach: () => {} });
       return () => {};
     });
     const update = vi.fn();
     subscribeToCloudPRs(update, vi.fn());
-    expect(update).toHaveBeenCalledWith([], { fromCache: true });
+    expect(update).toHaveBeenCalledWith([], { fromCache: true, hasPendingWrites: false, rejectedCount: 0 });
+  });
+  it('reports invalid document IDs instead of making them editable under the wrong ID', () => {
+    mock.db = {}; mock.configured = true;
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mock.onSnapshot.mockImplementation((_ref, _options, update) => {
+      update({ metadata: { fromCache: false, hasPendingWrites: false }, forEach: (fn: (doc: unknown) => void) => fn({ id: 'actual-doc', data: () => ({ ...pr, id: 'different-id' }) }) });
+      return () => {};
+    });
+    const update = vi.fn(); subscribeToCloudPRs(update, vi.fn());
+    expect(update).toHaveBeenCalledWith([], { fromCache: false, hasPendingWrites: false, rejectedCount: 1 });
   });
   it('propagates rejected Firebase writes to the caller', async () => {
     mock.db = {}; mock.configured = true; mock.setDoc.mockRejectedValue(new Error('rules rejected write'));
@@ -35,7 +45,7 @@ describe('Firestore failures', () => {
     expect(subscribeToCloudPRs(vi.fn(), onError)).toBeNull();
     expect(onError).toHaveBeenCalledOnce();
     mock.db = {}; mock.configured = true;
-    mock.onSnapshot.mockImplementation((_ref, _update, failure) => { failure(new Error('permission denied')); return () => {}; });
+    mock.onSnapshot.mockImplementation((_ref, _options, _update, failure) => { failure(new Error('permission denied')); return () => {}; });
     subscribeToCloudPRs(vi.fn(), onError);
     expect(onError).toHaveBeenCalledTimes(2);
   });
