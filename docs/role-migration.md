@@ -9,7 +9,9 @@
 | `admin` | Yes | Yes | Yes |
 | Missing or unknown | No | No | No |
 
-Firestore and Storage rules enforce this policy; client-side checks are only an additional user-interface safeguard. An authenticated account without a recognized role cannot use the portal. The local development-only mode remains an isolated local administrator. The rules and role-sensitive app in this branch are **not deployed**.
+Firestore and Storage rules enforce this policy for authorized SDK requests; client-side checks are only an additional user-interface safeguard. An authenticated account without a recognized role cannot use the portal. The local development-only mode remains an isolated local administrator. The rules and role-sensitive app in this branch are **not deployed**.
+
+**Scan confidentiality limitation:** the app obtains Firebase Storage download URLs. A download URL containing a token is a bearer link: anyone who obtains it may be able to download the object without signing in, even after these role rules are deployed. Existing external or Drive scan URLs may have their own sharing permissions. Do not treat role rules as proof that previously issued links are private. Before release, inventory scan links and access paths, review and revoke or rotate exposed download tokens and Drive shares as appropriate, and test the replacement access design in isolation. Avoid logging or sharing scan URLs. Revoking tokens without a migration plan can break existing scan references; preserve and verify backups first.
 
 ## Do not lock out existing users
 
