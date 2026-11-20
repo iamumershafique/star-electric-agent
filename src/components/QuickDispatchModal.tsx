@@ -54,7 +54,7 @@ export const QuickDispatchModal: React.FC = () => {
       const initialMap: Record<string, number> = {};
       items.forEach(item => {
         const remaining = Math.max(0, item.requestedQty - item.fulfilledQty);
-        initialMap[item.id] = remaining > 0 ? remaining : item.requestedQty;
+        initialMap[item.id] = remaining;
       });
       setShippedMap(initialMap);
       setErrorMsg(null);
@@ -75,8 +75,8 @@ export const QuickDispatchModal: React.FC = () => {
 
   const { pr, items } = quickDispatchTarget;
 
-  const handleQtyChange = (itemId: string, val: number, maxVal: number) => {
-    const qty = Math.max(0, Math.min(val, maxVal));
+  const handleQtyChange = (itemId: string, val: number) => {
+    const qty = Math.max(0, val);
     setShippedMap(prev => ({ ...prev, [itemId]: qty }));
   };
 
@@ -101,7 +101,7 @@ export const QuickDispatchModal: React.FC = () => {
     const cleanDC = dcNumber.trim().toUpperCase();
     const parsedFreight = isFreightFree ? 0 : (parseFloat(freightCharges) || 0);
 
-    recordDeliveryChallan(
+    const recorded = recordDeliveryChallan(
       {
         dcNumber: cleanDC,
         invoiceNumber: cleanDC,
@@ -122,7 +122,7 @@ export const QuickDispatchModal: React.FC = () => {
       shippedMap
     );
 
-    setIsQuickDispatchOpen(false);
+    if (recorded) setIsQuickDispatchOpen(false);
   };
 
   return (
@@ -186,7 +186,6 @@ export const QuickDispatchModal: React.FC = () => {
                 <tbody className="divide-y divide-slate-200 bg-white">
                   {items.map(item => {
                     const remaining = Math.max(0, item.requestedQty - item.fulfilledQty);
-                    const maxAllowed = remaining > 0 ? remaining : item.requestedQty;
                     const currentShipping = shippedMap[item.id] || 0;
 
                     return (
@@ -208,9 +207,8 @@ export const QuickDispatchModal: React.FC = () => {
                           <input
                             type="number"
                             min={0}
-                            max={maxAllowed}
                             value={currentShipping}
-                            onChange={(e) => handleQtyChange(item.id, parseFloat(e.target.value) || 0, maxAllowed)}
+                            onChange={(e) => handleQtyChange(item.id, parseFloat(e.target.value) || 0)}
                             aria-label={`${item.name} dispatch quantity`}
                             className="w-full px-2 py-1 rounded-lg bg-white border border-slate-300 text-center font-mono font-extrabold text-xs text-emerald-700 focus:outline-none focus:border-emerald-600"
                           />

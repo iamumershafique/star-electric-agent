@@ -15,18 +15,18 @@ const DCS_COLLECTION = 'star_dcs';
 /**
  * Subscribe to real-time changes in PR collection
  */
-export function subscribeToCloudPRs(onUpdate: (prs: PRRecord[]) => void): Unsubscribe | null {
+export function subscribeToCloudPRs(onUpdate: (prs: PRRecord[], metadata: { fromCache: boolean; hasPendingWrites?: boolean; rejectedCount?: number }) => void, onError?: (error: unknown) => void): Unsubscribe | null {
   const db = getFirestoreDb();
-  if (!db || !isFirestoreConfigured()) return null;
+  if (!db || !isFirestoreConfigured()) { onError?.(new Error('Firestore is unavailable.')); return null; }
 
   try {
     const colRef = collection(db, PRS_COLLECTION);
-    return onSnapshot(colRef, (snapshot) => {
+    return onSnapshot(colRef, { includeMetadataChanges: true }, (snapshot) => {
       const records: PRRecord[] = [];
       let rejectedCount = 0;
       snapshot.forEach((d) => {
         const record = d.data() as Partial<PRRecord>;
-        if (typeof record.prNumber !== 'string' || !record.prNumber.trim()) {
+        if (typeof record.prNumber !== 'string' || !record.prNumber.trim() || (typeof record.id === 'string' && record.id.replace(/\//g, '_') !== d.id)) {
           rejectedCount++;
           return;
         }
@@ -63,16 +63,18 @@ export function subscribeToCloudPRs(onUpdate: (prs: PRRecord[]) => void): Unsubs
         } as PRRecord);
       });
       if (rejectedCount > 0) {
-        console.warn(`[Firestore] Ignored ${rejectedCount} PR document(s) without a PR number.`);
+        console.warn(`[Firestore] Ignored ${rejectedCount} PR document(s) with an invalid number or document ID.`);
       }
       // Sort newest first by createdTimestamp
       records.sort((a, b) => (b.createdTimestamp || 0) - (a.createdTimestamp || 0));
-      onUpdate(records);
+      onUpdate(records, { fromCache: snapshot.metadata.fromCache, hasPendingWrites: snapshot.metadata.hasPendingWrites, rejectedCount });
     }, (error) => {
       console.warn('[Firestore] PR subscription listener error:', error);
+      onError?.(error);
     });
   } catch (err) {
     console.warn('[Firestore] Failed to attach PR listener:', err);
+    onError?.(err);
     return null;
   }
 }
@@ -80,18 +82,18 @@ export function subscribeToCloudPRs(onUpdate: (prs: PRRecord[]) => void): Unsubs
 /**
  * Subscribe to real-time changes in DC collection
  */
-export function subscribeToCloudDCs(onUpdate: (dcs: DCRecord[]) => void): Unsubscribe | null {
+export function subscribeToCloudDCs(onUpdate: (dcs: DCRecord[], metadata: { fromCache: boolean; hasPendingWrites?: boolean; rejectedCount?: number }) => void, onError?: (error: unknown) => void): Unsubscribe | null {
   const db = getFirestoreDb();
-  if (!db || !isFirestoreConfigured()) return null;
+  if (!db || !isFirestoreConfigured()) { onError?.(new Error('Firestore is unavailable.')); return null; }
 
   try {
     const colRef = collection(db, DCS_COLLECTION);
-    return onSnapshot(colRef, (snapshot) => {
+    return onSnapshot(colRef, { includeMetadataChanges: true }, (snapshot) => {
       const records: DCRecord[] = [];
       let rejectedCount = 0;
       snapshot.forEach((d) => {
         const record = d.data() as Partial<DCRecord>;
-        if (typeof record.dcNumber !== 'string' || !record.dcNumber.trim()) {
+        if (typeof record.dcNumber !== 'string' || !record.dcNumber.trim() || (typeof record.id === 'string' && record.id.replace(/\//g, '_') !== d.id)) {
           rejectedCount++;
           return;
         }
@@ -118,15 +120,17 @@ export function subscribeToCloudDCs(onUpdate: (dcs: DCRecord[]) => void): Unsubs
         } as DCRecord);
       });
       if (rejectedCount > 0) {
-        console.warn(`[Firestore] Ignored ${rejectedCount} DC document(s) without a DC number.`);
+        console.warn(`[Firestore] Ignored ${rejectedCount} DC document(s) with an invalid number or document ID.`);
       }
       records.sort((a, b) => (b.createdTimestamp || 0) - (a.createdTimestamp || 0));
-      onUpdate(records);
+      onUpdate(records, { fromCache: snapshot.metadata.fromCache, hasPendingWrites: snapshot.metadata.hasPendingWrites, rejectedCount });
     }, (error) => {
       console.warn('[Firestore] DC subscription listener error:', error);
+      onError?.(error);
     });
   } catch (err) {
     console.warn('[Firestore] Failed to attach DC listener:', err);
+    onError?.(err);
     return null;
   }
 }
@@ -136,7 +140,7 @@ export function subscribeToCloudDCs(onUpdate: (dcs: DCRecord[]) => void): Unsubs
  */
 export async function savePRToCloud(pr: PRRecord): Promise<void> {
   const db = getFirestoreDb();
-  if (!db || !isFirestoreConfigured()) return;
+  if (!db || !isFirestoreConfigured()) throw new Error('Firestore is not available; cloud save was not performed.');
 
   const docId = String(pr.id || pr.prNumber).replace(/\//g, '_');
   // Strip heavy base64 to preserve database storage limits
@@ -151,7 +155,7 @@ export async function savePRToCloud(pr: PRRecord): Promise<void> {
  */
 export async function saveDCToCloud(dc: DCRecord): Promise<void> {
   const db = getFirestoreDb();
-  if (!db || !isFirestoreConfigured()) return;
+  if (!db || !isFirestoreConfigured()) throw new Error('Firestore is not available; cloud save was not performed.');
 
   const docId = String(dc.id || dc.dcNumber).replace(/\//g, '_');
   // Keep lightweight references/URLs so other devices can resolve the scan from Storage
@@ -214,7 +218,7 @@ export async function syncDriveVerifiedPRFulfillmentToCloud(
  */
 export async function deletePRFromCloud(id: string): Promise<void> {
   const db = getFirestoreDb();
-  if (!db || !isFirestoreConfigured()) return;
+  if (!db || !isFirestoreConfigured()) throw new Error('Firestore is not available; cloud save was not performed.');
 
   const docId = String(id).replace(/\//g, '_');
   const docRef = doc(db, PRS_COLLECTION, docId);
@@ -226,7 +230,7 @@ export async function deletePRFromCloud(id: string): Promise<void> {
  */
 export async function deleteDCFromCloud(id: string): Promise<void> {
   const db = getFirestoreDb();
-  if (!db || !isFirestoreConfigured()) return;
+  if (!db || !isFirestoreConfigured()) throw new Error('Firestore is not available; cloud save was not performed.');
 
   const docId = String(id).replace(/\//g, '_');
   const docRef = doc(db, DCS_COLLECTION, docId);

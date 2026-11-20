@@ -9,16 +9,21 @@ on:
 permissions:
   contents: read
 
+# Serialize production releases; a newer queued main commit replaces an older queued run.
 concurrency:
   group: firebase-hosting-production
   cancel-in-progress: false
 
 jobs:
   deploy:
+    # Never deploy a feature-branch/manual ref to the production site.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Check out the triggering commit
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -29,19 +34,52 @@ jobs:
       - name: Verify production release approval
         env:
           PORTAL_DATA_RELEASE_APPROVED: ${{ vars.PORTAL_DATA_RELEASE_APPROVED }}
+          PORTAL_ROLES_MIGRATED: ${{ vars.PORTAL_ROLES_MIGRATED }}
+        run: node scripts/check-release.mjs hosting
+
+      - name: Set up Java for rules emulator tests
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Test Firebase security rules in emulators
+        run: npm run test:rules
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Validate Firebase Web configuration
+        env:
+          VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY || secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID || secrets.VITE_FIREBASE_APP_ID }}
+        run: npm run validate:firebase:production
+
+      - name: Build portal
+        env:
+          VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY || secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID || secrets.VITE_FIREBASE_APP_ID }}
+        run: npm run build
+
+      - name: Verify this is still the latest main commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TRIGGER_SHA: ${{ github.sha }}
         run: |
-          if [ "$PORTAL_DATA_RELEASE_APPROVED" != "true" ]; then
-            echo "::error::Set the PORTAL_DATA_RELEASE_APPROVED repository variable to true only after verifying production data."
+          latest="$(gh api "repos/$REPOSITORY/commits/main" --jq .sha)"
+          if [ "$latest" != "$TRIGGER_SHA" ]; then
+            echo "::error::A newer main commit exists; this older release will not deploy."
             exit 1
           fi
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build portal
-        run: npm run build
-
-      - name: Deploy hosting
+      - name: Deploy Hosting only
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
@@ -53,4 +91,4 @@ jobs:
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
           chmod 600 "$RUNNER_TEMP/firebase-service-account.json"
           GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-service-account.json" \
-            npx --yes firebase-tools@15 deploy --only firestore:rules,hosting --project star-agent-jpf --non-interactive
+            npx --no-install firebase deploy --only hosting --project star-agent-jpf --non-interactive

@@ -1,10 +1,9 @@
-import type { PRRecord, DCRecord, DriveVerifiedDCUpdate, DriveVerifiedPRFulfillmentUpdate, FulfillmentLog, LineItem, BrandCategory, GeminiBuiltyExtractionResult } from '../types';
-import { computeItemStatus, computePRStatus, cleanApiKey, normalizePRNumber, hasPRNumber, normalizeSiteName, normalizeDateToISO } from './utils';
-import { JADEED_HISTORY_DCS, JADEED_FARM_SITES } from '../data/jadeedHistoryData';
-import { JADEED_DRIVE_BULTIES, JADEED_DRIVE_DC_LEDGER, JADEED_DRIVE_DC_SCANS, JADEED_DRIVE_SCAN_PR_VERIFICATIONS } from '../data/jadeedDriveImport';
+import { planDeliveries } from './deliveryRules';
+import type { PRRecord, DCRecord, FulfillmentLog, LineItem, BrandCategory, GeminiBuiltyExtractionResult } from '../types';
+import { computeItemStatus, computePRStatus, cleanApiKey, normalizePRNumber, hasPRNumber, normalizeSiteName } from './utils';
+import { JADEED_FARM_SITES } from '../data/jadeedHistoryData';
 import { 
   saveImageToMemory, 
-  removeImageFromMemory,
   getImageFromMemorySync, 
   normalizeImageKey
 } from './imageStorage';
@@ -19,78 +18,14 @@ const STORAGE_KEY_AGENTROUTER_MODEL = 'STAR_ELECTRIC_AGENTROUTER_MODEL';
 const STORAGE_KEY_OLLAMA_ENDPOINT = 'STAR_ELECTRIC_OLLAMA_ENDPOINT';
 const STORAGE_KEY_OLLAMA_MODEL = 'STAR_ELECTRIC_OLLAMA_MODEL';
 const STORAGE_KEY_PREFERRED_OCR_PROVIDER = 'STAR_ELECTRIC_PREFERRED_OCR_PROVIDER';
-const STORAGE_KEY_DRIVE_IMPORT_VERSION = 'STAR_ELECTRIC_DRIVE_IMPORT_VERSION';
-const STORAGE_KEY_PR_EVIDENCE_VERSION = 'STAR_ELECTRIC_PR_EVIDENCE_VERSION';
-export const DRIVE_IMPORT_VERSION = 'jadeed-ledger-686-scans-v4-prod-scans';
-export const PR_EVIDENCE_VERSION = 'jadeed-scans-37-66-194-v2-separate-dc-images';
-
 const dcSequenceNumber = (dcNumber: string): number | undefined => {
   const match = dcNumber.replace(/[^a-zA-Z0-9]/g, '').match(/^dc0*(\d+)$/i);
   return match ? Number(match[1]) : undefined;
 };
 
 const seedImportsEnabled = import.meta.env.DEV;
-const driveLedgerByDC = new Map((seedImportsEnabled ? JADEED_DRIVE_DC_LEDGER : []).map(entry => [entry.dcNumber, entry]));
-const driveScansByDC = new Map(JADEED_DRIVE_DC_SCANS.map(entry => [entry.dcNumber, entry]));
-const driveDCScanImageUrls = new Set(JADEED_DRIVE_DC_SCANS.map(entry => entry.imageUrl));
-const driveBuiltyByDC = new Map((seedImportsEnabled ? JADEED_DRIVE_BULTIES : []).map(entry => [entry.dcNumber, entry]));
-const verifiedScanPRs = seedImportsEnabled ? JADEED_DRIVE_SCAN_PR_VERIFICATIONS : [];
-
-const hasBuiltyEvidence = (dc: DCRecord): boolean =>
-  !!(dc.isBuiltyAttached || dc.biltyNumber?.trim() || dc.builtyImage);
-
 const normalizePRReference = (value: string): string =>
   value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-
-const verifiedScanPRKeys = new Set(
-  verifiedScanPRs.map(entry => `${normalizePRReference(entry.prNumber)}:${normalizeDateToISO(entry.date)}`)
-);
-
-export function getVerifiedDriveDCUpdates(dcs: DCRecord[]): DriveVerifiedDCUpdate[] {
-  return dcs.flatMap(dc => {
-    const sequenceNumber = dcSequenceNumber(dc.dcNumber);
-    if (sequenceNumber === undefined) return [];
-
-    const ledgerEntry = driveLedgerByDC.get(sequenceNumber);
-    const scanEntry = driveScansByDC.get(sequenceNumber);
-    const builtyEntry = driveBuiltyByDC.get(sequenceNumber);
-    const update: DriveVerifiedDCUpdate = {
-      id: dc.id,
-      dcNumber: dc.dcNumber,
-      prId: dc.prId || '',
-      prNumber: dc.prNumber || ''
-    };
-
-    if (ledgerEntry?.date) update.date = ledgerEntry.date;
-    if (ledgerEntry?.siteName) update.siteName = ledgerEntry.siteName;
-    if (scanEntry) update.documentImage = scanEntry.imageUrl;
-    if (builtyEntry && dc.biltyNumber?.replace(/[^0-9]/g, '') === builtyEntry.biltyNumber) {
-      update.builtyImage = builtyEntry.imageUrl;
-    }
-    if (sequenceNumber >= 1 && sequenceNumber <= 500) {
-      update.noBuiltyRequired = !hasBuiltyEvidence(dc) &&
-        !(builtyEntry && dc.biltyNumber?.replace(/[^0-9]/g, '') === builtyEntry.biltyNumber);
-    }
-
-    return Object.keys(update).length > 2 ? [update] : [];
-  });
-}
-
-export function getDriveVerifiedPRFulfillmentUpdates(prs: PRRecord[]): DriveVerifiedPRFulfillmentUpdate[] {
-  return prs.flatMap(pr => {
-    const key = `${normalizePRReference(pr.prNumber)}:${normalizeDateToISO(pr.date)}`;
-    return verifiedScanPRKeys.has(key)
-      ? [{
-          id: pr.id,
-          prNumber: pr.prNumber,
-          date: pr.date,
-          status: pr.status,
-          items: pr.items,
-          fulfillmentLogs: pr.fulfillmentLogs || []
-        }]
-      : [];
-  });
-}
 
 export function getLinkedDCNumbersForPR(pr: PRRecord, dcs: DCRecord[]): string[] {
   const linkedNumbers = new Map<string, string>();
@@ -116,16 +51,6 @@ export function getLinkedDCNumbersForPR(pr: PRRecord, dcs: DCRecord[]): string[]
     }
   });
 
-  verifiedScanPRs
-    .filter(entry =>
-      normalizePRReference(entry.prNumber) === normalizedPRNumber &&
-      normalizeDateToISO(entry.date) === normalizeDateToISO(pr.date)
-    )
-    .forEach(entry => {
-      const verifiedDC = dcs.find(dc => dcSequenceNumber(dc.dcNumber) === entry.dcNumber);
-      if (verifiedDC) addDCNumber(verifiedDC.dcNumber);
-    });
-
   return Array.from(linkedNumbers.values());
 }
 
@@ -137,9 +62,8 @@ export const INITIAL_SITES: any[] = (seedImportsEnabled ? JADEED_FARM_SITES : []
 }));
 
 export const INITIAL_PRS: PRRecord[] = [];
-export const INITIAL_DCS: DCRecord[] = [
-  ...JADEED_HISTORY_DCS
-];
+// Historical imports must be reviewed explicitly, never injected on startup.
+export const INITIAL_DCS: DCRecord[] = [];
 
 function normalizeStoredPR(value: unknown, index: number): PRRecord {
   const raw = value && typeof value === 'object' ? value as Partial<PRRecord> : {};
@@ -212,133 +136,27 @@ function normalizeStoredDC(value: unknown, index: number): DCRecord {
 
 export function getPRs(): PRRecord[] {
   const data = localStorage.getItem(STORAGE_KEY_PRS);
-  const shouldReconcileScannedPRs = localStorage.getItem(STORAGE_KEY_PR_EVIDENCE_VERSION) !== PR_EVIDENCE_VERSION;
-  let list: PRRecord[] = [];
-  if (data === null) {
-    list = INITIAL_PRS;
-  } else {
-    try {
-      const parsed: unknown = JSON.parse(data);
-      if (!Array.isArray(parsed)) throw new Error('Stored PR data is not an array.');
-      list = parsed.map(normalizeStoredPR);
-    } catch (e) {
-      console.error('Failed to parse PRs from storage', e);
-      list = INITIAL_PRS;
-    }
-  }
-
-  // Hydrate documentImage from persistent image memory store
-  let hasRemovedDCScanImage = false;
-  let cleaned = list.map(p => {
-    let img = p.documentImage;
-    if (img && img.startsWith('indexeddb:')) {
-      const key = img.replace('indexeddb:', '');
-      img = getImageFromMemorySync(key) || img;
-    } else if (!img) {
-      img = getImageFromMemorySync(normalizeImageKey('pr', p.prNumber)) ||
-            getImageFromMemorySync(normalizeImageKey('pr', p.id));
-    }
-    if (img && driveDCScanImageUrls.has(img)) {
-      hasRemovedDCScanImage = true;
-      void removeImageFromMemory('pr', p.prNumber, img).catch(error => {
-        console.error(`Failed to remove DC scan from PR ${p.prNumber} image memory`, error);
-      });
-      img = undefined;
-    }
-    return { ...p, documentImage: img };
-  }).filter((p: PRRecord) => {
-    const cleanNum = p.prNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    return cleanNum !== 'pr60' && cleanNum !== '60';
-  }) as PRRecord[];
-
-  // Auto-heal: Ensure all real PRs are present in PRs
-  const requiredPRs = ['PR-37', 'PR-66', 'PR-194', 'PR-674', 'PR-673', 'PR-151', 'PR-58', 'PR-666', 'PR-JAD-2026-614', 'PR-JAD-2026-613'];
-  let hasAddedMissing = false;
-  for (const reqKey of requiredPRs) {
-    const exists = cleaned.some(p =>
-      p.prNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === reqKey.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
-    );
-    if (!exists) {
-      const seedPR = INITIAL_PRS.find(p =>
-        p.prNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === reqKey.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
-      );
-      if (seedPR) {
-        cleaned.unshift(seedPR);
-        hasAddedMissing = true;
-      }
-    }
-  }
-
-  let hasReconciledScannedPRs = false;
-  if (shouldReconcileScannedPRs) {
-    cleaned = cleaned.map(pr => {
-      const verification = verifiedScanPRs.find(entry =>
-        normalizePRReference(entry.prNumber) === normalizePRReference(pr.prNumber) &&
-        normalizeDateToISO(entry.date) === normalizeDateToISO(pr.date)
-      );
-      if (!verification) return pr;
-
-      const confirmedItemNames = new Set(verification.matchedPRItemNames.map(name =>
-        name.toLowerCase().replace(/[^a-z0-9]/g, '')
-      ));
-      const retainedLogs = (pr.fulfillmentLogs || []).filter(log => {
-        const logDCNumber = dcSequenceNumber(log.dcNumber);
-        const itemName = log.itemName.toLowerCase().replace(/[^a-z0-9]/g, '');
-        return logDCNumber !== verification.dcNumber || confirmedItemNames.has(itemName);
-      });
-
-      const items = (pr.items || []).map(item => {
-        if (item.status === 'Cancelled') {
-          return { ...item, fulfilledQty: 0, status: 'Cancelled' as const };
-        }
-        const itemName = item.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const matchedLogs = retainedLogs.filter(log =>
-          log.itemName.toLowerCase().replace(/[^a-z0-9]/g, '') === itemName
-        );
-        const fulfilledQty = Math.min(
-          item.requestedQty,
-          matchedLogs.reduce((total, log) => total + Math.max(0, log.quantityShipped), 0)
-        );
-        return {
-          ...item,
-          fulfilledQty,
-          status: computeItemStatus(item.requestedQty, fulfilledQty)
-        };
-      });
-
-      hasReconciledScannedPRs = true;
-      return {
-        ...pr,
-        items,
-        fulfillmentLogs: retainedLogs,
-        status: computePRStatus(items)
-      };
-    });
-  }
-
-  let savedPRs = true;
-  if (cleaned.length !== list.length || hasAddedMissing || hasReconciledScannedPRs || hasRemovedDCScanImage) {
-    savedPRs = saveAllPRs(cleaned);
-  }
-
-  if (shouldReconcileScannedPRs && (hasReconciledScannedPRs || hasRemovedDCScanImage) && savedPRs) {
-    try {
-      localStorage.setItem(STORAGE_KEY_PR_EVIDENCE_VERSION, PR_EVIDENCE_VERSION);
-    } catch (error) {
-      console.error('Failed to record scanned PR fulfillment reconciliation version', error);
-    }
-  }
-  return cleaned;
+  if (data === null) return [];
+  let parsed: unknown;
+  try { parsed = JSON.parse(data); } catch { throw new Error('The local PR cache is damaged. Do not clear it; contact the administrator to recover it.'); }
+  if (!Array.isArray(parsed)) throw new Error('The local PR cache is invalid. Do not clear it; contact the administrator to recover it.');
+  return parsed.map(normalizeStoredPR).map(pr => {
+    const image = pr.documentImage;
+    return image?.startsWith('indexeddb:')
+      ? { ...pr, documentImage: getImageFromMemorySync(image.slice('indexeddb:'.length)) || image }
+      : pr;
+  });
 }
 
-export function saveAllPRs(prs: PRRecord[]): boolean {
+export function saveAllPRs(prs: PRRecord[], options: { uploadImages?: boolean } = {}): boolean {
   // Save heavy base64 document images into persistent IndexedDB store
   // and keep lightweight indexeddb references in localStorage to protect quota limit
   const sanitized = prs.map(p => {
     if (p.documentImage && p.documentImage.startsWith('data:')) {
       saveImageToMemory('pr', p.prNumber || p.id, p.documentImage, {
         referenceNumber: p.prNumber,
-        siteName: p.siteName
+        siteName: p.siteName,
+        uploadToCloud: options.uploadImages
       });
       const refKey = normalizeImageKey('pr', p.prNumber || p.id);
       return { ...p, documentImage: `indexeddb:${refKey}` };
@@ -349,316 +167,25 @@ export function saveAllPRs(prs: PRRecord[]): boolean {
   try {
     localStorage.setItem(STORAGE_KEY_PRS, JSON.stringify(sanitized));
     return true;
-  } catch (err: any) {
-    console.warn('LocalStorage saveAllPRs quota exceeded, performing emergency purge...', err);
-    try {
-      localStorage.removeItem('star_electric_pr_image_cache');
-      localStorage.removeItem('star_electric_pending_image');
-      localStorage.setItem(STORAGE_KEY_PRS, JSON.stringify(sanitized));
-      return true;
-    } catch (e2) {
-      console.error('Final fallback saveAllPRs failed:', e2);
-      return false;
-    }
+  } catch (error) {
+    console.error('Local PR save failed; existing cache was preserved.', error);
+    if (typeof window !== 'undefined') queueMicrotask(() => window.dispatchEvent(new Event('star-ledger-local-save-failed')));
+    return false;
   }
 }
 
 export function getDCs(): DCRecord[] {
   const data = localStorage.getItem(STORAGE_KEY_DCS);
-  const shouldApplyDriveImport = localStorage.getItem(STORAGE_KEY_DRIVE_IMPORT_VERSION) !== DRIVE_IMPORT_VERSION;
-  let list: DCRecord[] = [];
-  if (data === null) {
-    list = INITIAL_DCS;
-  } else {
-    try {
-      const parsed: unknown = JSON.parse(data);
-      if (!Array.isArray(parsed)) throw new Error('Stored DC data is not an array.');
-      list = parsed.map(normalizeStoredDC);
-    } catch (e) {
-      console.error('Failed to parse DCs from storage', e);
-      list = INITIAL_DCS;
-    }
-  }
-
-  // Auto-upgrade if storage contains older seed dataset (< 740 records or missing DC 740)
-  // Ensures all 740 records from the Google Drive ledger appear immediately!
-  const hasDC740 = list.some(d => (d.dcNumber || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === 'dc740');
-  if (!hasDC740 || list.length < 740) {
-    const existingMap = new Map(list.map(d => [d.dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(), d]));
-    const merged = [...INITIAL_DCS];
-    for (let i = 0; i < merged.length; i++) {
-      const key = merged[i].dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      if (existingMap.has(key)) {
-        merged[i] = existingMap.get(key)!;
-        existingMap.delete(key);
-      }
-    }
-    existingMap.forEach(d => merged.push(d));
-    list = merged;
-    saveAllDCs(list);
-  }
-
-  // Deduplicate DCs by clean DC number (e.g. DC-601 vs DC 601)
-  const dcMap = new Map<string, DCRecord>();
-  let hasMergedDuplicates = false;
-  list.forEach(dc => {
-    const cleanKey = dc.dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    const mapKey = cleanKey || `missing-number:${dc.id}`;
-    if (!dcMap.has(mapKey)) {
-      dcMap.set(mapKey, dc);
-    } else {
-      hasMergedDuplicates = true;
-      const existing = dcMap.get(mapKey)!;
-      // Prefer real documentImage, itemsShipped, siteName
-      const bestDocImg = (dc.documentImage && !dc.documentImage.includes('1LaP42R6NWjrDghhJ9fR327x1GLqvrLdl') && cleanKey === 'dc601')
-        ? dc.documentImage
-        : (existing.documentImage || dc.documentImage);
-
-      dcMap.set(mapKey, {
-        ...existing,
-        ...dc,
-        id: existing.id.startsWith('dc-jad-') ? existing.id : dc.id,
-        itemsShipped: (dc.itemsShipped && dc.itemsShipped.length > 0) ? dc.itemsShipped : existing.itemsShipped,
-        documentImage: bestDocImg,
-        driverName: 'Nawaz',
-        vehicleNumber: 'STS-1500'
-      });
-    }
+  if (data === null) return [];
+  let parsed: unknown;
+  try { parsed = JSON.parse(data); } catch { throw new Error('The local DC cache is damaged. Do not clear it; contact the administrator to recover it.'); }
+  if (!Array.isArray(parsed)) throw new Error('The local DC cache is invalid. Do not clear it; contact the administrator to recover it.');
+  return parsed.map(normalizeStoredDC).map(dc => {
+    const hydrate = (image: string | undefined) => image?.startsWith('indexeddb:')
+      ? getImageFromMemorySync(image.slice('indexeddb:'.length)) || image
+      : image;
+    return { ...dc, documentImage: hydrate(dc.documentImage), builtyImage: hydrate(dc.builtyImage), prDocumentImage: hydrate(dc.prDocumentImage) };
   });
-  list = Array.from(dcMap.values());
-
-  // Auto-purge any wrong/dummy entries (e.g. DC 60, DC-60, DC# 60, or PR 60)
-  let cleaned = list.filter(d => {
-    const cleanDC = d.dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    const cleanPR = d.prNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    return cleanDC !== 'dc60' && cleanDC !== '60' && cleanPR !== 'pr60' && cleanPR !== '60';
-  });
-
-  // Auto-heal: Ensure all critical delivery challans are present in DCs
-  const requiredDCs = ['DC 655', 'DC-655', 'DC-674', 'DC-673', 'DC-668', 'DC-667', 'DC-666', 'DC 686'];
-  let hasAddedMissing = false;
-  for (const reqKey of requiredDCs) {
-    const exists = cleaned.some(d =>
-      d.dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === reqKey.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
-    );
-    if (!exists) {
-      const seedDC = INITIAL_DCS.find(d =>
-        d.dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === reqKey.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
-      );
-      if (seedDC) {
-        cleaned.unshift(seedDC);
-        hasAddedMissing = true;
-      }
-    }
-  }
-
-  // Mark all historical and current records cleanly as Delivered and enforce Nawaz & STS-1500
-  cleaned = cleaned.map(dc => {
-    let remarks = dc.remarks || 'Delivered to Site (Completed)';
-    if (remarks.includes('Builty Pending')) {
-      remarks = 'Delivered to Site (Completed)';
-    }
-
-    const cleanKey = dc.dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-
-    // Specific fix for DC 601: Real scan is 1mIfvmXP34QCSkpxDlNwY3ctZMHH5HyuJ
-    if (cleanKey === 'dc601') {
-      return {
-        ...dc,
-        documentImage: 'https://lh3.googleusercontent.com/d/1mIfvmXP34QCSkpxDlNwY3ctZMHH5HyuJ=w1200',
-        deliveryStatus: dc.deliveryStatus || 'Delivered',
-        driverName: 'Nawaz',
-        vehicleNumber: 'STS-1500',
-        remarks
-      };
-    }
-
-    // Specific fix for DC 652: Real scan is 1LaP42R6NWjrDghhJ9fR327x1GLqvrLdl (100 nos Panel LED Light 2x2 48W)
-    if (cleanKey === 'dc652') {
-      return {
-        ...dc,
-        documentImage: 'https://lh3.googleusercontent.com/d/1LaP42R6NWjrDghhJ9fR327x1GLqvrLdl=w1200',
-        siteName: 'Jadeed Group Oil Mill Khanewal via Ware House Rawat',
-        date: '2026-09-14',
-        itemsShipped: [
-          {
-            itemId: 'item-jad-0652-1',
-            itemName: "Pannel LED Light 2'x2' 48 watts 6500K Venus Imp.",
-            brand: 'Venus Imp.',
-            quantity: 100,
-            unit: 'nos'
-          }
-        ],
-        remarks: 'Received by Raj 15/9/26 | Venus Imp.',
-        deliveryStatus: dc.deliveryStatus || 'Delivered',
-        driverName: 'Nawaz',
-        vehicleNumber: 'STS-1500'
-      };
-    }
-
-    // Clean up old driver/vehicle names
-    let dName = dc.driverName;
-    if (!dName || ['Muhammad Imtiaz', 'Imtiaz Ahmed', 'Muhammad Rasheed', 'Shahid Mehmood'].includes(dName)) {
-      dName = 'Nawaz';
-    }
-    let vNum = dc.vehicleNumber;
-    if (!vNum || vNum.includes('LES-4812') || vNum.includes('RIP-3910') || vNum.includes('Star Truck') || vNum.includes('Bedford') || vNum.includes('Bolan')) {
-      vNum = 'STS-1500';
-    }
-
-    return {
-      ...dc,
-      deliveryStatus: dc.deliveryStatus || 'Delivered',
-      driverName: dName,
-      vehicleNumber: vNum,
-      remarks
-    };
-  });
-
-  // Auto-sync verified scans & builty images from INITIAL_DCS
-  const seedDCMap = new Map(INITIAL_DCS.map(d => [d.dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(), d]));
-  let hasScansUpdated = false;
-  cleaned = cleaned.map(dc => {
-    const key = dc.dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    const seed = seedDCMap.get(key);
-    let changed = false;
-    let newDocImg = dc.documentImage;
-    let newBuiltyImg = dc.builtyImage;
-    let newPrDocImg = dc.prDocumentImage;
-    let newDate = dc.date;
-    let newSiteName = dc.siteName;
-    let newNoBuiltyRequired = dc.noBuiltyRequired;
-
-    // Overwrite corrupt/shifted images (e.g. if key !== dc652 but has DC 652's file ID)
-    if (newDocImg?.includes('1LaP42R6NWjrDghhJ9fR327x1GLqvrLdl') && key !== 'dc652') {
-      newDocImg = seed?.documentImage || '';
-      changed = true;
-    }
-
-    if (shouldApplyDriveImport) {
-      const sequenceNumber = dcSequenceNumber(dc.dcNumber);
-      const ledgerEntry = sequenceNumber === undefined ? undefined : driveLedgerByDC.get(sequenceNumber);
-      const scanEntry = sequenceNumber === undefined ? undefined : driveScansByDC.get(sequenceNumber);
-      const builtyEntry = sequenceNumber === undefined ? undefined : driveBuiltyByDC.get(sequenceNumber);
-
-      if (ledgerEntry?.date && newDate !== ledgerEntry.date) {
-        newDate = ledgerEntry.date;
-        changed = true;
-      }
-      if (ledgerEntry?.siteName && newSiteName !== ledgerEntry.siteName) {
-        newSiteName = ledgerEntry.siteName;
-        changed = true;
-      }
-      if (scanEntry && newDocImg !== scanEntry.imageUrl) {
-        newDocImg = scanEntry.imageUrl;
-        changed = true;
-      }
-      if (
-        builtyEntry &&
-        dc.biltyNumber?.replace(/[^0-9]/g, '') === builtyEntry.biltyNumber &&
-        newBuiltyImg !== builtyEntry.imageUrl
-      ) {
-        newBuiltyImg = builtyEntry.imageUrl;
-        changed = true;
-      }
-
-      if (sequenceNumber !== undefined && sequenceNumber >= 1 && sequenceNumber <= 500) {
-        const hasVerifiedBuilty = hasBuiltyEvidence({ ...dc, builtyImage: newBuiltyImg }) ||
-          !!(builtyEntry && dc.biltyNumber?.replace(/[^0-9]/g, '') === builtyEntry.biltyNumber);
-        const required = !hasVerifiedBuilty;
-        if (newNoBuiltyRequired !== required) {
-          newNoBuiltyRequired = required;
-          changed = true;
-        }
-      }
-    }
-
-    if (newDocImg?.startsWith('indexeddb:')) {
-      newDocImg = getImageFromMemorySync(newDocImg.replace('indexeddb:', '')) || newDocImg;
-    } else if (!newDocImg && seed?.documentImage) {
-      newDocImg = seed.documentImage;
-      changed = true;
-    }
-
-    if (newBuiltyImg?.startsWith('indexeddb:')) {
-      newBuiltyImg = getImageFromMemorySync(newBuiltyImg.replace('indexeddb:', '')) || newBuiltyImg;
-    } else if (!newBuiltyImg && seed?.builtyImage) {
-      newBuiltyImg = seed.builtyImage;
-      changed = true;
-    }
-
-    if (newPrDocImg?.startsWith('indexeddb:')) {
-      newPrDocImg = getImageFromMemorySync(newPrDocImg.replace('indexeddb:', '')) || newPrDocImg;
-    } else if (!newPrDocImg && dc.prNumber) {
-      newPrDocImg = getImageFromMemorySync(normalizeImageKey('pr', dc.prNumber));
-      if (newPrDocImg) changed = true;
-    }
-
-    if (changed || newDocImg !== dc.documentImage || newBuiltyImg !== dc.builtyImage || newPrDocImg !== dc.prDocumentImage) {
-      hasScansUpdated = true;
-      return {
-        ...dc,
-        date: newDate,
-        siteName: newSiteName,
-        noBuiltyRequired: newNoBuiltyRequired,
-        documentImage: newDocImg,
-        builtyImage: newBuiltyImg,
-        prDocumentImage: newPrDocImg
-      };
-    }
-    return dc;
-  });
-
-  if (shouldApplyDriveImport) {
-    const prs = getPRs();
-    cleaned = cleaned.map(dc => {
-      const sequenceNumber = dcSequenceNumber(dc.dcNumber);
-      const verification = verifiedScanPRs.find(entry =>
-        entry.dcNumber === sequenceNumber &&
-        prs.some(pr =>
-          normalizePRReference(pr.prNumber) === normalizePRReference(entry.prNumber) &&
-          normalizeDateToISO(pr.date) === normalizeDateToISO(entry.date)
-        )
-      );
-      const matchedPR = verification
-        ? prs.find(pr =>
-            normalizePRReference(pr.prNumber) === normalizePRReference(verification.prNumber) &&
-            normalizeDateToISO(pr.date) === normalizeDateToISO(verification.date)
-          )
-        : prs.find(pr =>
-            normalizePRReference(pr.prNumber) === normalizePRReference(dc.prNumber)
-          );
-      const hasGeneratedPlaceholder = /^PR-JAD-\d{4}$/i.test(dc.prNumber || '');
-
-      if (verification && matchedPR) {
-        if (dc.prId === matchedPR.id && dc.prNumber === matchedPR.prNumber) return dc;
-        return { ...dc, prId: matchedPR.id, prNumber: matchedPR.prNumber };
-      }
-
-      if (matchedPR) {
-        if (dc.prId === matchedPR.id) return dc;
-        return { ...dc, prId: matchedPR.id, prNumber: matchedPR.prNumber };
-      }
-
-      if (hasGeneratedPlaceholder || /^pr-jad-\d+$/i.test(dc.prId || '')) {
-        if (!dc.prId && !dc.prNumber) return dc;
-        return { ...dc, prId: '', prNumber: '' };
-      }
-      return dc;
-    });
-  }
-
-  if (cleaned.length !== list.length || hasAddedMissing || hasScansUpdated || hasMergedDuplicates || shouldApplyDriveImport) {
-    const saved = saveAllDCs(cleaned);
-    if (shouldApplyDriveImport && saved) {
-      try {
-        localStorage.setItem(STORAGE_KEY_DRIVE_IMPORT_VERSION, DRIVE_IMPORT_VERSION);
-      } catch (error) {
-        console.error('Failed to record the Drive data import version', error);
-      }
-    }
-  }
-  return cleaned;
 }
 
 export function markAllDCsDelivered(): {
@@ -991,7 +518,7 @@ export function attachPRImageToDCInStorage(
   return { updatedPRs: prs, updatedDCs };
 }
 
-export function saveAllDCs(dcs: DCRecord[]): boolean {
+export function saveAllDCs(dcs: DCRecord[], options: { uploadImages?: boolean } = {}): boolean {
   // Save heavy base64 images into persistent IndexedDB store
   // and keep lightweight indexeddb references in localStorage to protect quota limit
   const sanitized = dcs.map(d => {
@@ -999,21 +526,24 @@ export function saveAllDCs(dcs: DCRecord[]): boolean {
     if (copy.documentImage && copy.documentImage.startsWith('data:')) {
       saveImageToMemory('dc', copy.dcNumber || copy.id, copy.documentImage, {
         referenceNumber: copy.dcNumber,
-        siteName: copy.siteName
+        siteName: copy.siteName,
+        uploadToCloud: options.uploadImages
       });
       copy.documentImage = `indexeddb:${normalizeImageKey('dc', copy.dcNumber || copy.id)}`;
     }
     if (copy.builtyImage && copy.builtyImage.startsWith('data:')) {
       saveImageToMemory('builty', copy.dcNumber || copy.biltyNumber || copy.id, copy.builtyImage, {
         referenceNumber: copy.biltyNumber || copy.dcNumber,
-        siteName: copy.siteName
+        siteName: copy.siteName,
+        uploadToCloud: options.uploadImages
       });
       copy.builtyImage = `indexeddb:${normalizeImageKey('builty', copy.dcNumber || copy.id)}`;
     }
     if (copy.prDocumentImage && copy.prDocumentImage.startsWith('data:')) {
       saveImageToMemory('pr', copy.prNumber || copy.prId || copy.id, copy.prDocumentImage, {
         referenceNumber: copy.prNumber,
-        siteName: copy.siteName
+        siteName: copy.siteName,
+        uploadToCloud: options.uploadImages
       });
       copy.prDocumentImage = `indexeddb:${normalizeImageKey('pr', copy.prNumber || copy.id)}`;
     }
@@ -1023,15 +553,10 @@ export function saveAllDCs(dcs: DCRecord[]): boolean {
   try {
     localStorage.setItem(STORAGE_KEY_DCS, JSON.stringify(sanitized));
     return true;
-  } catch (err: any) {
-    console.warn('LocalStorage saveAllDCs quota warning, performing emergency purge...', err);
-    try {
-      localStorage.setItem(STORAGE_KEY_DCS, JSON.stringify(sanitized));
-      return true;
-    } catch (e2) {
-      console.error('Final fallback saveAllDCs failed:', e2);
-      return false;
-    }
+  } catch (error) {
+    console.error('Local DC save failed; existing cache was preserved.', error);
+    if (typeof window !== 'undefined') queueMicrotask(() => window.dispatchEvent(new Event('star-ledger-local-save-failed')));
+    return false;
   }
 }
 
@@ -1084,9 +609,9 @@ export function savePR(pr: PRRecord): PRRecord[] {
     updatedList = [updatedPR, ...prs];
   }
 
+  // Keep the draft in memory if local persistence fails; do not re-read an older cache.
   saveAllPRs(updatedList);
-  const linkRes = autoLinkPRsAndDCsInStorage();
-  return linkRes.updatedPRs;
+  return updatedList;
 }
 
 export function saveMultiplePRsInStorage(records: PRRecord[]): PRRecord[] {
@@ -1149,8 +674,7 @@ export function saveMultiplePRsInStorage(records: PRRecord[]): PRRecord[] {
   }
 
   saveAllPRs(prs);
-  const linkRes = autoLinkPRsAndDCsInStorage();
-  return linkRes.updatedPRs;
+  return prs;
 }
 
 export function deletePR(prId: string): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[] } {
@@ -1226,103 +750,53 @@ export function deleteDC(dcId: string): { updatedPRs: PRRecord[]; updatedDCs: DC
   return { updatedPRs, updatedDCs };
 }
 
+/** Update DC metadata without reconstructing a PR's historical fulfillment logs. */
 export function updateDCInStorage(
   updatedDC: DCRecord
 ): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[] } {
   const dcs = getDCs();
   const prs = getPRs();
-
-  const dcIndex = dcs.findIndex(d => d.id === updatedDC.id);
-  if (dcIndex === -1) {
-    return { updatedPRs: prs, updatedDCs: dcs };
-  }
-
+  const dcIndex = dcs.findIndex(dc => dc.id === updatedDC.id);
+  if (dcIndex === -1) throw new Error('The DC was not found; no change was saved.');
   const oldDC = dcs[dcIndex];
-  const newDCs = [...dcs];
-  newDCs[dcIndex] = updatedDC;
-  saveAllDCs(newDCs);
-
-  // Sync with linked PR if exists
-  const targetPRIndex = prs.findIndex(
-    p => p.id === updatedDC.prId || p.prNumber === updatedDC.prNumber || p.id === oldDC.prId || p.prNumber === oldDC.prNumber
-  );
-  let updatedPRs = prs;
-
-  if (targetPRIndex >= 0) {
-    const pr = prs[targetPRIndex];
-    // Remove old logs for this DC
-    const otherLogs = (pr.fulfillmentLogs || []).filter(
-      l => l.dcNumber !== oldDC.dcNumber && l.dcNumber !== updatedDC.dcNumber
-    );
-
-    // Create new logs from updatedDC.itemsShipped
-    const newLogs: FulfillmentLog[] = updatedDC.itemsShipped.map(item => ({
-      id: `flog-${Math.random().toString(36).substring(2, 9)}`,
-      dcNumber: updatedDC.dcNumber,
-      invoiceNumber: updatedDC.invoiceNumber,
-      prNumber: pr.prNumber,
-      itemId: item.itemId,
-      itemName: item.itemName,
-      quantityShipped: item.quantity,
-      date: updatedDC.date,
-      transportType: updatedDC.transportType,
-      addaName: updatedDC.addaName,
-      biltyNumber: updatedDC.biltyNumber,
-      freightCharges: updatedDC.freightCharges,
-      isFreightFree: updatedDC.isFreightFree,
-      driverName: updatedDC.driverName,
-      vehicleNo: updatedDC.vehicleNumber,
-      notes: updatedDC.remarks
-    }));
-
-    const allLogs = [...otherLogs, ...newLogs];
-
-    // Recompute fulfilled totals
-    const itemFulfilledTotals: Record<string, number> = {};
-    allLogs.forEach(log => {
-      itemFulfilledTotals[log.itemId] = (itemFulfilledTotals[log.itemId] || 0) + log.quantityShipped;
-    });
-
-    const updatedItems = pr.items.map(item => {
-      const newFulfilled = itemFulfilledTotals[item.id] || 0;
-      return {
-        ...item,
-        fulfilledQty: newFulfilled,
-        status: computeItemStatus(item.requestedQty, newFulfilled)
-      };
-    });
-
-    const updatedPR: PRRecord = {
-      ...pr,
-      items: updatedItems,
-      fulfillmentLogs: allLogs,
-      status: computePRStatus(updatedItems)
-    };
-
-    updatedPRs = [...prs];
-    updatedPRs[targetPRIndex] = updatedPR;
-    saveAllPRs(updatedPRs);
+  const normalize = (value: string | undefined) => (value || '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+  const changedReference = oldDC.dcNumber !== updatedDC.dcNumber || oldDC.prId !== updatedDC.prId || oldDC.prNumber !== updatedDC.prNumber;
+  const changedItems = JSON.stringify(oldDC.itemsShipped) !== JSON.stringify(updatedDC.itemsShipped);
+  const possiblyLinked = !oldDC.noPrRequired && Boolean(oldDC.prId || oldDC.prNumber);
+  if (changedReference || (possiblyLinked && changedItems)) {
+    throw new Error('Changing linked DC numbers, PR references, or item quantities is temporarily disabled until safe reconciliation is available. No changes were saved.');
   }
-
-  return { updatedPRs, updatedDCs: newDCs };
+  if (dcs.some((dc, index) => index !== dcIndex && normalize(dc.dcNumber) === normalize(updatedDC.dcNumber))) {
+    throw new Error('This DC number is already used by another record. No changes were saved.');
+  }
+  if ((updatedDC.itemsShipped || []).some(item => !Number.isFinite(item.quantity) || item.quantity < 0)) {
+    throw new Error('DC quantities must be finite non-negative numbers.');
+  }
+  const updatedDCs = [...dcs];
+  updatedDCs[dcIndex] = updatedDC;
+  if (!saveAllDCs(updatedDCs)) throw new Error('The local DC update failed; keep this tab open and preserve the draft.');
+  return { updatedPRs: prs, updatedDCs };
 }
+
 
 export function saveDCAndFulfillPR(
   dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>,
-  fulfillmentMap: Record<string, number>
+  fulfillmentMap: Record<string, number>,
+  options: { allowOverdelivery?: boolean } = {}
 ): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[]; newDC: DCRecord } {
   let prs = getPRs();
   const dcs = getDCs();
+  const plan = planDeliveries(prs, dcs, [{ dcData, fulfillmentMap }]);
+  if (plan.overdeliveries.length && !options.allowOverdelivery) throw new Error('Overdelivery requires explicit confirmation.');
 
   const syncedDCNumber = dcData.dcNumber.trim();
   const syncedInvoiceNumber = dcData.dcNumber.trim();
   const itemsShippedList: DCRecord['itemsShipped'] = [];
   const newFulfillmentLogs: FulfillmentLog[] = [];
 
-  let targetPRIndex = prs.findIndex(
-    p => (dcData.prId && dcData.prId !== '__NEW_PR__' && p.id === dcData.prId) ||
-      (dcData.prNumber && normalizePRReference(p.prNumber) === normalizePRReference(dcData.prNumber))
-  );
+  const targetPRIndex = dcData.prId
+    ? prs.findIndex(p => p.id === dcData.prId)
+    : prs.findIndex(p => dcData.prNumber && normalizePRReference(p.prNumber) === normalizePRReference(dcData.prNumber));
 
   if (targetPRIndex === -1) {
     const normalizedDCNumber = normalizePRReference(syncedDCNumber);
@@ -1343,11 +817,12 @@ export function saveDCAndFulfillPR(
     const updatedDCList = existingDCIndex >= 0
       ? dcs.map((dc, index) => index === existingDCIndex ? standaloneDC : dc)
       : [standaloneDC, ...dcs];
-    saveAllDCs(updatedDCList);
+    if (!saveAllDCs(updatedDCList)) throw new Error('The local DC save failed; keep this tab open and preserve the draft.');
     return { updatedPRs: prs, updatedDCs: updatedDCList, newDC: standaloneDC };
   }
 
   let targetPR: PRRecord;
+  const hasMatchedDelivery = prs[targetPRIndex].items.some(item => (fulfillmentMap[item.id] || 0) > 0);
 
   {
     targetPR = { ...prs[targetPRIndex], items: [...prs[targetPRIndex].items] };
@@ -1362,18 +837,9 @@ export function saveDCAndFulfillPR(
     targetPR.items.forEach(item => {
       const shippedQty = fulfillmentMap[item.id] !== undefined ? fulfillmentMap[item.id] : 0;
       
-      // BUG FIX #4: Validate quantity doesn't exceed remaining
-      const maxRemaining = Math.max(0, item.requestedQty - (item.fulfilledQty || 0));
-      const actualShippedQty = Math.min(Math.max(0, shippedQty), maxRemaining);
-      
+      // Preserve the actual dispatched quantity; preflight requires explicit confirmation for overdelivery.
+      const actualShippedQty = shippedQty;
       if (actualShippedQty > 0) {
-        if (actualShippedQty < shippedQty) {
-          console.warn(
-            `[Quantity Validation] Item "${item.name}" (${item.id}): ` +
-            `Requested ${shippedQty}, but max remaining is ${maxRemaining}. Reduced to ${actualShippedQty}.`
-          );
-        }
-        
         itemsShippedList.push({
           itemId: item.id,
           itemName: item.name,
@@ -1429,7 +895,7 @@ export function saveDCAndFulfillPR(
       return {
         ...item,
         fulfilledQty: fulfilled,
-        status: computeItemStatus(item.requestedQty, fulfilled)
+        status: item.status === 'Cancelled' ? 'Cancelled' : computeItemStatus(item.requestedQty, fulfilled)
       };
     });
 
@@ -1440,8 +906,10 @@ export function saveDCAndFulfillPR(
       fulfillmentLogs: allLogs
     };
 
-    prs = [...prs];
-    prs[targetPRIndex] = targetPR;
+    if (hasMatchedDelivery) {
+      prs = [...prs];
+      prs[targetPRIndex] = targetPR;
+    }
   }
 
   // Ensure itemsShipped has items
@@ -1449,7 +917,7 @@ export function saveDCAndFulfillPR(
     ? itemsShippedList
     : (dcData.itemsShipped && dcData.itemsShipped.length > 0 ? dcData.itemsShipped : []);
 
-  if (!targetPR.documentImage && dcData.prDocumentImage) {
+  if (hasMatchedDelivery && !targetPR.documentImage && dcData.prDocumentImage) {
     targetPR.documentImage = dcData.prDocumentImage;
   }
 
@@ -1481,8 +949,8 @@ export function saveDCAndFulfillPR(
     updatedDCList = [newDC, ...dcs];
   }
 
-  saveAllPRs(prs);
-  saveAllDCs(updatedDCList);
+  if (hasMatchedDelivery && !saveAllPRs(prs)) throw new Error('The local PR save failed; the DC was not saved. Preserve the draft.');
+  if (!saveAllDCs(updatedDCList)) throw new Error(hasMatchedDelivery ? 'The local DC save failed after the PR was saved. The ledger may be inconsistent; preserve the draft and do not retry until reviewed.' : 'The local DC save failed; preserve the draft.');
 
   return { updatedPRs: prs, updatedDCs: updatedDCList, newDC };
 }
@@ -1491,14 +959,17 @@ export function saveMultipleDCsAndFulfillPRs(
   dcList: Array<{
     dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>;
     fulfillmentMap: Record<string, number>;
-  }>
+  }>,
+  options: { allowOverdelivery?: boolean } = {}
 ): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[]; newDCs: DCRecord[] } {
+  const plan = planDeliveries(getPRs(), getDCs(), dcList);
+  if (plan.overdeliveries.length && !options.allowOverdelivery) throw new Error('Overdelivery requires explicit confirmation.');
   let currentPRs = getPRs();
   let currentDCs = getDCs();
   const createdDCs: DCRecord[] = [];
 
   for (const item of dcList) {
-    const res = saveDCAndFulfillPR(item.dcData, item.fulfillmentMap);
+    const res = saveDCAndFulfillPR(item.dcData, item.fulfillmentMap, options);
     currentPRs = res.updatedPRs;
     currentDCs = res.updatedDCs;
     createdDCs.push(res.newDC);

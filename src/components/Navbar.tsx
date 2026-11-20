@@ -4,7 +4,7 @@ import type { NavigationTab } from '../types';
 import { Plus, Settings, LogOut, Cloud } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { activeTab, setActiveTab, setIsPRUploadOpen, setIsDCUploadOpen, setIsDriveSyncOpen, setIsSettingsOpen, prs, dcs, logout } = useApp();
+  const { activeTab, setActiveTab, setIsPRUploadOpen, setIsDCUploadOpen, setIsDriveSyncOpen, setIsSettingsOpen, prs, dcs, logout, canEdit, currentUser } = useApp();
 
   const pendingPRsCount = prs.filter(p => p.status === 'Pending').length;
   const unlinkedCount = dcs.filter(d => !d.prId || d.prNumber === 'NO PR').length;
@@ -59,6 +59,7 @@ export const Navbar: React.FC = () => {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
+          {canEdit && <>
           <button
             type="button"
             onClick={() => setIsDriveSyncOpen(true)}
@@ -86,6 +87,8 @@ export const Navbar: React.FC = () => {
           >
             <Plus className="h-3.5 w-3.5" /> <span className="hidden sm:inline">New PR</span>
           </button>
+          </>}
+          {currentUser && <span className="hidden text-xs font-semibold text-slate-600 sm:inline">{currentUser.role}</span>}
           <button
             type="button"
             onClick={() => setIsSettingsOpen(true)}

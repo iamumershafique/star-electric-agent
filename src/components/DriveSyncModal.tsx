@@ -31,7 +31,7 @@ interface DriveSyncModalProps {
 }
 
 export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose }) => {
-  const { prs, dcs, setDCs, geminiApiKey, saveDCToCloud } = useApp();
+  const { prs, dcs, setDCs, geminiApiKey, saveDCToCloud, canEdit } = useApp();
 
   const [config, setConfig] = useState<DriveFolderConfig>(getDriveFolderConfig());
   const [pastedLinks, setPastedLinks] = useState('');
@@ -65,6 +65,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
   };
 
   const handleStartSync = async (filesToSync?: DriveScannedFile[]) => {
+    if (!canEdit) { setStatusMessage({ type: 'error', text: 'An editor or administrator is required to sync records.' }); return; }
     setIsSyncing(true);
     setStatusMessage(null);
     setSyncLogs([]);

@@ -28,3 +28,11 @@ dist-ssr
 *.sw?
 
 scratch/
+
+# Firebase service-account keys (never commit private credentials)
+service-account*.json
+*service-account*.json
+
+# Business-data exports and backups must not be committed.
+*backup*.json
+*Backup*.json

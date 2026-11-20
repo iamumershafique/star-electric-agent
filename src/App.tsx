@@ -22,6 +22,7 @@ import { DriveSyncModal } from './components/DriveSyncModal';
 import { GeminiDiagnosticsView } from './components/GeminiDiagnosticsView';
 import { LoginView } from './components/LoginView';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { CloudSyncBanner } from './components/CloudSyncBanner';
 
 const MainContent: React.FC = () => {
   const { activeTab } = useApp();
@@ -55,6 +56,7 @@ const MainPortalLayout: React.FC = () => {
   return (
     <div className="min-h-dvh bg-white text-slate-900 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950 overflow-x-clip">
       <Navbar />
+      <CloudSyncBanner />
       <MainContent />
 
       {/* Full-width Light Footer */}

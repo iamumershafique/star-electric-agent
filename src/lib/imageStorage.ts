@@ -1,4 +1,5 @@
 import { getScanUrlFromCloud, uploadScanToCloud } from './cloudImages';
+import { isFirebaseConfigured } from './firebase';
 
 async function fetchCloudImage(keys: string[]): Promise<string | undefined> {
   for (const key of keys) {
@@ -130,14 +131,19 @@ export async function saveImageToMemory(
   type: 'pr' | 'dc' | 'builty',
   identifier: string,
   dataUrl: string,
-  meta?: { referenceNumber?: string; siteName?: string; fileName?: string }
+  meta?: { referenceNumber?: string; siteName?: string; fileName?: string; uploadToCloud?: boolean }
 ): Promise<void> {
   if (!identifier || !dataUrl) return;
 
   const primaryKey = normalizeImageKey(type, identifier);
   inMemoryCache.set(primaryKey, dataUrl);
 
-  void uploadScanToCloud(primaryKey, dataUrl);
+  if (meta?.uploadToCloud !== false && isFirebaseConfigured() && dataUrl.startsWith('data:')) {
+    const upload = uploadScanToCloud(primaryKey, dataUrl);
+    // Attach a handler immediately, even if the UI event listener is not mounted.
+    void upload.catch(error => console.warn('[ImageMemory] Cloud scan upload failed:', error));
+    if (typeof window !== 'undefined') queueMicrotask(() => window.dispatchEvent(new CustomEvent('star-ledger-scan-upload', { detail: { key: primaryKey, upload } })));
+  }
 
   const refNum = meta?.referenceNumber || identifier;
   const refKey = normalizeImageKey(type, refNum);
@@ -155,16 +161,17 @@ export async function saveImageToMemory(
       updatedAt: Date.now()
     };
 
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
-      const req = store.put(record);
-
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
+      store.put(record);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error || new Error('IndexedDB scan write failed.'));
+      tx.onabort = () => reject(tx.error || new Error('IndexedDB scan write was aborted.'));
     });
   } catch (err) {
     console.warn('[ImageMemory] Could not persist image to IndexedDB:', err);
+    if (typeof window !== 'undefined') queueMicrotask(() => window.dispatchEvent(new Event('star-ledger-scan-save-failed')));
   }
 }
 
@@ -250,21 +257,52 @@ export async function getImageFromMemory(
   }
 }
 
-/**
- * Get all stored image records in memory
- */
+/** Read a complete local snapshot; backup must not silently ignore IndexedDB errors. */
 export async function getAllStoredImages(): Promise<StoredImageRecord[]> {
-  try {
-    const db = await getDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readonly');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.getAll();
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const request = tx.objectStore(STORE_NAME).getAll();
+    let records: StoredImageRecord[] = [];
+    request.onsuccess = () => { records = request.result as StoredImageRecord[]; };
+    tx.oncomplete = () => resolve(records);
+    tx.onerror = () => reject(tx.error || new Error('Could not read local scans.'));
+    tx.onabort = () => reject(tx.error || new Error('Reading local scans was aborted.'));
+  });
+}
 
-      req.onsuccess = () => resolve((req.result as StoredImageRecord[]) || []);
-      req.onerror = () => resolve([]);
+/** Restore to an empty image store only. No cloud uploads are performed. */
+export async function restoreImagesToEmptyStore(records: StoredImageRecord[]): Promise<void> {
+  const db = await getDB();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    let notEmpty = false;
+    const count = store.count();
+    count.onsuccess = () => {
+      if (count.result !== 0) { notEmpty = true; tx.abort(); return; }
+      records.forEach(record => store.add(record));
+    };
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('Could not restore local scans.'));
+    tx.onabort = () => reject(new Error(notEmpty ? 'The local scan store is not empty. Use a clean, isolated browser profile.' : 'Restoring local scans was aborted.'));
+  });
+}
+
+/** Remove only records that still match this attempted restore. */
+export async function rollbackRestoredImages(records: StoredImageRecord[]): Promise<void> {
+  const db = await getDB();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    records.forEach(record => {
+      const request = store.get(record.id);
+      request.onsuccess = () => {
+        if (JSON.stringify(request.result) === JSON.stringify(record)) store.delete(record.id);
+      };
     });
-  } catch {
-    return [];
-  }
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('Could not roll back local scans.'));
+    tx.onabort = () => reject(tx.error || new Error('Scan rollback was aborted.'));
+  });
 }

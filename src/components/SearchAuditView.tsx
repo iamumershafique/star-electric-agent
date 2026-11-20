@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { getBrandBadgeColor } from '../lib/utils';
 import { auditRecords } from '../lib/recordAudit';
+import { findDeliveryHistory } from '../lib/deliveryHistory';
 import type { BrandCategory } from '../types';
 import { 
   Search, 
@@ -46,6 +47,7 @@ export const SearchAuditView: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [itemQuery, setItemQuery] = useState('');
+  const [unitQuery, setUnitQuery] = useState('');
   const [brandFilter, setBrandFilter] = useState('ALL');
   const [prNumberQuery, setPrNumberQuery] = useState('');
   const [dcNumberQuery, setDcNumberQuery] = useState('');
@@ -70,12 +72,19 @@ export const SearchAuditView: React.FC = () => {
     setStartDate('');
     setEndDate('');
     setItemQuery('');
+    setUnitQuery('');
     setBrandFilter('ALL');
     setPrNumberQuery('');
     setDcNumberQuery('');
     setSiteFilter('ALL');
     setStatusFilter('ALL');
   };
+
+  const recordedDCItems = useMemo(() => findDeliveryHistory(dcs, {
+    itemQuery, unitQuery, brand: brandFilter === 'ALL' ? undefined : brandFilter,
+    prNumber: prNumberQuery, dcNumber: dcNumberQuery, site: siteFilter === 'ALL' ? undefined : siteFilter,
+    startDate, endDate
+  }), [dcs, itemQuery, unitQuery, brandFilter, prNumberQuery, dcNumberQuery, siteFilter, startDate, endDate]);
 
   // Filtered Fulfillment Logs (Deliveries Timeline)
   const filteredFulfillmentLogs = useMemo(() => {
@@ -514,6 +523,24 @@ export const SearchAuditView: React.FC = () => {
         </div>
       )}
 
+      <section className="bg-white border border-slate-300 rounded-xl p-4 space-y-3" aria-labelledby="recorded-dc-items-title">
+        <div>
+          <h3 id="recorded-dc-items-title" className="text-xs font-semibold text-slate-900 uppercase tracking-wider">Recorded DC product history ({recordedDCItems.length})</h3>
+          <p className="text-xs text-slate-600 mt-1">Includes each item on the DCs currently available here, even without a linked PR. This is recorded dispatch history, not proof of receipt or a complete cloud backup. PR-status filters do not apply.</p>
+        </div>
+        <label className="block text-xs font-semibold">Filter recorded DC items by unit
+          <input aria-label="Filter recorded DC items by unit" value={unitQuery} onChange={event => setUnitQuery(event.target.value)} className="ml-2 rounded border border-slate-300 px-2 py-1" placeholder="e.g. meters" />
+        </label>
+        {recordedDCItems.length === 0 ? <p className="text-xs text-slate-600">No recorded DC items match these filters.</p> : <div className="overflow-x-auto"><table className="w-full min-w-[700px] text-left text-xs">
+          <thead><tr className="border-b"><th className="p-2">Date</th><th className="p-2">Product</th><th className="p-2">Brand</th><th className="p-2">Quantity / unit</th><th className="p-2">PR</th><th className="p-2">DC</th><th className="p-2">Site</th><th className="p-2">Status</th></tr></thead>
+          <tbody>{recordedDCItems.map(({ dc, item, index }) => <tr key={`${dc.id}-${index}`} className="border-b border-slate-100">
+            <td className="p-2">{dc.date || 'Unknown'}</td><td className="p-2">{item.itemName || 'Unknown'}</td><td className="p-2">{item.brand || 'Unknown'}</td>
+            <td className="p-2">{item.quantity} {item.unit || '(unit unknown)'}</td><td className="p-2">{dc.prNumber || 'Unlinked'}</td><td className="p-2">{dc.dcNumber}</td>
+            <td className="p-2">{dc.siteName || 'Unknown'}</td><td className="p-2">{dc.deliveryStatus || 'Not recorded'}</td>
+          </tr>)}</tbody>
+        </table></div>}
+      </section>
+
       {/* Material Delivery Verification Tool */}
       <div className="bg-white border border-slate-300 rounded-xl p-4 space-y-3">
         <div className="flex items-center justify-between pb-2 border-b border-slate-200">
@@ -617,7 +644,7 @@ export const SearchAuditView: React.FC = () => {
               <Zap className="w-4 h-4 text-amber-500" />
               Item Supply Traceability & Dispatch Timeline ({filteredFulfillmentLogs.length})
             </h3>
-            <p className="text-[11px] text-slate-500 font-medium">Historical log of all line items shipped across Jadeed Group farm locations</p>
+            <p className="text-[11px] text-slate-500 font-medium">PR fulfillment logs only; the separate DC product history above also includes unlinked DC items.</p>
           </div>
         </div>
 

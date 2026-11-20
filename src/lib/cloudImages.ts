@@ -10,14 +10,10 @@ function storageRef(key: string) {
 }
 
 export async function uploadScanToCloud(key: string, dataUrl: string): Promise<void> {
-  if (!dataUrl.startsWith('data:')) return;
+  if (!dataUrl.startsWith('data:')) throw new Error('Cloud scan upload requires image data.');
   const target = storageRef(key);
-  if (!target) return;
-  try {
-    await uploadString(target, dataUrl, 'data_url');
-  } catch (error) {
-    console.warn('[CloudImages] Upload failed:', error);
-  }
+  if (!target) throw new Error('Firebase Storage is unavailable; the scan was not uploaded.');
+  await uploadString(target, dataUrl, 'data_url');
 }
 
 export async function getScanUrlFromCloud(key: string): Promise<string | undefined> {
