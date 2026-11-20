@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
+import { productIdentity, uniqueProductMatch } from '../lib/deliveryRules';
 import { DocumentClassificationError, fileToBase64 } from '../lib/gemini';
 import { getActiveOCRProvider, getOCRProviderLabel, processDCWithAI } from '../lib/aiOcr';
 import type { BrandCategory, PRRecord, TransportType } from '../types';
@@ -27,7 +28,7 @@ import {
 interface DraftItem {
   id: string;
   name: string;
-  brand: BrandCategory;
+  brand: string;
   requestedQty: number;
   fulfilledQty: number;
   shippedQty: number;
@@ -62,7 +63,7 @@ const createDefaultDraft = (targetPR?: PRRecord | null): ScannedDCDraft => {
   const today = new Date().toISOString().split('T')[0];
   if (targetPR) {
     const initialItems: DraftItem[] = (targetPR.items || []).map(it => {
-      const remaining = Math.max(0, it.requestedQty - it.fulfilledQty);
+      const remaining = it.status === 'Cancelled' ? 0 : Math.max(0, it.requestedQty - it.fulfilledQty);
       return {
         id: it.id,
         name: it.name,
@@ -293,25 +294,24 @@ export const DCUploadModal: React.FC = () => {
         const dcNum = rawDcNum.toUpperCase().startsWith('DC-') ? rawDcNum.toUpperCase() : `DC-${rawDcNum.replace(/[^0-9a-zA-Z]/g, '')}`;
         const rawPrNum = res.prNumber?.trim() || '';
 
-        const matchedPR = rawPrNum
-          ? prs.find(p => normalizeReference(p.prNumber) === normalizeReference(rawPrNum))
-          : undefined;
+        const matchingPRs = normalizeReference(rawPrNum) ? prs.filter(p => normalizeReference(p.prNumber) === normalizeReference(rawPrNum)) : [];
+        const matchedPR = matchingPRs.length === 1 ? matchingPRs[0] : undefined;
         const scannedItems = res.shippedItems || [];
         const draftItems: DraftItem[] = scannedItems.map((shipped, itemIndex) => {
-          const matchedItem = matchedPR?.items.find(item =>
-            normalizeReference(item.name) === normalizeReference(shipped.itemName)
-          );
+          const identity = productIdentity(shipped.itemName, shipped.brand, shipped.unit);
+          const uniqueScanned = scannedItems.filter(item => productIdentity(item.itemName, item.brand, item.unit) === identity).length === 1;
+          const matchedItem = uniqueScanned && matchedPR ? uniqueProductMatch(matchedPR.items, identity, item => productIdentity(item.name, item.brand, item.unit)) : undefined;
           const remaining = matchedItem
             ? Math.max(0, matchedItem.requestedQty - matchedItem.fulfilledQty)
             : shipped.quantityShipped;
           return {
             id: matchedItem?.id || `item-scanned-${Date.now()}-${index}-${itemIndex}`,
             name: matchedItem?.name || shipped.itemName,
-            brand: (matchedItem?.brand || shipped.brand || 'General Electrical') as BrandCategory,
+            brand: matchedItem?.brand || shipped.brand || '',
             requestedQty: matchedItem?.requestedQty ?? shipped.quantityShipped,
             fulfilledQty: matchedItem?.fulfilledQty ?? 0,
             shippedQty: shipped.quantityShipped,
-            unit: matchedItem?.unit || shipped.unit || 'Numbers',
+            unit: matchedItem?.unit || shipped.unit || '',
             maxRemaining: remaining
           };
         });
@@ -377,10 +377,12 @@ export const DCUploadModal: React.FC = () => {
     }
 
     updateCurrentDraft(prev => {
+      const matchedIds = new Set<string>();
       const mappedItems: DraftItem[] = selected.items.map(item => {
-        const scanned = prev.items.find(draftItem =>
-          normalizeReference(draftItem.name) === normalizeReference(item.name)
-        );
+        const identity = productIdentity(item.name, item.brand, item.unit);
+        const uniquePR = uniqueProductMatch(selected.items, identity, candidate => productIdentity(candidate.name, candidate.brand, candidate.unit));
+        const scanned = uniquePR === item ? uniqueProductMatch(prev.items, identity, candidate => productIdentity(candidate.name, candidate.brand, candidate.unit)) : undefined;
+        if (scanned) matchedIds.add(scanned.id);
         return {
           id: item.id,
           name: item.name,
@@ -389,13 +391,10 @@ export const DCUploadModal: React.FC = () => {
           fulfilledQty: item.fulfilledQty,
           shippedQty: scanned?.shippedQty || 0,
           unit: item.unit,
-          maxRemaining: Math.max(0, item.requestedQty - item.fulfilledQty)
+          maxRemaining: item.status === 'Cancelled' ? 0 : Math.max(0, item.requestedQty - item.fulfilledQty)
         };
       });
-      const matchedDraftNames = new Set(selected.items.map(item => normalizeReference(item.name)));
-      const unverifiedScannedItems = prev.items.filter(item =>
-        !matchedDraftNames.has(normalizeReference(item.name))
-      );
+      const unverifiedScannedItems = prev.items.filter(item => item.shippedQty > 0 && !matchedIds.has(item.id));
 
       return {
         ...prev,
@@ -412,7 +411,7 @@ export const DCUploadModal: React.FC = () => {
       ...prev,
       items: prev.items.map(it => ({
         ...it,
-        shippedQty: it.maxRemaining > 0 ? it.maxRemaining : (it.requestedQty > 0 ? it.requestedQty : 1)
+        shippedQty: it.maxRemaining
       }))
     }));
   };
@@ -432,7 +431,7 @@ export const DCUploadModal: React.FC = () => {
       ...prev,
       items: prev.items.map(it => {
         if (it.id === itemId) {
-          const targetQty = it.maxRemaining > 0 ? it.maxRemaining : (it.requestedQty > 0 ? it.requestedQty : 1);
+          const targetQty = it.maxRemaining;
           return {
             ...it,
             shippedQty: it.shippedQty > 0 ? 0 : targetQty
@@ -479,7 +478,7 @@ export const DCUploadModal: React.FC = () => {
       if (it.shippedQty > 0) fulfillmentMap[it.id] = it.shippedQty;
     });
 
-    recordDeliveryChallan(
+    const recorded = recordDeliveryChallan(
       {
         dcNumber: cleanDC,
         invoiceNumber: cleanDC,
@@ -508,6 +507,7 @@ export const DCUploadModal: React.FC = () => {
       fulfillmentMap
     );
 
+    if (!recorded) return;
     if (drafts.length > 1) {
       const remaining = drafts.filter((_, i) => i !== activeDraftIndex);
       setDrafts(remaining);
@@ -576,7 +576,7 @@ export const DCUploadModal: React.FC = () => {
       };
     });
 
-    recordMultipleDeliveryChallans(batchList);
+    if (!recordMultipleDeliveryChallans(batchList)) return;
     setIsDCUploadOpen(false);
     setActiveTab('deliveries');
   };
@@ -1180,6 +1180,7 @@ export const DCUploadModal: React.FC = () => {
               </div>
             </div>
 
+            <p className="text-xs text-slate-600">Scanned items match a PR only when name, brand and unit are present and uniquely match. Unmatched items stay on the DC and do not fulfill the PR; review the original document.</p>
             {/* Inline add item form */}
             {isAddingItem && (
               <div className="p-3 bg-amber-50/70 border border-amber-300 rounded-xl space-y-3 animate-fadeIn">
@@ -1302,8 +1303,10 @@ export const DCUploadModal: React.FC = () => {
                               )}
                             </button>
                           </td>
-                          <td className="p-3 font-bold text-slate-900">{item.name}</td>
-                          <td className="p-3 text-slate-600 font-semibold">{item.brand}</td>
+                          <td className="p-3 font-bold text-slate-900">{item.name}
+                            {currentDraft.selectedPrId && !prs.find(pr => pr.id === currentDraft.selectedPrId)?.items.some(prItem => prItem.id === item.id) && <span className="block text-amber-700 text-[10px]">DC only — does not fulfill PR</span>}
+                          </td>
+                          <td className="p-3 text-slate-600 font-semibold">{item.brand || 'Unknown'}</td>
                           <td className="p-3 text-center font-mono font-bold">
                             {item.maxRemaining} {item.unit}
                           </td>

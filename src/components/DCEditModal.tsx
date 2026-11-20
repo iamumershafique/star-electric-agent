@@ -122,7 +122,7 @@ export const DCEditModal: React.FC = () => {
       itemsShipped: shippedItems
     };
 
-    updateDC(updatedDC);
+    if (!updateDC(updatedDC)) return;
     setIsDCEditOpen(false);
     setEditingDC(null);
   };
@@ -183,6 +183,7 @@ export const DCEditModal: React.FC = () => {
               <input
                 type="text"
                 value={dcNumber}
+                readOnly
                 onChange={(e) => setDcNumber(e.target.value)}
                 placeholder="e.g. DC-613"
                 aria-label="Delivery challan number"
@@ -509,6 +510,7 @@ export const DCEditModal: React.FC = () => {
                           type="number"
                           min="0"
                           value={item.quantity}
+                          disabled={!editingDC.noPrRequired && Boolean(editingDC.prId || editingDC.prNumber)}
                           onChange={(e) => handleItemQtyChange(idx, parseFloat(e.target.value) || 0)}
                           aria-label={`${item.itemName} shipped quantity`}
                           className="w-24 px-2 py-1 rounded bg-slate-50 border border-slate-300 text-xs font-mono font-bold text-center text-emerald-700 focus:outline-none focus:border-emerald-500"
@@ -526,7 +528,7 @@ export const DCEditModal: React.FC = () => {
           {/* Footer Controls */}
           <div className="border-t border-slate-200 pt-4 flex items-center justify-between shrink-0">
             <span className="text-xs text-slate-500 font-medium">
-              Updating quantities will automatically recalculate fulfillment in PR #{editingDC.prNumber}.
+              Changing DC numbers and linked-DC quantities is temporarily disabled. Metadata edits do not update existing PR fulfillment logs.
             </span>
 
             <div className="flex items-center gap-2">

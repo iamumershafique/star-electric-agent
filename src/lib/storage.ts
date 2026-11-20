@@ -1,3 +1,4 @@
+import { planDeliveries } from './deliveryRules';
 import type { PRRecord, DCRecord, FulfillmentLog, LineItem, BrandCategory, GeminiBuiltyExtractionResult } from '../types';
 import { computeItemStatus, computePRStatus, cleanApiKey, normalizePRNumber, hasPRNumber, normalizeSiteName } from './utils';
 import { JADEED_FARM_SITES } from '../data/jadeedHistoryData';
@@ -605,9 +606,8 @@ export function savePR(pr: PRRecord): PRRecord[] {
   }
 
   // Keep the draft in memory if local persistence fails; do not re-read an older cache.
-  if (!saveAllPRs(updatedList)) return updatedList;
-  const linkRes = autoLinkPRsAndDCsInStorage();
-  return linkRes.updatedPRs;
+  saveAllPRs(updatedList);
+  return updatedList;
 }
 
 export function saveMultiplePRsInStorage(records: PRRecord[]): PRRecord[] {
@@ -669,9 +669,8 @@ export function saveMultiplePRsInStorage(records: PRRecord[]): PRRecord[] {
     }
   }
 
-  if (!saveAllPRs(prs)) return prs;
-  const linkRes = autoLinkPRsAndDCsInStorage();
-  return linkRes.updatedPRs;
+  saveAllPRs(prs);
+  return prs;
 }
 
 export function deletePR(prId: string): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[] } {
@@ -747,103 +746,53 @@ export function deleteDC(dcId: string): { updatedPRs: PRRecord[]; updatedDCs: DC
   return { updatedPRs, updatedDCs };
 }
 
+/** Update DC metadata without reconstructing a PR's historical fulfillment logs. */
 export function updateDCInStorage(
   updatedDC: DCRecord
 ): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[] } {
   const dcs = getDCs();
   const prs = getPRs();
-
-  const dcIndex = dcs.findIndex(d => d.id === updatedDC.id);
-  if (dcIndex === -1) {
-    return { updatedPRs: prs, updatedDCs: dcs };
-  }
-
+  const dcIndex = dcs.findIndex(dc => dc.id === updatedDC.id);
+  if (dcIndex === -1) throw new Error('The DC was not found; no change was saved.');
   const oldDC = dcs[dcIndex];
-  const newDCs = [...dcs];
-  newDCs[dcIndex] = updatedDC;
-  saveAllDCs(newDCs);
-
-  // Sync with linked PR if exists
-  const targetPRIndex = prs.findIndex(
-    p => p.id === updatedDC.prId || p.prNumber === updatedDC.prNumber || p.id === oldDC.prId || p.prNumber === oldDC.prNumber
-  );
-  let updatedPRs = prs;
-
-  if (targetPRIndex >= 0) {
-    const pr = prs[targetPRIndex];
-    // Remove old logs for this DC
-    const otherLogs = (pr.fulfillmentLogs || []).filter(
-      l => l.dcNumber !== oldDC.dcNumber && l.dcNumber !== updatedDC.dcNumber
-    );
-
-    // Create new logs from updatedDC.itemsShipped
-    const newLogs: FulfillmentLog[] = updatedDC.itemsShipped.map(item => ({
-      id: `flog-${Math.random().toString(36).substring(2, 9)}`,
-      dcNumber: updatedDC.dcNumber,
-      invoiceNumber: updatedDC.invoiceNumber,
-      prNumber: pr.prNumber,
-      itemId: item.itemId,
-      itemName: item.itemName,
-      quantityShipped: item.quantity,
-      date: updatedDC.date,
-      transportType: updatedDC.transportType,
-      addaName: updatedDC.addaName,
-      biltyNumber: updatedDC.biltyNumber,
-      freightCharges: updatedDC.freightCharges,
-      isFreightFree: updatedDC.isFreightFree,
-      driverName: updatedDC.driverName,
-      vehicleNo: updatedDC.vehicleNumber,
-      notes: updatedDC.remarks
-    }));
-
-    const allLogs = [...otherLogs, ...newLogs];
-
-    // Recompute fulfilled totals
-    const itemFulfilledTotals: Record<string, number> = {};
-    allLogs.forEach(log => {
-      itemFulfilledTotals[log.itemId] = (itemFulfilledTotals[log.itemId] || 0) + log.quantityShipped;
-    });
-
-    const updatedItems = pr.items.map(item => {
-      const newFulfilled = itemFulfilledTotals[item.id] || 0;
-      return {
-        ...item,
-        fulfilledQty: newFulfilled,
-        status: computeItemStatus(item.requestedQty, newFulfilled)
-      };
-    });
-
-    const updatedPR: PRRecord = {
-      ...pr,
-      items: updatedItems,
-      fulfillmentLogs: allLogs,
-      status: computePRStatus(updatedItems)
-    };
-
-    updatedPRs = [...prs];
-    updatedPRs[targetPRIndex] = updatedPR;
-    saveAllPRs(updatedPRs);
+  const normalize = (value: string | undefined) => (value || '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+  const changedReference = oldDC.dcNumber !== updatedDC.dcNumber || oldDC.prId !== updatedDC.prId || oldDC.prNumber !== updatedDC.prNumber;
+  const changedItems = JSON.stringify(oldDC.itemsShipped) !== JSON.stringify(updatedDC.itemsShipped);
+  const possiblyLinked = !oldDC.noPrRequired && Boolean(oldDC.prId || oldDC.prNumber);
+  if (changedReference || (possiblyLinked && changedItems)) {
+    throw new Error('Changing linked DC numbers, PR references, or item quantities is temporarily disabled until safe reconciliation is available. No changes were saved.');
   }
-
-  return { updatedPRs, updatedDCs: newDCs };
+  if (dcs.some((dc, index) => index !== dcIndex && normalize(dc.dcNumber) === normalize(updatedDC.dcNumber))) {
+    throw new Error('This DC number is already used by another record. No changes were saved.');
+  }
+  if ((updatedDC.itemsShipped || []).some(item => !Number.isFinite(item.quantity) || item.quantity < 0)) {
+    throw new Error('DC quantities must be finite non-negative numbers.');
+  }
+  const updatedDCs = [...dcs];
+  updatedDCs[dcIndex] = updatedDC;
+  if (!saveAllDCs(updatedDCs)) throw new Error('The local DC update failed; keep this tab open and preserve the draft.');
+  return { updatedPRs: prs, updatedDCs };
 }
+
 
 export function saveDCAndFulfillPR(
   dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>,
-  fulfillmentMap: Record<string, number>
+  fulfillmentMap: Record<string, number>,
+  options: { allowOverdelivery?: boolean } = {}
 ): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[]; newDC: DCRecord } {
   let prs = getPRs();
   const dcs = getDCs();
+  const plan = planDeliveries(prs, dcs, [{ dcData, fulfillmentMap }]);
+  if (plan.overdeliveries.length && !options.allowOverdelivery) throw new Error('Overdelivery requires explicit confirmation.');
 
   const syncedDCNumber = dcData.dcNumber.trim();
   const syncedInvoiceNumber = dcData.dcNumber.trim();
   const itemsShippedList: DCRecord['itemsShipped'] = [];
   const newFulfillmentLogs: FulfillmentLog[] = [];
 
-  let targetPRIndex = prs.findIndex(
-    p => (dcData.prId && dcData.prId !== '__NEW_PR__' && p.id === dcData.prId) ||
-      (dcData.prNumber && normalizePRReference(p.prNumber) === normalizePRReference(dcData.prNumber))
-  );
+  const targetPRIndex = dcData.prId
+    ? prs.findIndex(p => p.id === dcData.prId)
+    : prs.findIndex(p => dcData.prNumber && normalizePRReference(p.prNumber) === normalizePRReference(dcData.prNumber));
 
   if (targetPRIndex === -1) {
     const normalizedDCNumber = normalizePRReference(syncedDCNumber);
@@ -864,11 +813,12 @@ export function saveDCAndFulfillPR(
     const updatedDCList = existingDCIndex >= 0
       ? dcs.map((dc, index) => index === existingDCIndex ? standaloneDC : dc)
       : [standaloneDC, ...dcs];
-    saveAllDCs(updatedDCList);
+    if (!saveAllDCs(updatedDCList)) throw new Error('The local DC save failed; keep this tab open and preserve the draft.');
     return { updatedPRs: prs, updatedDCs: updatedDCList, newDC: standaloneDC };
   }
 
   let targetPR: PRRecord;
+  const hasMatchedDelivery = prs[targetPRIndex].items.some(item => (fulfillmentMap[item.id] || 0) > 0);
 
   {
     targetPR = { ...prs[targetPRIndex], items: [...prs[targetPRIndex].items] };
@@ -883,18 +833,9 @@ export function saveDCAndFulfillPR(
     targetPR.items.forEach(item => {
       const shippedQty = fulfillmentMap[item.id] !== undefined ? fulfillmentMap[item.id] : 0;
       
-      // BUG FIX #4: Validate quantity doesn't exceed remaining
-      const maxRemaining = Math.max(0, item.requestedQty - (item.fulfilledQty || 0));
-      const actualShippedQty = Math.min(Math.max(0, shippedQty), maxRemaining);
-      
+      // Preserve the actual dispatched quantity; preflight requires explicit confirmation for overdelivery.
+      const actualShippedQty = shippedQty;
       if (actualShippedQty > 0) {
-        if (actualShippedQty < shippedQty) {
-          console.warn(
-            `[Quantity Validation] Item "${item.name}" (${item.id}): ` +
-            `Requested ${shippedQty}, but max remaining is ${maxRemaining}. Reduced to ${actualShippedQty}.`
-          );
-        }
-        
         itemsShippedList.push({
           itemId: item.id,
           itemName: item.name,
@@ -950,7 +891,7 @@ export function saveDCAndFulfillPR(
       return {
         ...item,
         fulfilledQty: fulfilled,
-        status: computeItemStatus(item.requestedQty, fulfilled)
+        status: item.status === 'Cancelled' ? 'Cancelled' : computeItemStatus(item.requestedQty, fulfilled)
       };
     });
 
@@ -961,8 +902,10 @@ export function saveDCAndFulfillPR(
       fulfillmentLogs: allLogs
     };
 
-    prs = [...prs];
-    prs[targetPRIndex] = targetPR;
+    if (hasMatchedDelivery) {
+      prs = [...prs];
+      prs[targetPRIndex] = targetPR;
+    }
   }
 
   // Ensure itemsShipped has items
@@ -970,7 +913,7 @@ export function saveDCAndFulfillPR(
     ? itemsShippedList
     : (dcData.itemsShipped && dcData.itemsShipped.length > 0 ? dcData.itemsShipped : []);
 
-  if (!targetPR.documentImage && dcData.prDocumentImage) {
+  if (hasMatchedDelivery && !targetPR.documentImage && dcData.prDocumentImage) {
     targetPR.documentImage = dcData.prDocumentImage;
   }
 
@@ -1002,8 +945,8 @@ export function saveDCAndFulfillPR(
     updatedDCList = [newDC, ...dcs];
   }
 
-  saveAllPRs(prs);
-  saveAllDCs(updatedDCList);
+  if (hasMatchedDelivery && !saveAllPRs(prs)) throw new Error('The local PR save failed; the DC was not saved. Preserve the draft.');
+  if (!saveAllDCs(updatedDCList)) throw new Error(hasMatchedDelivery ? 'The local DC save failed after the PR was saved. The ledger may be inconsistent; preserve the draft and do not retry until reviewed.' : 'The local DC save failed; preserve the draft.');
 
   return { updatedPRs: prs, updatedDCs: updatedDCList, newDC };
 }
@@ -1012,14 +955,17 @@ export function saveMultipleDCsAndFulfillPRs(
   dcList: Array<{
     dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>;
     fulfillmentMap: Record<string, number>;
-  }>
+  }>,
+  options: { allowOverdelivery?: boolean } = {}
 ): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[]; newDCs: DCRecord[] } {
+  const plan = planDeliveries(getPRs(), getDCs(), dcList);
+  if (plan.overdeliveries.length && !options.allowOverdelivery) throw new Error('Overdelivery requires explicit confirmation.');
   let currentPRs = getPRs();
   let currentDCs = getDCs();
   const createdDCs: DCRecord[] = [];
 
   for (const item of dcList) {
-    const res = saveDCAndFulfillPR(item.dcData, item.fulfillmentMap);
+    const res = saveDCAndFulfillPR(item.dcData, item.fulfillmentMap, options);
     currentPRs = res.updatedPRs;
     currentDCs = res.updatedDCs;
     createdDCs.push(res.newDC);

@@ -13,7 +13,7 @@ export const BuiltyPreviewModal: React.FC = () => {
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = String(reader.result);
-      updateDC(isBuilty ? { ...dc, builtyImage: dataUrl } : { ...dc, documentImage: dataUrl });
+      if (!updateDC(isBuilty ? { ...dc, builtyImage: dataUrl } : { ...dc, documentImage: dataUrl })) return;
       setSelectedBuiltyPreview({ ...selectedBuiltyPreview, url: dataUrl });
     };
     reader.readAsDataURL(file);

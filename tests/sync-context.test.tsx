@@ -28,10 +28,11 @@ import { AppProvider, useApp } from '../src/context/AppContext';
 import { CloudSyncBanner } from '../src/components/CloudSyncBanner';
 const pr = { id: 'p1', prNumber: 'PR-1', date: '2026-01-01', siteName: 'Fixture', status: 'Pending' as const, items: [], fulfillmentLogs: [], createdTimestamp: 1 };
 function Probe() {
-  const { addNewPR, pushAllToCloud, prs } = useApp();
+  const { addNewPR, pushAllToCloud, prs, recordDeliveryChallan } = useApp();
   const [bulkError, setBulkError] = useState('');
   return <><CloudSyncBanner/><span data-testid="pr-numbers">{prs.map(p => p.prNumber).join(',')}</span><button onClick={() => addNewPR(pr)}>Add PR</button>
-    <button onClick={() => void pushAllToCloud().catch((e: Error) => setBulkError(e.message))}>Bulk</button><span>{bulkError}</span></>;
+    <button onClick={() => void pushAllToCloud().catch((e: Error) => setBulkError(e.message))}>Bulk</button><span>{bulkError}</span>
+    <button onClick={() => recordDeliveryChallan({ dcNumber: 'DC-1', invoiceNumber: 'DC-1', prNumber: 'PR-1', prId: 'p1', date: '2026-01-02', siteName: 'Fixture', itemsShipped: [] }, { i1: 12 })}>Record overdelivery</button></>;
 }
 function start() { render(<AppProvider><Probe /></AppProvider>); act(() => mocks.auth?.({ email: 'staff@example.com' })); }
 
@@ -76,6 +77,19 @@ describe('cloud warning integration', () => {
     await waitFor(() => expect(screen.getByText(/A local ledger save failed/)).toBeTruthy());
     expect(localStorage.getItem('star_electric_pending_image')).toBe('important');
     expect(screen.getByTestId('pr-numbers').textContent).toContain('PR-1');
+  });
+  it('requires confirmation and preserves the actual overdelivered quantity when accepted', async () => {
+    const record = { ...pr, items: [{ id: 'i1', name: 'Cable', brand: 'Pakistan Cables', unit: 'm', requestedQty: 10, fulfilledQty: 0, status: 'Pending' }] };
+    localStorage.setItem('STAR_ELECTRIC_PRS_V2', JSON.stringify([record]));
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    start(); act(() => screen.getByRole('button', { name: 'Record overdelivery' }).click());
+    expect(confirm).toHaveBeenCalledOnce(); expect(localStorage.getItem('STAR_ELECTRIC_DCS_V2')).toBeNull();
+    expect(mocks.saveDC).not.toHaveBeenCalled();
+    confirm.mockReturnValue(true);
+    act(() => screen.getByRole('button', { name: 'Record overdelivery' }).click());
+    await waitFor(() => expect(mocks.saveDC).toHaveBeenCalledOnce());
+    expect(JSON.parse(localStorage.getItem('STAR_ELECTRIC_DCS_V2')!)[0].itemsShipped[0].quantity).toBe(12);
+    expect(JSON.parse(localStorage.getItem('STAR_ELECTRIC_PRS_V2')!)[0].items[0].fulfilledQty).toBe(12);
   });
   it('blocks the unsafe bulk push rather than reporting success', async () => {
     start(); act(() => screen.getByRole('button', { name: 'Bulk' }).click());

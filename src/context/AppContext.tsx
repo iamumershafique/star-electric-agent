@@ -1,3 +1,4 @@
+import { planDeliveries, type DeliveryDraft } from '../lib/deliveryRules';
 import React, { createContext, useContext, useState, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { FirebaseError } from 'firebase/app';
 import {
@@ -152,17 +153,17 @@ interface AppContextType {
   updateExistingPR: (pr: PRRecord) => void;
   deletePR: (id: string) => void;
   deleteDC: (id: string) => void;
-  updateDC: (updatedDC: DCRecord) => void;
+  updateDC: (updatedDC: DCRecord) => boolean;
   recordDeliveryChallan: (
     dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>, 
     fulfillmentMap: Record<string, number>
-  ) => void;
+  ) => boolean;
   recordMultipleDeliveryChallans: (
     dcList: Array<{
       dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>;
       fulfillmentMap: Record<string, number>;
     }>
-  ) => void;
+  ) => boolean;
   attachBuiltyToDC: (
     dcIdOrNumber: string,
     builtyData: Partial<GeminiBuiltyExtractionResult>
@@ -571,17 +572,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const updateDC = (updatedDC: DCRecord) => {
-    const { updatedPRs, updatedDCs } = updateDCInStorage(updatedDC);
-    setPRs(updatedPRs);
-    setDCs(updatedDCs);
-    saveDCToCloud(updatedDC).catch(() => {});
-    if (selectedPR) {
-      const refreshed = updatedPRs.find(p => p.id === selectedPR.id);
-      if (refreshed) setSelectedPR(refreshed);
-    }
-    if (editingDC && editingDC.id === updatedDC.id) {
-      setEditingDC(updatedDC);
+  const updateDC = (updatedDC: DCRecord): boolean => {
+    try {
+      const { updatedPRs, updatedDCs } = updateDCInStorage(updatedDC);
+      setPRs(updatedPRs);
+      setDCs(updatedDCs);
+      saveDCToCloud(updatedDC).catch(() => {});
+      if (selectedPR) {
+        const refreshed = updatedPRs.find(p => p.id === selectedPR.id);
+        if (refreshed) setSelectedPR(refreshed);
+      }
+      if (editingDC?.id === updatedDC.id) setEditingDC(updatedDC);
+      return true;
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'The DC update could not be saved.');
+      return false;
     }
   };
 
@@ -606,49 +611,62 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     deleteDCFromCloud(id).catch(() => {});
   };
 
-  const recordDeliveryChallan = (
-    dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>,
-    fulfillmentMap: Record<string, number>
-  ) => {
-    const { updatedPRs, updatedDCs } = saveDCAndFulfillPR(dcData, fulfillmentMap);
-    setPRs(updatedPRs);
-    setDCs(updatedDCs);
-    
-    const createdDC = updatedDCs.find(d => d.dcNumber === dcData.dcNumber);
-    if (createdDC) saveDCToCloud(createdDC).catch(() => {});
-    if (dcData.prId) {
-      const fulfilledPR = updatedPRs.find(p => p.id === dcData.prId);
-      if (fulfilledPR) savePRToCloud(fulfilledPR).catch(() => {});
-    }
-    
-    if (selectedPR && (selectedPR.id === dcData.prId || selectedPR.prNumber === dcData.prNumber)) {
-      const refreshed = updatedPRs.find(p => p.id === selectedPR.id);
-      if (refreshed) setSelectedPR(refreshed);
+  // Validate the entire draft set before writing anything. This does not make cloud writes atomic.
+  const confirmDeliveryPlan = (drafts: DeliveryDraft[]): boolean => {
+    try {
+      const { overdeliveries } = planDeliveries(getPRs(), getDCs(), drafts);
+      if (!overdeliveries.length) return true;
+      const details = overdeliveries.map(item => `${item.dcNumber} / ${item.prNumber}: ${item.item}, ${item.shipped} ${item.unit} (remaining ${item.remaining})`).join('\n');
+      return window.confirm(`The following quantities exceed the remaining PR quantity:\n\n${details}\n\nRecord the actual quantities anyway?`);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Unable to validate the delivery.');
+      return false;
     }
   };
 
-  const recordMultipleDeliveryChallans = (
-    dcList: Array<{
-      dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>;
-      fulfillmentMap: Record<string, number>;
-    }>
-  ) => {
-    const { updatedPRs, updatedDCs } = saveMultipleDCsAndFulfillPRs(dcList);
-    setPRs(updatedPRs);
-    setDCs(updatedDCs);
-
-    dcList.forEach(item => {
-      const createdDC = updatedDCs.find(d => d.dcNumber === item.dcData.dcNumber);
-      if (createdDC) saveDCToCloud(createdDC).catch(() => {});
-      if (item.dcData.prId) {
-        const fulfilledPR = updatedPRs.find(p => p.id === item.dcData.prId);
-        if (fulfilledPR) savePRToCloud(fulfilledPR).catch(() => {});
+  const recordDeliveryChallan = (
+    dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>,
+    fulfillmentMap: Record<string, number>
+  ): boolean => {
+    if (!confirmDeliveryPlan([{ dcData, fulfillmentMap }])) return false;
+    try {
+      const { updatedPRs, updatedDCs, newDC } = saveDCAndFulfillPR(dcData, fulfillmentMap, { allowOverdelivery: true });
+      setPRs(updatedPRs);
+      setDCs(updatedDCs);
+      saveDCToCloud(newDC).catch(() => {});
+      const fulfilledPR = updatedPRs.find(p => p.id === newDC.prId);
+      if (fulfilledPR && fulfilledPR.items.some(item => (fulfillmentMap[item.id] || 0) > 0)) savePRToCloud(fulfilledPR).catch(() => {});
+      if (selectedPR) {
+        const refreshed = updatedPRs.find(p => p.id === selectedPR.id);
+        if (refreshed) setSelectedPR(refreshed);
       }
-    });
+      return true;
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : 'Could not record the delivery. Verify the ledger before retrying.');
+      return false;
+    }
+  };
 
-    if (selectedPR) {
-      const refreshed = updatedPRs.find(p => p.id === selectedPR.id);
-      if (refreshed) setSelectedPR(refreshed);
+  const recordMultipleDeliveryChallans = (dcList: DeliveryDraft[]): boolean => {
+    if (!confirmDeliveryPlan(dcList)) return false;
+    try {
+      const { updatedPRs, updatedDCs, newDCs } = saveMultipleDCsAndFulfillPRs(dcList, { allowOverdelivery: true });
+      setPRs(updatedPRs);
+      setDCs(updatedDCs);
+      newDCs.forEach(dc => saveDCToCloud(dc).catch(() => {}));
+      const affectedIds = new Set(newDCs.filter((dc, index) => {
+        const pr = updatedPRs.find(item => item.id === dc.prId);
+        return pr?.items.some(item => (dcList[index].fulfillmentMap[item.id] || 0) > 0);
+      }).map(dc => dc.prId));
+      updatedPRs.filter(pr => affectedIds.has(pr.id)).forEach(pr => savePRToCloud(pr).catch(() => {}));
+      if (selectedPR) {
+        const refreshed = updatedPRs.find(p => p.id === selectedPR.id);
+        if (refreshed) setSelectedPR(refreshed);
+      }
+      return true;
+    } catch (error) {
+      window.alert(`The batch may be partially recorded. Check the ledger before retrying. ${error instanceof Error ? error.message : ''}`);
+      return false;
     }
   };
 
