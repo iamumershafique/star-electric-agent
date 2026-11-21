@@ -1,0 +1,27 @@
+# Local-only transactional sync prototype
+
+## Scope: demo-only form connection
+
+The proposed demo backend is connected to Quick Dispatch only when an explicit development-only switch, fixed synthetic project and loopback configuration pass. See [demo-linked-delivery.md](demo-linked-delivery.md). It cannot accept a production app, project ID or remote host. Do not use business data in this prototype. Production write paths, delete, link, backup, and scan paths remain outside this demo; their limitations remain in [phase-2-sync.md](phase-2-sync.md).
+
+The original demo backend uses `demo_sync_receipts`; the newer form demo uses actor-scoped `star_sync_actors` receipts. Existing repository security rules deny both. A separate local rules proposal has not passed official tests. The demo emulator used locally, `hidane`, is a third-party implementation that does not enforce Firebase Security Rules; its success is not evidence that the actual Firebase rules allow the protocol, or that the protocol is production-ready. Java was obtained, but the official emulator JAR download is blocked. The independent rules test must pass before considering any rollout.
+
+## What is implemented for synthetic data
+
+- A command has a stable operation ID, actor ID, an explicit expected revision or expected absence for one PR, one standalone DC, or one linked PR/DC pair, and an immutable JSON payload. A conflicting operation ID is rejected.
+- A Firestore transaction reads the receipt and all target documents before writing; it checks revisions/absence and atomically writes the target records and a SHA-256 payload receipt. An identical retry recognizes the receipt even if newer edits have since occurred. A stale or unversioned record is rejected instead of overwritten. The original demo backend and the newer proposed backend use different receipt schemas; only the proposed backend is wired into the Quick Dispatch demo, never production.
+- An IndexedDB outbox retains queued operations and acknowledged results in a separate demo database. A lease limits concurrent workers, and a retry after an expired lease can recognize a previously committed receipt. A runner polls and responds to an `online` event; transient errors use bounded exponential delay. Conflict, permission, validation, and scan-review errors stop the FIFO queue for review rather than being silently discarded. `enqueueForReview` can retain a synthetic legacy or scan-bearing draft in a non-executable state; callers must explicitly select review. On a revision conflict it also retains both server records observed in the failed transaction alongside the attempted command; this is demo-only, may include sensitive references, and has no review UI.
+- Commands carrying scans or targeting an existing scan-bearing record are rejected. The prototype never deletes, rewrites or migrates existing portal storage or scans. Scan upload, reconciliation and durable scan retry are not implemented.
+
+## Required work before integration
+
+1. Design and review rules for immutable, actor-bound receipt creation and transaction invariants; existing clients bypass revisions and could overwrite data without incrementing them. Migrate and verify all writers, including admin tools, before relying on revision checks. Client transaction code alone is not an authorization boundary.
+2. Decide how real existing records receive revisions and are reconciled without destroying history. Do not silently treat unversioned records as new or remove their scan fields.
+3. Build a durable integration with portal UI and local record preparation, including atomic persistence or recovery of both the local edit and its queued command, user-specific/project-specific isolation, conflict review/resolution, queue visibility, retry controls and receipt retention. The demo outbox is separate from the current portal cache; it does not protect edits made before a command is successfully enqueued. A blocked queue currently has no resolution UI. Tests emulate IndexedDB reopening with `fake-indexeddb`, not a real device restart; browser storage can be evicted or cleared and is not a backup.
+4. Design safe scan identity, uploads, verification and retry, without exposing bearer download URLs or deleting local bytes. Scan-bearing operations are currently blocked, not synced.
+5. Test full delivery validation and linkage against authoritative server state, creation and deletion, all legacy paths, multiple devices and real browser restarts. This demo transaction accepts prevalidated synthetic record replacements; it does not validate business quantities or all linked-record invariants. It does not enforce uniqueness across business numbers.
+6. Run official Firestore and Storage emulator tests, including security rules, real authentication, denied writes, offline behavior, and isolation. Then complete staged role migration, actual independent cloud/device/Drive backups and isolated restore verification before any reviewed production deployment.
+
+## Running synthetic tests
+
+`npm test` includes `tests/demo-outbox.test.ts` and `tests/demo-sync-emulator.test.ts`. The latter starts the third-party `hidane` emulator bound to localhost on a random port, using only synthetic records and the `demo-star-electric` project. It does not contact production. The dependency is used for testing only. See `rules-tests/security.mjs` for the separate official-emulator security tests; those were not run in this environment.

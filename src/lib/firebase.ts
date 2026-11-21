@@ -17,6 +17,8 @@ let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 
 export function getFirebaseApp(): FirebaseApp | null {
+  // Demo delivery uses its own fixed loopback-only app; never initialize the portal app.
+  if (import.meta.env.VITE_LINKED_DELIVERY_DEMO === 'true') return null;
   if (app) return app;
   if (!isFirebaseConfigured()) return null;
 
@@ -35,6 +37,7 @@ export function getFirebaseApp(): FirebaseApp | null {
 }
 
 export function getFirestoreDb(): Firestore | null {
+  if (import.meta.env.VITE_LINKED_DELIVERY_DEMO === 'true') return null;
   if (db) return db;
   const currentApp = getFirebaseApp();
   if (!currentApp) return null;
@@ -54,6 +57,7 @@ export function getFirebaseAuth(): Auth | null {
 }
 
 export function isFirebaseConfigured(): boolean {
+  if (import.meta.env.VITE_LINKED_DELIVERY_DEMO === 'true') return false;
   return Boolean(firebaseConfig.apiKey && firebaseConfig.appId && firebaseConfig.projectId);
 }
 

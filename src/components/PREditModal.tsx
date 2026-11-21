@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import type { LineItem, BrandCategory } from '../types';
+import type { LineItem, BrandCategory, PRRecord } from '../types';
 import { generateId, normalizeBrand } from '../lib/utils';
 import { 
   X, 
@@ -48,9 +48,14 @@ export const PREditModal: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<LineItem[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const baseRef = useRef<PRRecord | null>(null);
 
   useEffect(() => {
-    if (editingPR) {
+    if (!isPREditOpen) { baseRef.current = null; return; }
+    if (editingPR && !baseRef.current) {
+      baseRef.current = structuredClone(editingPR);
       setPrNumber(editingPR.prNumber || '');
       setDate(editingPR.date || new Date().toISOString().split('T')[0]);
       
@@ -70,11 +75,12 @@ export const PREditModal: React.FC = () => {
       setItems(editingPR.items.map(item => ({ ...item })));
       setErrorMsg(null);
     }
+  // Do not reset an in-progress draft when a live snapshot changes the site list.
   }, [editingPR, isPREditOpen, sites]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isPREditOpen) {
+      if (e.key === 'Escape' && isPREditOpen && !savingRef.current) {
         setIsPREditOpen(false);
         setEditingPR(null);
       }
@@ -115,8 +121,9 @@ export const PREditModal: React.FC = () => {
     setItems(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingRef.current || !baseRef.current) return;
     setErrorMsg(null);
 
     const cleanPRNum = prNumber.trim();
@@ -148,7 +155,7 @@ export const PREditModal: React.FC = () => {
     }
 
     const updatedPR = {
-      ...editingPR,
+      ...baseRef.current,
       prNumber: cleanPRNum,
       date,
       siteName: finalSite,
@@ -162,9 +169,18 @@ export const PREditModal: React.FC = () => {
       }))
     };
 
-    updateExistingPR(updatedPR);
-    setIsPREditOpen(false);
-    setEditingPR(null);
+    savingRef.current = true;
+    setSaving(true);
+    try {
+      if (!await updateExistingPR(updatedPR, baseRef.current)) return;
+      setIsPREditOpen(false);
+      setEditingPR(null);
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : 'The PR edit could not be saved. Keep this form open and try again.');
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
   };
 
   return (
@@ -184,7 +200,7 @@ export const PREditModal: React.FC = () => {
             </div>
             <div>
               <h3 id="pr-edit-modal-title" className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                Edit Purchase Requisition: <span className="font-mono text-amber-700">{editingPR.prNumber}</span>
+                Edit Purchase Requisition: <span className="font-mono text-amber-700">{prNumber}</span>
               </h3>
               <p className="text-xs text-slate-500 font-medium">Modify requisition details, site location, and electrical line items</p>
             </div>
@@ -196,6 +212,7 @@ export const PREditModal: React.FC = () => {
               setIsPREditOpen(false);
               setEditingPR(null);
             }}
+            disabled={saving}
             aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
@@ -205,6 +222,7 @@ export const PREditModal: React.FC = () => {
 
         {/* Form Body */}
         <form onSubmit={handleSave} className="overflow-y-auto space-y-5 pr-1 flex-1">
+          <fieldset disabled={saving} className="space-y-5">
           {errorMsg && (
             <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-bold flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -431,6 +449,7 @@ export const PREditModal: React.FC = () => {
             </div>
           </div>
 
+          </fieldset>
           {/* Footer Controls */}
           <div className="border-t border-slate-200 pt-4 flex items-center justify-between shrink-0">
             <span className="text-xs text-slate-500 font-medium">
@@ -440,6 +459,7 @@ export const PREditModal: React.FC = () => {
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                disabled={saving}
                 onClick={() => {
                   setIsPREditOpen(false);
                   setEditingPR(null);
@@ -451,6 +471,7 @@ export const PREditModal: React.FC = () => {
 
               <button
                 type="submit"
+                disabled={saving}
                 className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all active:scale-95"
               >
                 <Save className="w-4 h-4" /> Save Changes

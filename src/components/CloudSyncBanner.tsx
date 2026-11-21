@@ -1,9 +1,17 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 
+// Review synthetic record details without displaying scan references or bytes.
+function reviewText(data: unknown): string {
+  return JSON.stringify(data, (key, value) => {
+    if (['documentImage', 'prDocumentImage', 'builtyImage'].includes(key) || (typeof value === 'string' && (value.startsWith('data:') || value.startsWith('indexeddb:')))) return '[scan reference withheld]';
+    return value;
+  }, 2);
+}
+
 /** A warning log, not an offline queue or an indication that all records are synced. */
 export const CloudSyncBanner: React.FC = () => {
-  const { cloudSyncIssues, snapshotDifferences, syncTrackingUnavailable, localPersistenceFailed, localScanPersistenceFailed, isLocalOnlyMode, acknowledgeCloudSyncIssue } = useApp();
+  const { cloudSyncIssues, snapshotDifferences, syncTrackingUnavailable, localPersistenceFailed, localScanPersistenceFailed, isLocalOnlyMode, isDemoDeliveryMode, demoDeliveryEntries, demoDeliveryError, acknowledgeCloudSyncIssue } = useApp();
   const [isOffline, setIsOffline] = React.useState(() => typeof navigator !== 'undefined' && !navigator.onLine);
   React.useEffect(() => {
     const update = () => setIsOffline(!navigator.onLine);
@@ -11,9 +19,28 @@ export const CloudSyncBanner: React.FC = () => {
     window.addEventListener('offline', update);
     return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update); };
   }, []);
-  if (!cloudSyncIssues.length && !snapshotDifferences.length && !syncTrackingUnavailable && !localPersistenceFailed && !localScanPersistenceFailed && !isLocalOnlyMode && !isOffline) return null;
+  if (!cloudSyncIssues.length && !snapshotDifferences.length && !syncTrackingUnavailable && !localPersistenceFailed && !localScanPersistenceFailed && !isLocalOnlyMode && !isOffline && !isDemoDeliveryMode) return null;
   return (
     <section role="alert" className="border-b border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+      {isDemoDeliveryMode && <div>
+        <p className="font-bold">Synthetic demo only — linked deliveries use a loopback emulator, not the portal cloud.</p>
+        {demoDeliveryError && <p>{demoDeliveryError}</p>}
+        {demoDeliveryEntries.map(entry => {
+          const pr = entry.command.mutations.find(mutation => mutation.kind === 'PR');
+          const dc = entry.command.mutations.find(mutation => mutation.kind === 'DC');
+          const remote = entry.conflictRecords?.find(record => record.kind === 'PR' && record.id === pr?.id);
+          return <div key={entry.command.operationId}>
+            <p>{String(dc?.data.dcNumber || pr?.data.prNumber || 'Synthetic PR')}: Saved on this device. {entry.state === 'acknowledged' ? 'Synced' : entry.state === 'conflict' ? 'Conflict — review required.' : entry.state === 'legacy-review' ? 'Legacy revision — review required; not sent.' : entry.state === 'scan-review' ? 'Scan reference — review required; not sent.' : entry.state === 'rejected' ? 'Blocked — review required.' : 'Pending emulator acknowledgement.'}</p>
+            {pr && ['conflict', 'legacy-review', 'scan-review', 'rejected'].includes(entry.state) && <details>
+              <summary>Review synthetic PR versions</summary>
+              <p className="font-semibold">Attempted edit (base revision {pr.expectedRevision ?? 'unknown'})</p>
+              <pre className="whitespace-pre-wrap break-all">{reviewText(pr.data)}</pre>
+              {entry.state === 'conflict' && <><p className="font-semibold">Retained remote version at conflict</p>
+                <pre className="whitespace-pre-wrap break-all">{remote ? reviewText(remote.data) : 'Remote version unavailable.'}</pre></>}
+            </details>}
+          </div>;
+        })}
+      </div>}
       {isOffline && <p className="font-bold">Your browser reports that it is offline. Cloud updates may be unavailable.</p>}
       {isLocalOnlyMode && <p className="font-semibold">Development local-only mode: changes are not saved to Firebase.</p>}
       {localScanPersistenceFailed && <p className="font-bold">A scan could not be saved in this browser. Keep this tab open, preserve the original file, and verify any cloud copy.</p>}

@@ -65,7 +65,7 @@ export const INITIAL_PRS: PRRecord[] = [];
 // Historical imports must be reviewed explicitly, never injected on startup.
 export const INITIAL_DCS: DCRecord[] = [];
 
-function normalizeStoredPR(value: unknown, index: number): PRRecord {
+export function normalizeStoredPR(value: unknown, index: number): PRRecord {
   const raw = value && typeof value === 'object' ? value as Partial<PRRecord> : {};
   const items = Array.isArray(raw.items) ? raw.items : [];
   const fulfillmentLogs = Array.isArray(raw.fulfillmentLogs) ? raw.fulfillmentLogs : [];
@@ -107,7 +107,7 @@ function normalizeStoredPR(value: unknown, index: number): PRRecord {
   } as PRRecord;
 }
 
-function normalizeStoredDC(value: unknown, index: number): DCRecord {
+export function normalizeStoredDC(value: unknown, index: number): DCRecord {
   const raw = value && typeof value === 'object' ? value as Partial<DCRecord> : {};
   const itemsShipped = Array.isArray(raw.itemsShipped) ? raw.itemsShipped : [];
   return {
@@ -779,13 +779,15 @@ export function updateDCInStorage(
 }
 
 
-export function saveDCAndFulfillPR(
+/** Build a delivery without modifying either input or writing browser storage. */
+export function prepareDCAndFulfillPR(
+  initialPRs: PRRecord[],
+  dcs: DCRecord[],
   dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>,
   fulfillmentMap: Record<string, number>,
   options: { allowOverdelivery?: boolean } = {}
-): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[]; newDC: DCRecord } {
-  let prs = getPRs();
-  const dcs = getDCs();
+): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[]; newDC: DCRecord; changedPR: boolean } {
+  let prs = initialPRs;
   const plan = planDeliveries(prs, dcs, [{ dcData, fulfillmentMap }]);
   if (plan.overdeliveries.length && !options.allowOverdelivery) throw new Error('Overdelivery requires explicit confirmation.');
 
@@ -817,8 +819,7 @@ export function saveDCAndFulfillPR(
     const updatedDCList = existingDCIndex >= 0
       ? dcs.map((dc, index) => index === existingDCIndex ? standaloneDC : dc)
       : [standaloneDC, ...dcs];
-    if (!saveAllDCs(updatedDCList)) throw new Error('The local DC save failed; keep this tab open and preserve the draft.');
-    return { updatedPRs: prs, updatedDCs: updatedDCList, newDC: standaloneDC };
+    return { updatedPRs: prs, updatedDCs: updatedDCList, newDC: standaloneDC, changedPR: false };
   }
 
   let targetPR: PRRecord;
@@ -949,10 +950,19 @@ export function saveDCAndFulfillPR(
     updatedDCList = [newDC, ...dcs];
   }
 
-  if (hasMatchedDelivery && !saveAllPRs(prs)) throw new Error('The local PR save failed; the DC was not saved. Preserve the draft.');
-  if (!saveAllDCs(updatedDCList)) throw new Error(hasMatchedDelivery ? 'The local DC save failed after the PR was saved. The ledger may be inconsistent; preserve the draft and do not retry until reviewed.' : 'The local DC save failed; preserve the draft.');
+  return { updatedPRs: prs, updatedDCs: updatedDCList, newDC, changedPR: hasMatchedDelivery };
+}
 
-  return { updatedPRs: prs, updatedDCs: updatedDCList, newDC };
+/** Legacy persistence wrapper; not atomic across localStorage keys. */
+export function saveDCAndFulfillPR(
+  dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>,
+  fulfillmentMap: Record<string, number>,
+  options: { allowOverdelivery?: boolean } = {}
+): { updatedPRs: PRRecord[]; updatedDCs: DCRecord[]; newDC: DCRecord } {
+  const prepared = prepareDCAndFulfillPR(getPRs(), getDCs(), dcData, fulfillmentMap, options);
+  if (prepared.changedPR && !saveAllPRs(prepared.updatedPRs)) throw new Error('The local PR save failed; the DC was not saved. Preserve the draft.');
+  if (!saveAllDCs(prepared.updatedDCs)) throw new Error(prepared.changedPR ? 'The local DC save failed after the PR was saved. The ledger may be inconsistent; preserve the draft and do not retry until reviewed.' : 'The local DC save failed; preserve the draft.');
+  return prepared;
 }
 
 export function saveMultipleDCsAndFulfillPRs(

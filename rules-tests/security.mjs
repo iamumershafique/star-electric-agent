@@ -1,22 +1,22 @@
 import { readFile } from 'node:fs/promises';
 import { after, before, describe, it } from 'node:test';
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
+import { assertDemoEmulatorEnvironment, requireListeningEmulators } from './emulator-safety.mjs';
 
-// Refuse to run against any real project or without both local emulators.
-if (process.env.GCLOUD_PROJECT && process.env.GCLOUD_PROJECT !== 'demo-star-electric') throw new Error('Rules tests require demo-star-electric.');
-if (!process.env.FIREBASE_EMULATOR_HUB && (!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_STORAGE_EMULATOR_HOST)) {
-  throw new Error('Rules tests require Firestore and Storage emulators.');
-}
+// Validate project and both explicit loopback addresses before opening any connection.
+const endpoints = assertDemoEmulatorEnvironment(process.env);
 let env;
 before(async () => {
+  await requireListeningEmulators(endpoints);
   env = await initializeTestEnvironment({
     projectId: 'demo-star-electric',
-    firestore: { rules: await readFile('firestore.rules', 'utf8') },
-    storage: { rules: await readFile('storage.rules', 'utf8') },
+    firestore: { ...endpoints[0], rules: await readFile('firestore.rules', 'utf8') },
+    storage: { ...endpoints[1], rules: await readFile('storage.rules', 'utf8') },
   });
   await env.withSecurityRulesDisabled(async context => {
     await context.firestore().doc('star_prs/original').set({ prNumber: 'PR-1', items: [] });
     await context.firestore().doc('star_dcs/original').set({ dcNumber: 'DC-1', itemsShipped: [] });
+    await context.firestore().doc('demo_sync_receipts/another-operation').set({ actorId: 'other-editor', fingerprint: 'synthetic' });
     await context.storage().ref('scans/original').put(new Uint8Array([1, 2]), { contentType: 'image/png' });
   });
 });
@@ -46,6 +46,15 @@ describe('Firestore PR/DC authorization', () => {
     await assertFails(db.doc('star_prs/editor-new').delete());
     await assertFails(db.doc('star_prs/invalid').set({ prNumber: '', items: [] }));
     await assertFails(db.doc('private/other').set({ name: 'other' }));
+  });
+  it('denies operation receipts, including forged creates and changes to another actor’s receipt', async () => {
+    for (const role of ['viewer', 'editor', 'admin']) {
+      const db = env.authenticatedContext(`receipt-${role}`, { portalRole: role }).firestore();
+      await assertFails(db.doc('demo_sync_receipts/new-operation').set({ actorId: `receipt-${role}`, fingerprint: 'synthetic' }));
+      await assertFails(db.doc('demo_sync_receipts/another-operation').get());
+      await assertFails(db.doc('demo_sync_receipts/another-operation').update({ actorId: `receipt-${role}` }));
+      await assertFails(db.doc('demo_sync_receipts/another-operation').delete());
+    }
   });
   it('lets admins delete PRs and DCs', async () => {
     const db = env.authenticatedContext('admin', { portalRole: 'admin' }).firestore();

@@ -138,6 +138,7 @@ export const DCUploadModal: React.FC = () => {
   const [scanProgress, setScanProgress] = useState<{ current: number; total: number; fileName: string; percent: number; status?: string } | null>(null);
   const [scanAnalysisNote, setScanAnalysisNote] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const submittingDelivery = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // New Item creation state
@@ -459,7 +460,8 @@ export const DCUploadModal: React.FC = () => {
   };
 
   // Submit only current active draft
-  const handleSubmitSingle = () => {
+  const handleSubmitSingle = async () => {
+    if (submittingDelivery.current) return;
     setErrorMsg(null);
     if (!currentDraft.dcNumber.trim()) {
       setErrorMsg('Delivery Challan (DC) Number is required.');
@@ -478,7 +480,10 @@ export const DCUploadModal: React.FC = () => {
       if (it.shippedQty > 0) fulfillmentMap[it.id] = it.shippedQty;
     });
 
-    const recorded = recordDeliveryChallan(
+    submittingDelivery.current = true;
+    let recorded: boolean;
+    try {
+    recorded = await recordDeliveryChallan(
       {
         dcNumber: cleanDC,
         invoiceNumber: cleanDC,
@@ -506,6 +511,12 @@ export const DCUploadModal: React.FC = () => {
       },
       fulfillmentMap
     );
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : 'Could not save this delivery. Keep the draft open.');
+      return;
+    } finally {
+      submittingDelivery.current = false;
+    }
 
     if (!recorded) return;
     if (drafts.length > 1) {

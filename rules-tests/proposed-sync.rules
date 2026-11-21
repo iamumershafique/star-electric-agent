@@ -1,0 +1,88 @@
+// EXPERIMENTAL: test-only rules. Not used by firebase.json and not approved for deployment.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function roleIs(role) { return request.auth != null && request.auth.token.portalRole == role; }
+    function canRead() { return roleIs('viewer') || roleIs('editor') || roleIs('admin'); }
+    function canEdit() { return roleIs('editor') || roleIs('admin'); }
+    function isAdmin() { return roleIs('admin'); }
+    function receiptPath(actor, op) { return /databases/$(database)/documents/star_sync_actors/$(actor)/operations/$(op); }
+    function prPath(id) { return /databases/$(database)/documents/star_prs/$(id); }
+    function dcPath(id) { return /databases/$(database)/documents/star_dcs/$(id); }
+    function validMarker(data) {
+      return data._sync is map && data._sync.keys().hasOnly(['actor', 'op', 'rev'])
+        && data._sync.keys().hasAll(['actor', 'op', 'rev'])
+        && data._sync.actor == request.auth.uid && data._sync.op is string
+        && data._sync.op.size() > 0 && data._sync.op.size() <= 100
+        && data._sync.rev is int && data._sync.rev > 0;
+    }
+    function validPrior(path, before, op) {
+      return (!exists(path) && before == 0)
+        || (exists(path) && before > 0 && get(path).data._sync is map
+          && get(path).data._sync.rev == before && get(path).data._sync.op != op);
+    }
+    function targetTransition(path, before, actor, op) {
+      return validPrior(path, before, op) && existsAfter(path)
+        && getAfter(path).data._sync.actor == actor
+        && getAfter(path).data._sync.op == op
+        && getAfter(path).data._sync.rev == before + 1;
+    }
+    function validReceipt(actor, op, data) {
+      return data.keys().hasOnly(['actor', 'op', 'prId', 'dcId', 'prBefore', 'dcBefore', 'fingerprint'])
+        && data.keys().hasAll(['actor', 'op', 'prId', 'dcId', 'prBefore', 'dcBefore', 'fingerprint'])
+        && data.actor == actor && actor == request.auth.uid && data.op == op
+        && data.prId is string && data.dcId is string && data.prBefore is int && data.dcBefore is int
+        && data.prId.size() <= 100 && data.dcId.size() <= 100
+        && data.prBefore >= 0 && data.dcBefore >= 0
+        && data.fingerprint is string && data.fingerprint.matches('^[0-9a-f]{64}$')
+        && (data.prId.size() > 0 || data.dcId.size() > 0)
+        && (data.prId.size() > 0 ? targetTransition(prPath(data.prId), data.prBefore, actor, op) : data.prBefore == 0)
+        && (data.dcId.size() > 0 ? targetTransition(dcPath(data.dcId), data.dcBefore, actor, op) : data.dcBefore == 0)
+        && (data.dcId.size() == 0 || getAfter(dcPath(data.dcId)).data.get('prId', '') == ''
+          || getAfter(dcPath(data.dcId)).data.get('prId', '') == data.prId);
+    }
+    function receiptFor(data) { return getAfter(receiptPath(data._sync.actor, data._sync.op)).data; }
+    function hasNewReceipt(data) {
+      return validMarker(data) && !exists(receiptPath(data._sync.actor, data._sync.op))
+        && existsAfter(receiptPath(data._sync.actor, data._sync.op));
+    }
+    function scanUnchanged(old, next) {
+      return old.get('documentImage', null) == next.get('documentImage', null)
+        && old.get('prDocumentImage', null) == next.get('prDocumentImage', null)
+        && old.get('builtyImage', null) == next.get('builtyImage', null);
+    }
+    match /star_prs/{prId} {
+      allow read: if canRead();
+      allow create: if canEdit() && request.resource.data.prNumber is string && request.resource.data.prNumber.size() > 0
+        && hasNewReceipt(request.resource.data) && receiptFor(request.resource.data).prId == prId
+        && receiptFor(request.resource.data).prBefore == 0 && request.resource.data._sync.rev == 1;
+      allow update: if canEdit() && request.resource.data.prNumber is string && request.resource.data.prNumber.size() > 0
+        && resource.data._sync is map && resource.data._sync.rev is int && resource.data._sync.rev > 0
+        && scanUnchanged(resource.data, request.resource.data) && hasNewReceipt(request.resource.data)
+        && receiptFor(request.resource.data).prId == prId && receiptFor(request.resource.data).prBefore == resource.data._sync.rev
+        && request.resource.data._sync.rev == resource.data._sync.rev + 1
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['items', 'fulfillmentLogs'])
+          || receiptFor(request.resource.data).dcId.size() > 0);
+      allow delete: if isAdmin();
+    }
+    match /star_dcs/{dcId} {
+      allow read: if canRead();
+      allow create: if canEdit() && request.resource.data.dcNumber is string && request.resource.data.dcNumber.size() > 0
+        && hasNewReceipt(request.resource.data) && receiptFor(request.resource.data).dcId == dcId
+        && receiptFor(request.resource.data).dcBefore == 0 && request.resource.data._sync.rev == 1;
+      allow update: if canEdit() && request.resource.data.dcNumber is string && request.resource.data.dcNumber.size() > 0
+        && resource.data._sync is map && resource.data._sync.rev is int && resource.data._sync.rev > 0
+        && scanUnchanged(resource.data, request.resource.data) && hasNewReceipt(request.resource.data)
+        && receiptFor(request.resource.data).dcId == dcId && receiptFor(request.resource.data).dcBefore == resource.data._sync.rev
+        && request.resource.data._sync.rev == resource.data._sync.rev + 1;
+      allow delete: if isAdmin();
+    }
+    match /star_sync_actors/{actor}/operations/{op} {
+      allow get: if canEdit() && request.auth.uid == actor;
+      allow list: if false;
+      allow create: if canEdit() && validReceipt(actor, op, request.resource.data);
+      allow update, delete: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

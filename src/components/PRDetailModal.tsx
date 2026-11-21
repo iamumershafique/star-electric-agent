@@ -367,12 +367,12 @@ export const PRDetailModal: React.FC = () => {
                                     const updatedItems = selectedPR.items.map(it =>
                                       it.id === item.id ? { ...it, status: 'Cancelled' as const } : it
                                     );
-                                    updateExistingPR({ ...selectedPR, items: updatedItems });
+                                    updateExistingPR({ ...selectedPR, items: updatedItems }, selectedPR);
                                   } else if (val === 'Pending' || val === 'Partially Fulfilled') {
                                     const updatedItems = selectedPR.items.map(it =>
                                       it.id === item.id ? { ...it, status: 'Pending' as const } : it
                                     );
-                                    updateExistingPR({ ...selectedPR, items: updatedItems });
+                                    updateExistingPR({ ...selectedPR, items: updatedItems }, selectedPR);
                                   }
                                 }}
                                 className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border focus:outline-none cursor-pointer ${

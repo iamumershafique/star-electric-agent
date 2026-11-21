@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import type { TransportType } from '../types';
 import { 
@@ -40,6 +40,8 @@ export const QuickDispatchModal: React.FC = () => {
   // Items quantity map to ship
   const [shippedMap, setShippedMap] = useState<Record<string, number>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const submitting = useRef(false);
 
   useEffect(() => {
     if (quickDispatchTarget) {
@@ -63,13 +65,13 @@ export const QuickDispatchModal: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isQuickDispatchOpen) {
+      if (e.key === 'Escape' && isQuickDispatchOpen && !saving) {
         setIsQuickDispatchOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isQuickDispatchOpen, setIsQuickDispatchOpen]);
+  }, [isQuickDispatchOpen, setIsQuickDispatchOpen, saving]);
 
   if (!isQuickDispatchOpen || !quickDispatchTarget) return null;
 
@@ -80,7 +82,8 @@ export const QuickDispatchModal: React.FC = () => {
     setShippedMap(prev => ({ ...prev, [itemId]: qty }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (submitting.current) return;
     setErrorMsg(null);
     if (!dcNumber.trim()) {
       setErrorMsg('Delivery Challan (DC) Number is required.');
@@ -101,7 +104,10 @@ export const QuickDispatchModal: React.FC = () => {
     const cleanDC = dcNumber.trim().toUpperCase();
     const parsedFreight = isFreightFree ? 0 : (parseFloat(freightCharges) || 0);
 
-    const recorded = recordDeliveryChallan(
+    submitting.current = true;
+    setSaving(true);
+    try {
+    const recorded = await recordDeliveryChallan(
       {
         dcNumber: cleanDC,
         invoiceNumber: cleanDC,
@@ -123,6 +129,12 @@ export const QuickDispatchModal: React.FC = () => {
     );
 
     if (recorded) setIsQuickDispatchOpen(false);
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : 'Could not save this delivery. Keep this form open and try again.');
+    } finally {
+      submitting.current = false;
+      setSaving(false);
+    }
   };
 
   return (
@@ -156,6 +168,7 @@ export const QuickDispatchModal: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsQuickDispatchOpen(false)}
+            disabled={saving}
             aria-label="Close dialog"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
@@ -163,7 +176,7 @@ export const QuickDispatchModal: React.FC = () => {
           </button>
         </div>
 
-        <div className="overflow-y-auto space-y-5 pr-1 flex-1">
+        <fieldset disabled={saving} className="overflow-y-auto space-y-5 pr-1 flex-1">
 
           {/* Selected Items Table */}
           <div className="space-y-2">
@@ -405,17 +418,18 @@ export const QuickDispatchModal: React.FC = () => {
           </div>
 
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs flex items-center gap-2 font-bold">
+            <div role="alert" className="p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs flex items-center gap-2 font-bold">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-        </div>
+        </fieldset>
 
         {/* Footer actions */}
         <div className="border-t border-slate-200 pt-3 flex items-center justify-between shrink-0">
           <button
+            disabled={saving}
             onClick={() => setIsQuickDispatchOpen(false)}
             className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
           >
@@ -423,6 +437,7 @@ export const QuickDispatchModal: React.FC = () => {
           </button>
 
           <button
+            disabled={saving}
             onClick={handleSubmit}
             className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-2 transition-all active:scale-95"
           >

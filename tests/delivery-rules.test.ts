@@ -5,7 +5,7 @@ import { planDeliveries, productIdentity, uniqueProductMatch } from '../src/lib/
 import { findDeliveryHistory } from '../src/lib/deliveryHistory';
 import { computePRStatus } from '../src/lib/utils';
 vi.mock('../src/lib/imageStorage', () => ({ saveImageToMemory: vi.fn(), getImageFromMemorySync: vi.fn(), normalizeImageKey: (a: string, b: string) => `${a}_${b}` }));
-import { getDCs, getPRs, saveDCAndFulfillPR, saveMultipleDCsAndFulfillPRs, savePR, updateDCInStorage } from '../src/lib/storage';
+import { getDCs, getPRs, prepareDCAndFulfillPR, saveDCAndFulfillPR, saveMultipleDCsAndFulfillPRs, savePR, updateDCInStorage } from '../src/lib/storage';
 
 const makePR = (): PRRecord => ({ id: 'p1', prNumber: 'PR-1', date: '2026-01-01', siteName: 'Site', status: 'Pending', createdTimestamp: 1, fulfillmentLogs: [], items: [
   { id: 'i1', name: 'Cable', brand: 'Pakistan Cables', unit: 'm', requestedQty: 10, fulfilledQty: 0, status: 'Pending' },
@@ -30,6 +30,18 @@ describe('delivery matching and product history', () => {
     pr.items[0].fulfilledQty = 10; expect(computePRStatus(pr.items)).toBe('In-Progress');
     pr.items[1].fulfilledQty = 2; expect(computePRStatus(pr.items)).toBe('Fulfilled');
     expect(computePRStatus([pr.items[2]])).toBe('Cancelled');
+  });
+  it('prepares linked records without mutating inputs or writing browser storage', () => {
+    const prs = [makePR()]; const dcs: DCRecord[] = []; const before = JSON.stringify({ prs, dcs });
+    const input = draft('DC-PREPARE', 4);
+    const result = prepareDCAndFulfillPR(prs, dcs, input.dcData, input.fulfillmentMap);
+    expect(JSON.stringify({ prs, dcs })).toBe(before);
+    expect(localStorage.getItem('STAR_ELECTRIC_PRS_V2')).toBeNull();
+    expect(localStorage.getItem('STAR_ELECTRIC_DCS_V2')).toBeNull();
+    expect(result.changedPR).toBe(true);
+    expect(result.updatedPRs[0].items[0].fulfilledQty).toBe(4);
+    expect(result.newDC.itemsShipped[0].quantity).toBe(4);
+    expect(result.updatedPRs[0].fulfillmentLogs).toHaveLength(1);
   });
   it('records multiple partial DCs, keeps cancelled items, and does not silently clamp overdelivery', () => {
     localStorage.setItem('STAR_ELECTRIC_PRS_V2', JSON.stringify([makePR()]));
