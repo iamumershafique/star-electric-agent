@@ -1,6 +1,8 @@
 import type { DCRecord, PRRecord, GeminiDCExtractionResult } from '../types';
 import { processDCWithAI } from './aiOcr';
 import { getActiveGeminiApiKey } from './gemini';
+import { resolveDriveScanInputs as resolveSharedDriveInputs } from './driveScanResolver.mjs';
+export { DriveInputError, extractDriveId, extractDCNumberFromFileName, buildDriveUrls, parseDriveLinksText } from './driveScanResolver.mjs';
 
 export interface DriveScannedFile {
   id: string;
@@ -9,6 +11,7 @@ export interface DriveScannedFile {
   imageUrl: string;
   viewLink: string;
   lastModified?: string;
+  mimeType?: string;
 }
 
 export interface DriveSyncResult {
@@ -16,6 +19,8 @@ export interface DriveSyncResult {
   addedCount: number;
   updatedCount: number;
   unchangedCount: number;
+  attemptedCount: number;
+  failedCount: number;
   updatedDCs: DCRecord[];
   logs: string[];
   errors: string[];
@@ -135,57 +140,7 @@ export function saveDriveFolderConfig(config: Partial<DriveFolderConfig>): void 
 }
 
 /**
- * Extracts Google Drive file or folder ID from various URL formats or raw ID string.
- */
-export function extractDriveId(input: string): string | null {
-  const clean = input.trim();
-  if (!clean) return null;
-
-  // Raw file ID (alphanumeric, underscores, hyphens, 25-45 chars)
-  if (/^[a-zA-Z0-9_-]{25,45}$/.test(clean)) {
-    return clean;
-  }
-
-  // File URL formats:
-  // https://drive.google.com/file/d/1fe36xeEiKP15ORQeeWNd_imEtw9WhJzx/view
-  const fileMatch = clean.match(/\/file\/d\/([a-zA-Z0-9_-]{25,45})/);
-  if (fileMatch) return fileMatch[1];
-
-  // Folder URL formats:
-  // https://drive.google.com/drive/folders/1ZrSdn2o5HqoQH5GzTiLSqYa_5Ns-2jcW
-  const folderMatch = clean.match(/\/folders\/([a-zA-Z0-9_-]{25,45})/);
-  if (folderMatch) return folderMatch[1];
-
-  // uc?id= or open?id= format
-  const queryMatch = clean.match(/[?&]id=([a-zA-Z0-9_-]{25,45})/);
-  if (queryMatch) return queryMatch[1];
-
-  return null;
-}
-
-/**
- * Extracts normalized DC number (e.g. "DC-694") from filename or text.
- */
-export function extractDCNumberFromFileName(name: string): string | null {
-  const match = name.match(/DC[ _-]?(\d+)/i) || name.match(/(\d+)/);
-  if (!match) return null;
-  const num = parseInt(match[1], 10);
-  if (isNaN(num) || num <= 0) return null;
-  return `DC-${num}`;
-}
-
-/**
- * Construct Google Drive direct image URL and view link from File ID.
- */
-export function buildDriveUrls(fileId: string): { imageUrl: string; viewLink: string } {
-  return {
-    imageUrl: `https://lh3.googleusercontent.com/d/${fileId}=w1200`,
-    viewLink: `https://drive.google.com/file/d/${fileId}/view`
-  };
-}
-
-/**
- * Fetches an image from Google User Content (lh3.googleusercontent.com) and converts to Base64 data URI.
+ * Downloads validated Drive media and converts it to a Base64 data URI.
  */
 export async function fetchDriveImageAsBase64(imageUrl: string): Promise<string> {
   const res = await fetch(imageUrl, { mode: 'cors' });
@@ -193,6 +148,7 @@ export async function fetchDriveImageAsBase64(imageUrl: string): Promise<string>
     throw new Error(`Failed to download scan from Google Drive (${res.status}): ${res.statusText}`);
   }
   const blob = await res.blob();
+  if (!['image/jpeg', 'image/png', 'image/webp', 'application/pdf'].includes(blob.type.toLowerCase())) throw new Error('Unsupported scan content.');
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -203,35 +159,6 @@ export async function fetchDriveImageAsBase64(imageUrl: string): Promise<string>
     reader.onerror = () => reject(new Error('FileReader error while reading Drive scan'));
     reader.readAsDataURL(blob);
   });
-}
-
-/**
- * Parses user-pasted or auto-retrieved Google Drive file links into structured DriveScannedFile list.
- */
-export function parseDriveLinksText(text: string): DriveScannedFile[] {
-  const lines = text.split(/[\r\n,;]+/);
-  const files: DriveScannedFile[] = [];
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-
-    const fileId = extractDriveId(trimmed);
-    if (!fileId) continue;
-
-    const dcNum = extractDCNumberFromFileName(trimmed) || `DC-AUTO`;
-    const { imageUrl, viewLink } = buildDriveUrls(fileId);
-
-    files.push({
-      id: fileId,
-      name: `${dcNum}.jpg`,
-      dcNumber: dcNum,
-      imageUrl,
-      viewLink
-    });
-  }
-
-  return files;
 }
 
 /**
@@ -260,6 +187,7 @@ export async function syncDriveScansWithAI({
   let addedCount = 0;
   let updatedCount = 0;
   let unchangedCount = 0;
+  let failedCount = 0;
 
   const updatedDCsList = [...currentDCs];
   const activeKey = getActiveGeminiApiKey(geminiApiKey);
@@ -285,7 +213,7 @@ export async function syncDriveScansWithAI({
   for (let i = 0; i < scannedFiles.length; i++) {
     const file = scannedFiles[i];
     const dcKey = file.dcNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    const existingDC = dcByNumber.get(dcKey) || dcByFileId.get(file.id);
+    const existingDC = dcByFileId.get(file.id) || (dcKey ? dcByNumber.get(dcKey) : undefined);
 
     // Determine if this file needs AI OCR processing:
     // 1. DC is completely new (doesn't exist in ledger)
@@ -310,21 +238,18 @@ export async function syncDriveScansWithAI({
     onProgress?.({
       current: i + 1,
       total,
-      message: `${actionLabel} detected for ${file.dcNumber}. Downloading from Google Drive...`,
-      dcNumber: file.dcNumber
+      message: `Downloading scan ${i + 1} of ${total}...`
     });
-    logs.push(`[DriveSync] ${actionLabel} for ${file.dcNumber} (Drive ID: ${file.id})`);
+    logs.push(`[DriveSync] ${actionLabel}: processing scan ${i + 1} of ${total}.`);
 
+    let stage: 'download' | 'analysis' = 'download';
     try {
       // 1. Download image from Drive
-      const base64DataUri = await fetchDriveImageAsBase64(file.imageUrl);
+      const downloadUrl = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(file.id)}?${new URLSearchParams({ alt: 'media', key: import.meta.env.VITE_GOOGLE_DRIVE_API_KEY || '', supportsAllDrives: 'true' })}`;
+      const base64DataUri = await fetchDriveImageAsBase64(downloadUrl);
 
-      onProgress?.({
-        current: i + 1,
-        total,
-        message: `Analyzing ${file.dcNumber} with Google Gemini Vision AI...`,
-        dcNumber: file.dcNumber
-      });
+      stage = 'analysis';
+      onProgress?.({ current: i + 1, total, message: `Analyzing scan ${i + 1} of ${total}...` });
 
       // 2. Run Gemini Vision OCR
       const extractions: GeminiDCExtractionResult[] = await processDCWithAI(
@@ -355,6 +280,8 @@ export async function syncDriveScansWithAI({
         ? aiResult.dcNumber.toUpperCase().trim()
         : file.dcNumber;
 
+      if (!finalDCNumber) throw new Error('DC number needs manual review.');
+
       if (isNewDC) {
         // Construct brand new DC record
         const newRecord: DCRecord = {
@@ -366,7 +293,7 @@ export async function syncDriveScansWithAI({
           date: aiResult.date || new Date().toISOString().split('T')[0],
           siteName: aiResult.siteName || 'Jadeed Poultry Farm',
           itemsShipped: extractedItems,
-          documentImage: file.imageUrl,
+          documentImage: file.mimeType === 'application/pdf' ? file.viewLink : file.imageUrl,
           driveFileId: file.id,
           driveViewLink: file.viewLink,
           createdTimestamp: Date.now(),
@@ -388,7 +315,7 @@ export async function syncDriveScansWithAI({
         updatedDCsList.push(newRecord);
         dcByNumber.set(finalDCNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(), newRecord);
         addedCount++;
-        logs.push(`[DriveSync] Added new ${finalDCNumber} with ${extractedItems.length} items from Drive.`);
+        logs.push(`[DriveSync] Scan ${i + 1} added.`);
       } else if (existingDC) {
         // Update existing DC with newly attached image and re-transcribed details
         const dcIdx = updatedDCsList.findIndex(d => d.id === existingDC.id);
@@ -399,7 +326,7 @@ export async function syncDriveScansWithAI({
             date: aiResult.date || existingDC.date,
             siteName: aiResult.siteName || existingDC.siteName,
             itemsShipped: extractedItems.length > 0 ? extractedItems : existingDC.itemsShipped,
-            documentImage: file.imageUrl, // New Drive scan image attached!
+            documentImage: file.mimeType === 'application/pdf' ? file.viewLink : file.imageUrl, // New Drive scan image attached!
             driveFileId: file.id,
             driveViewLink: file.viewLink,
             driverName: aiResult.driverName || existingDC.driverName,
@@ -411,28 +338,45 @@ export async function syncDriveScansWithAI({
 
           updatedDCsList[dcIdx] = updatedRecord;
           updatedCount++;
-          logs.push(`[DriveSync] Re-scanned and updated ${existingDC.dcNumber} with new image (File ID: ${file.id}) and ${extractedItems.length} items.`);
+          logs.push(`[DriveSync] Scan ${i + 1} updated.`);
         }
       }
-    } catch (err: any) {
-      const msg = `Failed to process ${file.name}: ${err?.message || err}`;
-      console.error('[DriveSync]', msg, err);
+    } catch {
+      failedCount++;
+      const msg = `Scan ${i + 1} ${stage === 'download' ? 'download failed' : 'analysis failed or needs review'}.`;
       errors.push(msg);
       logs.push(`[DriveSync Error] ${msg}`);
     }
   }
 
-  saveDriveFolderConfig({ lastSyncTimestamp: Date.now() });
+  if (failedCount === 0 && total > 0) saveDriveFolderConfig({ lastSyncTimestamp: Date.now() });
 
-  logs.push(`[DriveSync] Sync complete! Added: ${addedCount}, Updated (Image Replaced): ${updatedCount}, Unchanged: ${unchangedCount}`);
+  logs.push(`[DriveSync] Results: ${total} attempted, ${failedCount} failed, ${addedCount} added, ${updatedCount} updated, ${unchangedCount} unchanged.`);
 
   return {
-    success: errors.length === 0 || addedCount > 0 || updatedCount > 0,
+    success: failedCount === 0,
     addedCount,
     updatedCount,
     unchangedCount,
+    attemptedCount: total,
+    failedCount,
     updatedDCs: updatedDCsList,
     logs,
     errors
   };
+}
+
+/** The same discovery path is used by manual sync and browser polling. */
+export async function syncDriveInputsWithAI(options: {
+  links: string; selectedFolder: string; currentDCs: DCRecord[]; currentPRs: PRRecord[];
+  geminiApiKey?: string; autoRescanOnImageChange?: boolean;
+  onProgress?: (progress: { current: number; total: number; message: string; dcNumber?: string }) => void;
+}): Promise<DriveSyncResult> {
+  const scannedFiles = await resolveDriveScanInputs(options.links, options.selectedFolder);
+  return syncDriveScansWithAI({ ...options, scannedFiles });
+}
+
+/** Browser wrapper supplies its configured Drive API key to the shared resolver. */
+export function resolveDriveScanInputs(links: string, selectedFolder: string, apiKey = import.meta.env.VITE_GOOGLE_DRIVE_API_KEY || ''): Promise<DriveScannedFile[]> {
+  return resolveSharedDriveInputs(links, selectedFolder, apiKey);
 }

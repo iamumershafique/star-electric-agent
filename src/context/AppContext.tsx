@@ -1,7 +1,7 @@
 import { planDeliveries, type DeliveryDraft } from '../lib/deliveryRules';
-import { reconcileSnapshot, type SnapshotDifference } from '../lib/reconcileSnapshots';
+import { reconcileSnapshot, sameRecordData, type SnapshotDifference } from '../lib/reconcileSnapshots';
 import { roleFromClaims, canEdit as roleCanEdit, canDelete as roleCanDelete, type PortalRole } from '../lib/roles';
-import React, { createContext, useContext, useState, useEffect, useMemo, useSyncExternalStore } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { FirebaseError } from 'firebase/app';
 import {
   browserLocalPersistence,
@@ -16,7 +16,9 @@ import { getFirebaseAuth, isFirebaseConfigured } from '../lib/firebase';
 import type { PRRecord, DCRecord, GeminiExtractionResult, SiteLocation, LineItem, NavigationTab, GeminiBuiltyExtractionResult, BuiltyPreviewInfo } from '../types';
 import { 
   getPRs, 
-  getDCs, 
+  getDCs,
+  normalizeStoredPR,
+  normalizeStoredDC,
   savePR, 
   saveMultiplePRsInStorage,
   deletePR as deletePRFromStorage, 
@@ -50,7 +52,11 @@ import {
 } from '../lib/storage';
 import { getImageFromMemorySync, initImageMemory } from '../lib/imageStorage';
 import { createDeviceBackup, verifyDeviceBackup, restoreDeviceBackup, type BackupSummary } from '../lib/deviceBackup';
-import { createSessionSyncTracker, type CloudSyncIssue } from '../lib/cloudSyncTracker';
+import { CloudSyncTracker, createSessionSyncTracker, type CloudSyncIssue } from '../lib/cloudSyncTracker';
+import { DemoOutbox, type QueueEntry } from '../lib/demoSync/outbox';
+import { createProposedDemoBackend } from '../lib/demoSync/proposedBackend';
+import { startDemoRetryWorker } from '../lib/demoSync/runner';
+import { DEMO_ACTOR, demoConfig, demoRequested, prepareDemoDelivery, prepareDemoPREdit, preserveDemoScans, projectDemoQueue, syntheticPR } from '../lib/demoSync/deliveryDemo';
 import {
   subscribeToCloudPRs,
   subscribeToCloudDCs,
@@ -71,6 +77,9 @@ interface AppContextType {
   localPersistenceFailed: boolean;
   localScanPersistenceFailed: boolean;
   isLocalOnlyMode: boolean;
+  isDemoDeliveryMode: boolean;
+  demoDeliveryEntries: QueueEntry[];
+  demoDeliveryError: string | null;
   acknowledgeCloudSyncIssue: (id: string) => void;
   sites: SiteLocation[];
   activeTab: NavigationTab;
@@ -157,14 +166,14 @@ interface AppContextType {
   // Actions
   addNewPR: (pr: PRRecord) => boolean;
   addMultiplePRs: (records: PRRecord[]) => void;
-  updateExistingPR: (pr: PRRecord) => void;
+  updateExistingPR: (pr: PRRecord, expected: PRRecord) => boolean | Promise<boolean>;
   deletePR: (id: string) => void;
   deleteDC: (id: string) => void;
-  updateDC: (updatedDC: DCRecord) => boolean;
+  updateDC: (updatedDC: DCRecord, expected: DCRecord) => boolean;
   recordDeliveryChallan: (
     dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>, 
     fulfillmentMap: Record<string, number>
-  ) => boolean;
+  ) => boolean | Promise<boolean>;
   recordMultipleDeliveryChallans: (
     dcList: Array<{
       dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>;
@@ -213,10 +222,15 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 const STORAGE_KEY_AUTH_SESSION = 'STAR_PORTAL_AUTH_SESSION';
 
 // This opt-in is intentionally unavailable in production builds.
-const localMode = import.meta.env.DEV && import.meta.env.VITE_ALLOW_LOCAL_MODE === 'true' && !isFirebaseConfigured();
+const demoDeliveryMode = demoRequested();
+const localMode = !demoDeliveryMode && import.meta.env.DEV && import.meta.env.VITE_ALLOW_LOCAL_MODE === 'true' && !isFirebaseConfigured();
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [syncTracker] = useState(createSessionSyncTracker);
+  const [syncTracker] = useState(() => demoDeliveryMode ? new CloudSyncTracker({ getItem: () => null, setItem: () => {} }) : createSessionSyncTracker());
+  const [demoQueue, setDemoQueue] = useState<DemoOutbox | null>(null);
+  const [demoEntries, setDemoEntries] = useState<QueueEntry[]>([]);
+  const [demoError, setDemoError] = useState<string | null>(null);
+  const demoServerPR = useRef<PRRecord | undefined>(undefined);
   const syncSnapshot = useSyncExternalStore(syncTracker.subscribe, syncTracker.getSnapshot, syncTracker.getSnapshot);
   const [localPersistenceFailed, setLocalPersistenceFailed] = useState(false);
   const [localScanPersistenceFailed, setLocalScanPersistenceFailed] = useState(false);
@@ -244,15 +258,64 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       (issue.id === id || (issue.reason === 'same-number' && normalized(issue.number) === normalized(number))));
     if (blocked) throw new Error(`${collection} ${number || id} has an unresolved local/cloud difference. Cloud write was blocked.`);
   };
-  const savePRToCloud = (pr: PRRecord): Promise<void> => localMode ? Promise.resolve() : syncTracker.track(`Save PR ${pr.prNumber}`, () => { if (!isAuthenticated || !roleCanEdit(currentUser?.role)) throw new Error('Editor permission required.'); checkKnownConflict('PR', pr.id, pr.prNumber); return writePRToCloud(pr); });
-  const saveDCToCloud = (dc: DCRecord): Promise<void> => localMode ? Promise.resolve() : syncTracker.track(`Save DC ${dc.dcNumber}`, () => { if (!isAuthenticated || !roleCanEdit(currentUser?.role)) throw new Error('Editor permission required.'); checkKnownConflict('DC', dc.id, dc.dcNumber); return writeDCToCloud(dc); });
-  const deletePRFromCloud = (id: string): Promise<void> => localMode ? Promise.resolve() : syncTracker.track(`Delete PR ${id}`, () => { if (!isAuthenticated || !roleCanDelete(currentUser?.role)) throw new Error('Administrator permission required.'); checkKnownConflict('PR', id, prs.find(pr => pr.id === id)?.prNumber || ''); return removePRFromCloud(id); });
-  const deleteDCFromCloud = (id: string): Promise<void> => localMode ? Promise.resolve() : syncTracker.track(`Delete DC ${id}`, () => { if (!isAuthenticated || !roleCanDelete(currentUser?.role)) throw new Error('Administrator permission required.'); checkKnownConflict('DC', id, dcs.find(dc => dc.id === id)?.dcNumber || ''); return removeDCFromCloud(id); });
+  const savePRToCloud = (pr: PRRecord): Promise<void> => demoDeliveryMode ? Promise.reject(new Error('Legacy cloud writes are disabled in demo mode.')) : localMode ? Promise.resolve() : syncTracker.track(`Save PR ${pr.prNumber}`, () => { if (!isAuthenticated || !roleCanEdit(currentUser?.role)) throw new Error('Editor permission required.'); checkKnownConflict('PR', pr.id, pr.prNumber); return writePRToCloud(pr); });
+  const saveDCToCloud = (dc: DCRecord): Promise<void> => demoDeliveryMode ? Promise.reject(new Error('Legacy cloud writes are disabled in demo mode.')) : localMode ? Promise.resolve() : syncTracker.track(`Save DC ${dc.dcNumber}`, () => { if (!isAuthenticated || !roleCanEdit(currentUser?.role)) throw new Error('Editor permission required.'); checkKnownConflict('DC', dc.id, dc.dcNumber); return writeDCToCloud(dc); });
+  const deletePRFromCloud = (id: string): Promise<void> => demoDeliveryMode ? Promise.reject(new Error('Legacy cloud writes are disabled in demo mode.')) : localMode ? Promise.resolve() : syncTracker.track(`Delete PR ${id}`, () => { if (!isAuthenticated || !roleCanDelete(currentUser?.role)) throw new Error('Administrator permission required.'); checkKnownConflict('PR', id, prs.find(pr => pr.id === id)?.prNumber || ''); return removePRFromCloud(id); });
+  const deleteDCFromCloud = (id: string): Promise<void> => demoDeliveryMode ? Promise.reject(new Error('Legacy cloud writes are disabled in demo mode.')) : localMode ? Promise.resolve() : syncTracker.track(`Delete DC ${id}`, () => { if (!isAuthenticated || !roleCanDelete(currentUser?.role)) throw new Error('Administrator permission required.'); checkKnownConflict('DC', id, dcs.find(dc => dc.id === id)?.dcNumber || ''); return removeDCFromCloud(id); });
   // A malformed cache must stop the app rather than be replaced by a cloud snapshot.
-  const [prs, setPRs] = useState<PRRecord[]>(getPRs);
-  const [dcs, setDCs] = useState<DCRecord[]>(getDCs);
+  const [prs, setPRs] = useState<PRRecord[]>(() => demoDeliveryMode ? [syntheticPR()] : getPRs());
+  const [dcs, setDCs] = useState<DCRecord[]>(() => demoDeliveryMode ? [] : getDCs());
+  const [selectedPR, setSelectedPR] = useState<PRRecord | null>(null);
   const [cloudPRSnapshot, setCloudPRSnapshot] = useState<{ records: PRRecord[]; fromCache: boolean } | null>(null);
   const [cloudDCSnapshot, setCloudDCSnapshot] = useState<{ records: DCRecord[]; fromCache: boolean } | null>(null);
+
+  useEffect(() => {
+    if (!demoDeliveryMode) return;
+    let active = true;
+    let outbox: DemoOutbox | undefined;
+    let backend: ReturnType<typeof createProposedDemoBackend> | undefined;
+    let stopWorker: (() => void) | undefined;
+    let unsubscribePR: (() => void) | undefined;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const refresh = async () => {
+      if (!outbox) return;
+      const entries = await outbox.list();
+      if (!active) return;
+      setDemoEntries(entries);
+      const projection = projectDemoQueue(entries, demoServerPR.current);
+      setPRs(projection.prs); setDCs(projection.dcs);
+      setSelectedPR(current => current ? projection.prs.find(pr => pr.id === current.id) || current : current);
+    };
+    void (async () => {
+      try {
+        const config = demoConfig(import.meta.env, window.location.hostname);
+        outbox = await DemoOutbox.open(config.databaseName, DEMO_ACTOR);
+        if (!active) { outbox.close(); return; }
+        await refresh();
+        if (!active) { outbox.close(); return; }
+        backend = createProposedDemoBackend(config.port);
+        unsubscribePR = backend.subscribeSyntheticPR?.(record => {
+          if (!active) return;
+          demoServerPR.current = preserveDemoScans(demoServerPR.current || syntheticPR(), record);
+          void refresh().catch(() => { if (active) setDemoError('Demo queue could not be read.'); });
+        }, () => { if (active) setDemoError('Synthetic PR listener could not connect.'); });
+        setDemoQueue(outbox);
+        stopWorker = startDemoRetryWorker(outbox, backend.commit, { onlineEvents: window, onError: () => { if (active) setDemoError('Demo retry worker could not access its queue.'); } });
+        timer = setInterval(() => { void refresh().catch(() => { if (active) setDemoError('Demo queue could not be read.'); }); }, 500);
+      } catch (error) {
+        if (active) setDemoError(error instanceof Error ? error.message : 'Demo queue could not be opened.');
+      }
+    })();
+    return () => {
+      active = false;
+      if (timer) clearInterval(timer);
+      stopWorker?.();
+      unsubscribePR?.();
+      outbox?.close();
+      if (backend) void backend.close();
+    };
+  }, []);
+
   const snapshotDifferences = [
     ...(cloudPRSnapshot ? reconcileSnapshot(prs, cloudPRSnapshot.records, pr => pr.prNumber, !cloudPRSnapshot.fromCache).differences.map(issue => ({ ...issue, collection: 'PR' as const })) : []),
     ...(cloudDCSnapshot ? reconcileSnapshot(dcs, cloudDCSnapshot.records, dc => dc.dcNumber, !cloudDCSnapshot.fromCache).differences.map(issue => ({ ...issue, collection: 'DC' as const })) : [])
@@ -318,6 +381,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUser, setCurrentUser] = useState<{ username: string; role: PortalRole; displayName: string } | null>(null);
 
   useEffect(() => {
+    if (demoDeliveryMode) {
+      setIsAuthenticated(true);
+      setCurrentUser({ username: 'demo-user', role: 'editor', displayName: 'Synthetic Demo' });
+      setIsAuthLoading(false);
+      return;
+    }
     if (localMode) {
       setIsAuthenticated(true);
       setCurrentUser({ username: 'local-admin', role: 'admin', displayName: 'Local Administrator (development only)' });
@@ -456,7 +525,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Active selections
-  const [selectedPR, setSelectedPR] = useState<PRRecord | null>(null);
   const [targetDC_PR, setTargetDC_PR] = useState<PRRecord | null>(null);
   const [quickDispatchTarget, setQuickDispatchTarget] = useState<{ pr: PRRecord; items: LineItem[] } | null>(null);
   const [pendingExtractedData, setPendingExtractedData] = useState<GeminiExtractionResult | null>(null);
@@ -465,10 +533,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [duplicateInfo, setDuplicateInfo] = useState<{ isDuplicate: boolean; existingPR?: PRRecord; pendingPrNumber?: string } | null>(null);
 
   // Gemini API Key - initialize directly from storage so it is immediately available on first render
-  const [geminiApiKey, setGeminiApiKeyState] = useState<string>(() => getGeminiApiKey());
+  const [geminiApiKey, setGeminiApiKeyState] = useState<string>(() => demoDeliveryMode ? '' : getGeminiApiKey());
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || demoDeliveryMode) return;
 
     let cancelled = false;
     // Hydrate current records, not a stale snapshot captured before cloud updates.
@@ -482,32 +550,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     let unsubPR: (() => void) | null = null;
     let unsubDC: (() => void) | null = null;
+    // Baselines live only for this subscription. Never trust cached, pending or incomplete snapshots.
+    let previousPRServer: PRRecord[] | undefined;
+    let previousDCServer: DCRecord[] | undefined;
 
     if (!localMode) {
       // Subscribe only while Firebase confirms an authenticated user.
       unsubPR = subscribeToCloudPRs((cloudPRs, metadata) => {
+        if (cancelled) return;
+        const authoritative = !metadata.fromCache && !metadata.hasPendingWrites && !metadata.rejectedCount;
         if (!metadata.fromCache && !metadata.hasPendingWrites) syncTracker.resolveListener('Live PR updates stopped');
         if (metadata.rejectedCount) syncTracker.reportFailure('Some PR cloud records have invalid IDs or missing numbers');
-        else if (!metadata.fromCache && !metadata.hasPendingWrites) syncTracker.resolveListener('Some PR cloud records have invalid IDs or missing numbers');
-        setCloudPRSnapshot({ records: cloudPRs, fromCache: metadata.fromCache || Boolean(metadata.hasPendingWrites) || Boolean(metadata.rejectedCount) });
+        else if (authoritative) syncTracker.resolveListener('Some PR cloud records have invalid IDs or missing numbers');
+        setCloudPRSnapshot({ records: cloudPRs, fromCache: !authoritative });
+        const previous = previousPRServer;
+        if (authoritative) previousPRServer = cloudPRs;
+        else if (metadata.rejectedCount) previousPRServer = undefined;
         setPRs(prev => {
-          const result = reconcileSnapshot(prev, cloudPRs, pr => pr.prNumber, !metadata.fromCache);
-          if (result.added) saveAllPRs(result.records, { uploadImages: false });
+          const result = reconcileSnapshot(prev, cloudPRs, pr => pr.prNumber, authoritative, previous);
+          if ((result.added || result.updated) && !saveAllPRs(result.records, { uploadImages: false })) return prev;
           return result.records;
         });
-      }, () => syncTracker.reportFailure('Live PR updates stopped'));
+      }, () => { if (!cancelled) syncTracker.reportFailure('Live PR updates stopped'); });
 
       unsubDC = subscribeToCloudDCs((cloudDCs, metadata) => {
+        if (cancelled) return;
+        const authoritative = !metadata.fromCache && !metadata.hasPendingWrites && !metadata.rejectedCount;
         if (!metadata.fromCache && !metadata.hasPendingWrites) syncTracker.resolveListener('Live DC updates stopped');
         if (metadata.rejectedCount) syncTracker.reportFailure('Some DC cloud records have invalid IDs or missing numbers');
-        else if (!metadata.fromCache && !metadata.hasPendingWrites) syncTracker.resolveListener('Some DC cloud records have invalid IDs or missing numbers');
-        setCloudDCSnapshot({ records: cloudDCs, fromCache: metadata.fromCache || Boolean(metadata.hasPendingWrites) || Boolean(metadata.rejectedCount) });
+        else if (authoritative) syncTracker.resolveListener('Some DC cloud records have invalid IDs or missing numbers');
+        setCloudDCSnapshot({ records: cloudDCs, fromCache: !authoritative });
+        const previous = previousDCServer;
+        if (authoritative) previousDCServer = cloudDCs;
+        else if (metadata.rejectedCount) previousDCServer = undefined;
         setDCs(prev => {
-          const result = reconcileSnapshot(prev, cloudDCs, dc => dc.dcNumber, !metadata.fromCache);
-          if (result.added) saveAllDCs(result.records, { uploadImages: false });
+          const result = reconcileSnapshot(prev, cloudDCs, dc => dc.dcNumber, authoritative, previous);
+          if ((result.added || result.updated) && !saveAllDCs(result.records, { uploadImages: false })) return prev;
           return result.records;
         });
-      }, () => syncTracker.reportFailure('Live DC updates stopped'));
+      }, () => { if (!cancelled) syncTracker.reportFailure('Live DC updates stopped'); });
     }
 
     return () => {
@@ -530,11 +611,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const requireEditor = (): boolean => {
+    if (demoDeliveryMode) { window.alert('Only synthetic linked delivery is enabled in this demo.'); return false; }
     if (isAuthenticated && roleCanEdit(currentUser?.role)) return true;
     window.alert('Your portal role is read-only. An editor or administrator is required.');
     return false;
   };
   const requireAdmin = (): boolean => {
+    if (demoDeliveryMode) { window.alert('This operation is disabled in the synthetic demo.'); return false; }
     if (isAuthenticated && roleCanDelete(currentUser?.role)) return true;
     window.alert('Only a portal administrator can delete records or run destructive maintenance.');
     return false;
@@ -565,8 +648,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     records.forEach(r => savePRToCloud(r).catch(() => {}));
   };
 
-  const updateExistingPR = (updatedPR: PRRecord) => {
-    if (!requireEditor()) return;
+  const updateExistingPR = (updatedPR: PRRecord, expected: PRRecord): boolean | Promise<boolean> => {
+    if (demoDeliveryMode && (!isPREditOpen || !editingPR || editingPR.id !== updatedPR.id)) {
+      window.alert('Only the synthetic PR edit form is enabled for demo edits.');
+      return false;
+    }
+    if (demoDeliveryMode) return (async () => {
+      demoConfig(import.meta.env, window.location.hostname);
+      if (!isAuthenticated || !roleCanEdit(currentUser?.role)) throw new Error('Editor permission required.');
+      if (expected.id !== 'demo-pr-1' || updatedPR.id !== 'demo-pr-1') throw new Error('Only the synthetic PR can be edited in this demo.');
+      if (!demoQueue) throw new Error(demoError || 'The demo outbox is not ready. Keep this form open and try again.');
+      const prepared = prepareDemoPREdit(updatedPR, expected, `op-${crypto.randomUUID()}`);
+      if (prepared.review) await demoQueue.enqueueForReview(prepared.command, prepared.review, true);
+      else await demoQueue.enqueueExclusive(prepared.command);
+      try {
+        const entries = await demoQueue.list();
+        setDemoEntries(entries);
+        const projection = projectDemoQueue(entries, demoServerPR.current);
+        setPRs(projection.prs); setDCs(projection.dcs);
+        setSelectedPR(current => current ? projection.prs.find(pr => pr.id === current.id) || current : current);
+      } catch { setDemoError('Saved on this device, but queue status could not be refreshed. Do not resubmit.'); }
+      return true;
+    })();
+    if (!requireEditor()) return false;
+    const current = getPRs().filter(pr => pr.id === updatedPR.id);
+    if (expected.id !== updatedPR.id || current.length !== 1 || !sameRecordData(current[0], normalizeStoredPR(expected, 0))) {
+      window.alert('This PR changed while it was open. Your edit was not saved. Review the latest record and try again.');
+      return false;
+    }
     const updated = savePR(updatedPR);
     setPRs(updated);
     savePRToCloud(updatedPR).catch(() => {});
@@ -576,10 +685,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (editingPR && editingPR.id === updatedPR.id) {
       setEditingPR(updatedPR);
     }
+    return true;
   };
 
-  const updateDC = (updatedDC: DCRecord): boolean => {
+  const updateDC = (updatedDC: DCRecord, expected: DCRecord): boolean => {
     if (!requireEditor()) return false;
+    const current = getDCs().filter(dc => dc.id === updatedDC.id);
+    if (expected.id !== updatedDC.id || current.length !== 1 || !sameRecordData(current[0], normalizeStoredDC(expected, 0))) {
+      window.alert('This DC changed while it was open. Your edit was not saved. Review the latest record and try again.');
+      return false;
+    }
     try {
       const { updatedPRs, updatedDCs } = updateDCInStorage(updatedDC);
       setPRs(updatedPRs);
@@ -623,7 +738,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Validate the entire draft set before writing anything. This does not make cloud writes atomic.
   const confirmDeliveryPlan = (drafts: DeliveryDraft[]): boolean => {
     try {
-      const { overdeliveries } = planDeliveries(getPRs(), getDCs(), drafts);
+      const { overdeliveries } = planDeliveries(demoDeliveryMode ? prs : getPRs(), demoDeliveryMode ? dcs : getDCs(), drafts);
       if (!overdeliveries.length) return true;
       const details = overdeliveries.map(item => `${item.dcNumber} / ${item.prNumber}: ${item.item}, ${item.shipped} ${item.unit} (remaining ${item.remaining})`).join('\n');
       return window.confirm(`The following quantities exceed the remaining PR quantity:\n\n${details}\n\nRecord the actual quantities anyway?`);
@@ -636,7 +751,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const recordDeliveryChallan = (
     dcData: Omit<DCRecord, 'id' | 'createdTimestamp'>,
     fulfillmentMap: Record<string, number>
-  ): boolean => {
+  ): boolean | Promise<boolean> => {
+    if (demoDeliveryMode) {
+      return (async () => {
+        // Fail closed even if a malformed demo switch was bundled into a production build.
+        demoConfig(import.meta.env, window.location.hostname);
+        if (!isQuickDispatchOpen || !quickDispatchTarget || quickDispatchTarget.pr.id !== dcData.prId) throw new Error('Demo mode supports linked deliveries from Quick Dispatch only.');
+        if (!demoQueue) throw new Error(demoError || 'The demo outbox is not ready. Keep this form open and try again.');
+        if (!confirmDeliveryPlan([{ dcData, fulfillmentMap }])) return false;
+        const current = prs.find(pr => pr.id === dcData.prId);
+        if (quickDispatchTarget?.pr.id === dcData.prId && current && !sameRecordData(quickDispatchTarget.pr, current)) throw new Error('The synthetic PR changed while this form was open. Review it before saving.');
+        const prepared = prepareDemoDelivery(prs, dcs, dcData, fulfillmentMap, `op-${crypto.randomUUID()}`);
+        if (prepared.review) await demoQueue.enqueueForReview(prepared.command, prepared.review, true);
+        else await demoQueue.enqueueExclusive(prepared.command);
+        // The IndexedDB transaction has committed. A later status refresh failure must not
+        // make the user re-submit a successfully persisted operation with a new ID.
+        try {
+          const entries = await demoQueue.list();
+          setDemoEntries(entries);
+          const projection = projectDemoQueue(entries, demoServerPR.current);
+          setPRs(projection.prs); setDCs(projection.dcs);
+          if (selectedPR) setSelectedPR(projection.prs.find(pr => pr.id === selectedPR.id) || selectedPR);
+        } catch { setDemoError('Saved on this device, but queue status could not be refreshed. Do not resubmit.'); }
+        return true;
+      })();
+    }
     if (!requireEditor()) return false;
     if (!confirmDeliveryPlan([{ dcData, fulfillmentMap }])) return false;
     try {
@@ -945,6 +1084,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         localPersistenceFailed,
         localScanPersistenceFailed,
         isLocalOnlyMode: localMode,
+        isDemoDeliveryMode: demoDeliveryMode,
+        demoDeliveryEntries: demoEntries,
+        demoDeliveryError: demoError,
         acknowledgeCloudSyncIssue: (id: string) => syncTracker.acknowledge(id),
         sites,
         activeTab,

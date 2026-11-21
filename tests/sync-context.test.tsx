@@ -30,10 +30,12 @@ import { AppProvider, useApp } from '../src/context/AppContext';
 import { CloudSyncBanner } from '../src/components/CloudSyncBanner';
 import { saveImageToMemory } from '../src/lib/imageStorage';
 const pr = { id: 'p1', prNumber: 'PR-1', date: '2026-01-01', siteName: 'Fixture', status: 'Pending' as const, items: [], fulfillmentLogs: [], createdTimestamp: 1 };
+const dc = { id: 'd1', dcNumber: 'DC-1', invoiceNumber: 'DC-1', prNumber: '', prId: '', date: '2026-01-01', siteName: 'Fixture', itemsShipped: [], createdTimestamp: 1 };
 function Probe() {
-  const { addNewPR, updateExistingPR, pushAllToCloud, prs, recordDeliveryChallan } = useApp();
+  const { addNewPR, updateExistingPR, updateDC, pushAllToCloud, prs, recordDeliveryChallan } = useApp();
   const [bulkError, setBulkError] = useState('');
-  return <><CloudSyncBanner/><span data-testid="pr-numbers">{prs.map(p => p.prNumber).join(',')}</span><button onClick={() => addNewPR(pr)}>Add PR</button><button onClick={() => updateExistingPR({ ...pr, siteName: 'Changed locally' })}>Edit PR</button>
+  return <><CloudSyncBanner/><span data-testid="pr-numbers">{prs.map(p => p.prNumber).join(',')}</span><button onClick={() => addNewPR(pr)}>Add PR</button><button onClick={() => updateExistingPR({ ...pr, siteName: 'Changed locally' }, prs.find(p => p.id === pr.id) || pr)}>Edit PR</button><button onClick={() => updateExistingPR({ ...pr, siteName: 'Stale edit' }, pr)}>Stale edit</button>
+    <button onClick={() => updateDC({ ...dc, siteName: 'Stale edit' }, dc)}>Stale DC edit</button>
     <button onClick={() => void pushAllToCloud().catch((e: Error) => setBulkError(e.message))}>Bulk</button><span>{bulkError}</span>
     <button onClick={() => recordDeliveryChallan({ dcNumber: 'DC-1', invoiceNumber: 'DC-1', prNumber: 'PR-1', prId: 'p1', date: '2026-01-02', siteName: 'Fixture', itemsShipped: [] }, { i1: 12 })}>Record overdelivery</button></>;
 }
@@ -75,6 +77,68 @@ describe('cloud warning integration', () => {
     act(() => mocks.prUpdate?.([{ ...pr, siteName: 'Remote Site' }], { fromCache: false }));
     expect(JSON.parse(localStorage.getItem('STAR_ELECTRIC_PRS_V2')!)[0].siteName).toBe('Local Site');
     expect(screen.getByText(/PR PR-1: local and cloud details differ/)).toBeTruthy();
+  });
+  it('refreshes an unchanged local PR after a later authoritative server update', async () => {
+    localStorage.setItem('STAR_ELECTRIC_PRS_V2', JSON.stringify([pr]));
+    await start();
+    act(() => mocks.prUpdate?.([pr], { fromCache: false }));
+    act(() => mocks.prUpdate?.([{ ...pr, siteName: 'Updated remotely' }], { fromCache: false }));
+    expect(JSON.parse(localStorage.getItem('STAR_ELECTRIC_PRS_V2')!)[0].siteName).toBe('Updated remotely');
+    expect(screen.queryByText(/PR PR-1: local and cloud details differ/)).toBeNull();
+  });
+  it('retains a synthetic remote scan reference on refresh when this device has none', async () => {
+    localStorage.setItem('STAR_ELECTRIC_PRS_V2', JSON.stringify([pr]));
+    await start();
+    act(() => mocks.prUpdate?.([pr], { fromCache: false }));
+    act(() => mocks.prUpdate?.([{ ...pr, siteName: 'Updated remotely', documentImage: 'indexeddb:unresolved-synthetic' }], { fromCache: false }));
+    const record = JSON.parse(localStorage.getItem('STAR_ELECTRIC_PRS_V2')!)[0];
+    expect(record.documentImage).toBe('indexeddb:unresolved-synthetic');
+    expect(record.siteName).toBe('Updated remotely');
+  });
+  it('rejects a stale open PR edit after the cache has refreshed', async () => {
+    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    localStorage.setItem('STAR_ELECTRIC_PRS_V2', JSON.stringify([pr]));
+    await start();
+    act(() => mocks.prUpdate?.([pr], { fromCache: false }));
+    act(() => mocks.prUpdate?.([{ ...pr, siteName: 'Updated remotely' }], { fromCache: false }));
+    act(() => screen.getByRole('button', { name: 'Stale edit' }).click());
+    expect(alert).toHaveBeenCalledWith(expect.stringContaining('changed while it was open'));
+    expect(JSON.parse(localStorage.getItem('STAR_ELECTRIC_PRS_V2')!)[0].siteName).toBe('Updated remotely');
+    expect(mocks.savePR).not.toHaveBeenCalled();
+  });
+  it('preserves an unsynced local edit when another device changes the same PR', async () => {
+    localStorage.setItem('STAR_ELECTRIC_PRS_V2', JSON.stringify([pr]));
+    mocks.savePR.mockImplementation(() => new Promise<void>(() => {}));
+    await start();
+    act(() => mocks.prUpdate?.([pr], { fromCache: false }));
+    act(() => screen.getByRole('button', { name: 'Edit PR' }).click());
+    act(() => mocks.prUpdate?.([{ ...pr, siteName: 'Changed remotely' }], { fromCache: false }));
+    expect(JSON.parse(localStorage.getItem('STAR_ELECTRIC_PRS_V2')!)[0].siteName).toBe('Changed locally');
+    expect(screen.getByText(/PR PR-1: local and cloud details differ/)).toBeTruthy();
+  });
+  it('refreshes an unchanged local DC after a later server update and rejects an old form', async () => {
+    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    localStorage.setItem('STAR_ELECTRIC_DCS_V2', JSON.stringify([dc]));
+    await start();
+    act(() => mocks.dcUpdate?.([dc], { fromCache: false }));
+    act(() => mocks.dcUpdate?.([{ ...dc, siteName: 'Updated remotely' }], { fromCache: false }));
+    expect(JSON.parse(localStorage.getItem('STAR_ELECTRIC_DCS_V2')!)[0].siteName).toBe('Updated remotely');
+    act(() => screen.getByRole('button', { name: 'Stale DC edit' }).click());
+    expect(alert).toHaveBeenCalledWith(expect.stringContaining('changed while it was open'));
+    expect(JSON.parse(localStorage.getItem('STAR_ELECTRIC_DCS_V2')!)[0].siteName).toBe('Updated remotely');
+    expect(mocks.saveDC).not.toHaveBeenCalled();
+  });
+  it('does not replace local data from pending or incomplete server updates', async () => {
+    localStorage.setItem('STAR_ELECTRIC_PRS_V2', JSON.stringify([pr]));
+    await start();
+    act(() => mocks.prUpdate?.([pr], { fromCache: false }));
+    act(() => mocks.prUpdate?.([{ ...pr, siteName: 'Pending' }], { fromCache: false, hasPendingWrites: true }));
+    expect(JSON.parse(localStorage.getItem('STAR_ELECTRIC_PRS_V2')!)[0].siteName).toBe('Fixture');
+    act(() => mocks.prUpdate?.([{ ...pr, siteName: 'Incomplete' }], { fromCache: false, rejectedCount: 1 }));
+    expect(JSON.parse(localStorage.getItem('STAR_ELECTRIC_PRS_V2')!)[0].siteName).toBe('Fixture');
+    // An invalid snapshot invalidates the old baseline; a later one must not overwrite the cache.
+    act(() => mocks.prUpdate?.([{ ...pr, siteName: 'After incomplete' }], { fromCache: false }));
+    expect(JSON.parse(localStorage.getItem('STAR_ELECTRIC_PRS_V2')!)[0].siteName).toBe('Fixture');
   });
   it('blocks ordinary cloud writes for a known conflict while preserving the local edit', async () => {
     localStorage.setItem('STAR_ELECTRIC_PRS_V2', JSON.stringify([{ ...pr, siteName: 'Local Site' }]));

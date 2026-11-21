@@ -122,7 +122,7 @@ export const DCEditModal: React.FC = () => {
       itemsShipped: shippedItems
     };
 
-    if (!updateDC(updatedDC)) return;
+    if (!updateDC(updatedDC, editingDC)) return;
     setIsDCEditOpen(false);
     setEditingDC(null);
   };

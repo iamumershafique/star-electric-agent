@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   Cloud, 
@@ -17,12 +17,11 @@ import {
 import { 
   getDriveFolderConfig, 
   saveDriveFolderConfig, 
-  parseDriveLinksText, 
-  syncDriveScansWithAI, 
-  RECENT_DRIVE_SCANS,
+  syncDriveInputsWithAI,
+  extractDriveId,
+  DriveInputError,
   KNOWN_SCAN_FOLDERS,
-  type DriveFolderConfig, 
-  type DriveScannedFile 
+  type DriveFolderConfig
 } from '../lib/driveSyncService';
 
 interface DriveSyncModalProps {
@@ -31,21 +30,23 @@ interface DriveSyncModalProps {
 }
 
 export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose }) => {
-  const { prs, dcs, setDCs, geminiApiKey, saveDCToCloud, canEdit } = useApp();
+  const { prs, dcs, setDCs, geminiApiKey, saveDCToCloud, canEdit, isDemoDeliveryMode } = useApp();
 
-  const [config, setConfig] = useState<DriveFolderConfig>(getDriveFolderConfig());
+  const [config, setConfig] = useState<DriveFolderConfig>(() => ({ ...getDriveFolderConfig(), autoSyncEnabled: false }));
   const [pastedLinks, setPastedLinks] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
+  const running = useRef(false);
+  const [pollConfig, setPollConfig] = useState<DriveFolderConfig>(() => ({ ...getDriveFolderConfig(), autoSyncEnabled: false }));
+  const pollAction = useRef<() => void>(() => {});
   const [syncProgress, setSyncProgress] = useState<{ current: number; total: number; message: string; dcNumber?: string } | null>(null);
   const [syncLogs, setSyncLogs] = useState<string[]>([]);
-  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'warning' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setConfig(getDriveFolderConfig());
-      setStatusMessage(null);
+      setConfig({ ...getDriveFolderConfig(), autoSyncEnabled: pollConfig.autoSyncEnabled });
     }
-  }, [isOpen]);
+  }, [isOpen, pollConfig.autoSyncEnabled]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -57,73 +58,67 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, isSyncing, onClose]);
 
-  if (!isOpen) return null;
-
   const handleSaveConfig = () => {
     saveDriveFolderConfig(config);
+    setPollConfig({ ...config });
     setStatusMessage({ type: 'success', text: 'Google Drive configuration saved successfully.' });
   };
 
-  const handleStartSync = async (filesToSync?: DriveScannedFile[]) => {
-    if (!canEdit) { setStatusMessage({ type: 'error', text: 'An editor or administrator is required to sync records.' }); return; }
+  const handleStartSync = async (polling = false) => {
+    if (running.current) return;
+    if (!canEdit || isDemoDeliveryMode) { setStatusMessage({ type: 'error', text: 'Drive sync is unavailable in this mode or without editor access.' }); return; }
+    running.current = true;
     setIsSyncing(true);
     setStatusMessage(null);
     setSyncLogs([]);
-
     try {
-      let targetFiles = filesToSync || [];
-
-      // If no explicit files passed, parse any pasted links or prepare folder scans
-      if (targetFiles.length === 0) {
-        if (pastedLinks.trim()) {
-          targetFiles = parseDriveLinksText(pastedLinks);
-        } else {
-          // Pre-mapped DC Scans 694 to 740 in Google Drive
-          targetFiles = RECENT_DRIVE_SCANS;
-        }
-      }
-
-      if (targetFiles.length === 0) {
-        throw new Error('Please paste at least one Google Drive scan link or file ID to sync.');
-      }
-
-      const res = await syncDriveScansWithAI({
-        scannedFiles: targetFiles,
+      const activeConfig = polling ? pollConfig : config;
+      const res = await syncDriveInputsWithAI({
+        links: polling ? '' : pastedLinks,
+        selectedFolder: activeConfig.folderId,
         currentDCs: dcs,
         currentPRs: prs,
         geminiApiKey,
-        autoRescanOnImageChange: config.autoRescanOnImageChange,
-        onProgress: (p) => setSyncProgress(p)
+        autoRescanOnImageChange: activeConfig.autoRescanOnImageChange,
+        onProgress: p => setSyncProgress(p)
       });
-
       setSyncLogs(res.logs);
-
-      if (res.updatedDCs.length > 0) {
-        setDCs(res.updatedDCs);
-        // Persist newly added/updated DCs to Firestore
-        res.updatedDCs.forEach(dc => {
-          const original = dcs.find(d => d.id === dc.id);
-          if (!original || original.documentImage !== dc.documentImage || original.driveFileId !== dc.driveFileId) {
-            saveDCToCloud(dc).catch(err => console.error('[DriveSync] Firestore update error:', err));
-          }
-        });
+      const changed = res.updatedDCs.filter(dc => !dcs.includes(dc));
+      if (changed.length) {
+        setDCs(current => [...current.filter(dc => !changed.some(item => item.id === dc.id)), ...changed]);
+        const writes = await Promise.allSettled(changed.map(dc => saveDCToCloud(dc)));
+        if (writes.some(result => result.status === 'rejected')) {
+          setStatusMessage({ type: 'error', text: 'Local processing finished, but one or more cloud saves failed. Verify the records before retrying.' });
+          return;
+        }
       }
-
-      setStatusMessage({
-        type: 'success',
-        text: `Sync complete! Added: ${res.addedCount}, Updated (Scan Replaced): ${res.updatedCount}, Unchanged: ${res.unchangedCount}`
-      });
-      setPastedLinks('');
-    } catch (err: any) {
-      setStatusMessage({
-        type: 'error',
-        text: err?.message || 'Drive sync encountered an error.'
-      });
+      const counts = `${res.attemptedCount} attempted, ${res.failedCount} failed, ${res.addedCount} added.`;
+      if (res.attemptedCount === 0) setStatusMessage({ type: 'warning', text: 'Folder is empty or contains no supported scan files — 0 attempted, 0 failed, 0 added.' });
+      else if (res.failedCount === res.attemptedCount) setStatusMessage({ type: 'error', text: `Sync failed — ${counts}` });
+      else if (res.failedCount) setStatusMessage({ type: 'warning', text: `Sync partially failed — ${counts}` });
+      else setStatusMessage({ type: 'success', text: `Sync complete — ${counts} ${res.updatedCount} updated, ${res.unchangedCount} unchanged.` });
+      if (!res.failedCount && !polling) setPastedLinks('');
+    } catch (error) {
+      const detail = error instanceof DriveInputError ? `${error.message}${error.status ? ` (HTTP ${error.status})` : ''}` : 'Drive sync could not be completed.';
+      setSyncLogs([detail]);
+      const counts = error instanceof DriveInputError && (error.kind === 'input' || error.kind === 'configuration') ? '0 attempted, 0 failed, 0 added.' : '1 attempted, 1 failed, 0 added.';
+      setStatusMessage({ type: 'error', text: `Sync failed — ${counts} ${detail}` });
     } finally {
+      running.current = false;
       setIsSyncing(false);
       setSyncProgress(null);
     }
   };
+  // Polling and manual submissions use the same resolver and engine, with no daemon.
+  useEffect(() => { pollAction.current = () => { void handleStartSync(true); }; });
+  useEffect(() => {
+    if (!pollConfig.autoSyncEnabled || !canEdit || isDemoDeliveryMode) return;
+    const interval = Math.max(1, pollConfig.pollIntervalMinutes) * 60_000;
+    const timer = window.setInterval(() => pollAction.current(), interval);
+    return () => window.clearInterval(timer);
+  }, [pollConfig, canEdit, isDemoDeliveryMode]);
+
+  if (!isOpen) return null;
 
   return (
     <div
@@ -172,7 +167,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
             className={`p-3 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
               statusMessage.type === 'success'
                 ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                : 'bg-rose-50 border-rose-200 text-rose-800'
+                : statusMessage.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-rose-50 border-rose-200 text-rose-800'
             }`}
           >
             {statusMessage.type === 'success' ? (
@@ -211,7 +206,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
               Target Google Drive Folder ID / URL
             </label>
             <a 
-              href={`https://drive.google.com/drive/folders/${config.folderId}`} 
+              href={`https://drive.google.com/drive/folders/${extractDriveId(config.folderId) || ''}`}
               target="_blank" 
               rel="noreferrer"
               className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
@@ -222,6 +217,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
 
           <div className="flex gap-2">
             <select
+              aria-label="Choose target Drive folder"
               value={config.folderId}
               onChange={(e) => setConfig({ ...config, folderId: e.target.value })}
               className="px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-semibold focus:outline-none focus:border-blue-500 shadow-2xs cursor-pointer max-w-[200px]"
@@ -234,6 +230,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
               type="text"
               value={config.folderId}
               onChange={(e) => setConfig({ ...config, folderId: e.target.value })}
+              aria-label="Target Drive folder ID or URL"
               placeholder="e.g. 1QirE97-gMrqZ5kQT_hZZGmRFB-efREro"
               className="flex-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs font-mono font-semibold focus:outline-none focus:border-blue-500 shadow-2xs"
             />
@@ -284,6 +281,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
             <span className="text-[11px] text-slate-500 font-medium">Paste Drive file / folder URLs or IDs</span>
           </label>
           <textarea
+            aria-label="Drive file or folder links"
             rows={3}
             value={pastedLinks}
             onChange={(e) => setPastedLinks(e.target.value)}
@@ -295,7 +293,7 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
         {/* Action Button */}
         <button
           type="button"
-          onClick={() => handleStartSync()}
+          onClick={() => void handleStartSync()}
           disabled={isSyncing}
           className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-sm shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60"
         >
@@ -317,11 +315,10 @@ export const DriveSyncModal: React.FC<DriveSyncModalProps> = ({ isOpen, onClose 
         <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1 font-medium">
           <div className="flex items-center gap-1.5 font-bold text-amber-950">
             <Clock className="w-3.5 h-3.5 text-amber-700" />
-            <span>24/7 Automated Background Daemon</span>
+            <span>Browser background polling</span>
           </div>
           <p className="text-[11px] text-amber-800">
-            To watch Google Drive continuously in the background on your computer or server without keeping the browser tab open, run:
-            <code className="block mt-1 p-1.5 rounded bg-amber-100 text-slate-900 font-mono text-[11px]">npm run drive:watch</code>
+            Explicitly enable and save polling to monitor the selected folder for this tab session; it does not restart automatically. Polling uses the same Drive lookup as manual sync. The separate legacy daemon is not part of this path.
           </p>
         </div>
 
